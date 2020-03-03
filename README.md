@@ -1,5 +1,5 @@
 # KEXX
-KEDIT macro collection
+*KEDIT macro collection*
 
 This is a copy of [purl.net/xyzzy/kex][2011] as it was or should have been in November 2011, i.e., the last known good local `inetput/ftproot/kex` folder content with ***.kex*** (KEXX), ***.kml*** (KEDIT Macro Library), one ***.cmd*** (NT shell), two ***rex*** ([Rexx](https://github.com/frank-e/rexx-fan "rexx-fan")), and three ***.zip*** (archive) files.
 
