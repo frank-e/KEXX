@@ -1,0 +1,59 @@
+:::
+*  Usage:   DEFine A-BLOCK.KML
+*  Purpose: Improve the default A-B, A-L, and A-Z macros for cases,
+*           when an existing (out of sight) block is extended, but
+*           the intended effect was to mark a new block.
+*
+* This experimental Kedit Macro Library redefines A-B, A-L, and A-Z
+* used to mark Box, Line, or Stream blocks.  The default keys just
+* use command MARK Box / Line / Stream to create a new block, or to
+* convert and "extend" an existing block in the same file.  Within
+* an existing block "extend" boils down to shrink the block in some
+* fashion.
+* This is all fine, unless the intention was to start a new block,
+* and the result is an extended old block, as it can happen if the
+* old block was out of sight from the focus position.  One way to
+* fix this is to reset (unmark) the unwanted block with A-U, and to
+* press A-B, A-L, or A-Z again.
+* Another way might be to press A-B, A-L, or A-Z again without an
+* explicit A-U, and to use the RESET option of command MARK if some
+* conditions are met:
+* (1) The pressed key has to match the last key pressed before,
+*     e.g., block conversions (Box to Line or Stream, etc.) should
+*     not reset the original block.
+* (2) The focus is within a block, otherwise the default "extend
+*     block" behaviour can be the intended effect.
+* (3) The focus is at the "edge" of an existing block as the result
+*     of the same last key pressed before.  For a BOX block this is
+*     one of the four corners, for a STREAM block it's the start or
+*     end position, and for a LINE block it's the start or end line.
+* (4) If a position at the "edge" of an existing block was NOT the
+*     result of the same last key pressed before, then command MARK
+*     without RESET would have the same effect as a MARK with RESET.
+*     IOW, just add RESET, it should make no difference as long as
+*     conditions (1), (2), and (3) hold.
+:::
+*A-B, A-L, A-Z: MARK Box, Line, or Stream block (default behaviour).
+*A-B, A-L, A-Z pressed again resets the block to one char. or line.
+:A-B
+   parse arg BLOCK   ;  if BLOCK = ''  then  BLOCK = 'Box'
+   if lastkey.1( 1 ) = lastkey.1( 2 )  then  do
+      if ATEDGE()                      then  BLOCK = BLOCK 'RESET'
+   end
+   'mark' BLOCK      ;  return rc
+ATEDGE:
+   if inblock() = 0                                   then  return 0
+   if block.1() = 'LINE'   & block.2() = line.1()     then  return 1
+   if block.1() = 'LINE'   & block.4() = line.1()     then  return 1
+   if block.1() = 'LINE'                              then  return 0
+   if block.2() = line.1() & block.3() = column.1()   then  return 1
+   if block.4() = line.1() & block.5() = column.1()   then  return 1
+   if block.1() = 'STREAM'                            then  return 0
+   if block.2() = line.1() & block.5() = column.1()   then  return 1
+   if block.4() = line.1() & block.3() = column.1()   then  return 1
+   if block.1() = 'BOX'                               then  return 0
+   'emsg macro A-B assertion BOX =' block.1() 'failed'   ;  exit 4
+:A-L
+   'macro A-B Line'
+:A-Z
+   'macro A-B Stream'

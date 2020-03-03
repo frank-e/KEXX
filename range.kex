@@ -1,0 +1,38 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         MACRO RANGE [all|range|*]                       */
+/* Example:       MACRO RANGE BLOCK                special case   */
+/*                MACRO RANGE ALL                  added feature  */
+/* Purpose:       'SET RANGE from to' interprets two line targets */
+/*                as edit range.  Anything else excl. the special */
+/*                case 'SET RANGE BLOCK' is handled as error.     */
+/*                'MACRO RANGE' lets 'SET RANGE' handle arguments */
+/*                as is with four exceptions:                     */
+/*                'ALL' is handled as  'SET RANGE :0 *'           */
+/*                ''    is handled as  'MOD RANGE'                */
+/*                '*'   is handled as  'SYN RANGE 3 macro range'  */
+/*                'PARA' or longer truncations of 'PARAGRAPH' are */
+/*                also emulated (same idea as for ALL and BLOCK). */
+/*                A synonym for RANGE disables the implicit 'SET' */
+/*                for 'RANGE' on the command line.                */
+/* See also:      KHelp RANge, KHelp SYNonym, KHelp MODify        */
+/* Requires:      Kedit 5.0 or KeditW 1.x (Frank Ellermann, 2014) */
+
+   arg ONE
+   if       ONE = ''       then  'MOD RANge'
+   else  if ONE = '*'      then  'SYN RANge 3 macro range'
+   else  if ONE = 'ALL'    then  'set RANge :0 *'
+   else  if abbrev( 'PARAGRAPH ', ONE, 4 )  then  do
+      ONE = line.2()          ;  'nomsg locate :0'
+      do until line.1() > ONE | rc <> 0
+         R.1 = line.1()       ;  'nomsg locate paragraph'
+      end
+      R.2 = line.1()
+      ERR = rc                ;  'nomsg locate :' ONE
+      if ERR = 0 | ERR = 1 then  'set RANge :' R.1 ':' R.2
+      else  do                   /* show 'locate paragraph' error */
+         'emsg' lastmsg.1()   ;  exit ERR
+      end
+   end
+   else                          'set RANge' arg( 1 )
+   exit rc

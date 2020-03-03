@@ -409,7 +409,7 @@
 *Home nearly as usual, but if already at home propose to SAVE
 :Home
    if command() & first() then do
-      FIDO = '"' || fileid.1() '"'
+      FIDO = '"' || fileid.1() || '"'
       if words( fileid.1()) = 1  then  FIDO = fileid.1()
       if      ft.1() = 'KEX'  then 'nomsg purge "' || fn.1() || '"'
       if  fileid.1() <> efileid.1() | alt.2() > 0 then 'cmsg SAVE'
@@ -417,6 +417,7 @@
       else if ft.1() = 'CMD'  then 'cmsg DOS CMD /c' FIDO
       else if ft.1() = 'DIR'  then 'macro c-x'
       else if ft.1() = 'REX'  then 'cmsg DOS CMD /c' FIDO
+      else if ft.1() = 'KLD'  then 'cmsg parser' fn.1() FIDO
       else if ft.1() = 'KML'  then 'cmsg DEF' FIDO
       else if ft.1() = 'HTM'  then 'cmsg macro netscape'
       else if ft.1() = 'HTML' then 'cmsg macro netscape'
@@ -661,6 +662,15 @@ ALT:  procedure
 :::
 * --- miscellaneous shorthands ----------------------------------------
 :::
+*AUX shorthand for UNTITLED.kex until I create a better AUX.kex
+:AUX
+   'macro untitled' arg( 1 )  ;  exit rc
+:::
+*BROWSE is a not yet documented quick and dirty FLOW ALL hack
+:BROWSE
+   MAR = '"mar 2 79 -1"; "flow all"; "mar"'
+   'imm GINS=mar.1() mar.2() mar.3();' MAR 'GINS'
+:::
 *DAY display date + weekday, any arg.: input sortable timestamp
 :DAY
    parse value date('s') date('w') time.2() with Y 5 M 7 D 9 W X
@@ -696,7 +706,9 @@ ALT:  procedure
 *LASTMSG with any argument puts the message in the command line
 :LASTMSG
    if arg() then 'cmsg' lastmsg.1()
-   'dialog' delimit( lastmsg.1()) 'title /LASTMSG/'
+   N = delimit( lastmsg.1()) 'title /LASTMSG/'
+   if version.1() <> 'KEDIT'  then  N = N 'FIXED'
+   'dialog' N
 :::
 *NAME renames currently edited (in memory) file also on disk
 :NAME

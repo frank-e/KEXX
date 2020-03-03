@@ -43,8 +43,10 @@
          then  CDD.? = CDD.? || '.'    /* drive's current dir. */
    end
 
-   CDD.! = CDD.?                       /* new CDD.!, old CDD.? */
-   CDD.? = directory.1()            ;  'nomsg chd' CDD.!
+   CDD.! = CDD.?                    ;  CDD.? = directory.1()
+   if words( CDD.! ) = 1               /* DOS KEDIT 5 does not */
+      then  'nomsg chd'      CDD.!     /* support quoted paths */
+      else  'nomsg chd "' || CDD.! || '"'
    if rc <> 0  then  do
       CDD.! = rc                    ;  'emsg directory' CDD.?
       exit CDD.!                       /* shows old directory  */

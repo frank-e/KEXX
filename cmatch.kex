@@ -1,7 +1,7 @@
 'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
 
 /* Usage:         MACRO CMATCH                                    */
-/* Example:       DEF S-F3 MACRO CMATCH                           */
+/* Example:       DEF S-F3 'MACRO CMATCH'                         */
 /*                SYNONYM CMATCH MACRO CMATCH                     */
 /* Purpose:       Use Kedit's CMATCH command for REXX and XHTML.  */
 /* Background:    Kedit's CMATCH matches pairs of nested braces,  */
@@ -50,14 +50,27 @@
 /*                S+F3 in KeditW terminology).  Command CMATCH is */
 /*                in practice only used with a key, and it is not */
 /*                required to create SYNONYM CMATCH MACRO CMATCH. */
+/* Updated 2017:  Use a KeditW32 Language Definition if coloring  */
+/*                is ON excl. the built-in parsers NULL and HTML. */
+/*                See KHELP for COLORING, PARSER, CMATCH.         */
 /* See also:      KHELP WORD, KHELP BACKUP, KHELP CMATCH          */
 /* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
 
+   do until 1
+      if version.1() = 'KEDIT'            then  leave
+      if version.2() < 1.5                then  leave
+      if coloring.1() = 'OFF'             then  leave
+      if DONTUSE( '*NULL.KLD *HTML.KLD' ) then  leave
+         'command cmatch'                    ;  exit rc
+      end
+   end
    if sign( wordpos( translate( focusword.1()), 'DO SELECT END' ))
       then exit RMATCH()
    if sign( wordpos( focusword.1(), 'div pre ol ul p' ))
       then exit XMATCH( focusword.1())
-   'command cmatch' ;  exit rc
+   'command cmatch'                          ;  exit rc
+
+DONTUSE: return sign( pos( parser.2( coloring.3()), arg( 1 )))
 
 RMATCH:  procedure
    ROW = line.1() ;  COL = column.1()        ;  BAK = '=:=\=.bak'

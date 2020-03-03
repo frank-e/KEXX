@@ -365,14 +365,12 @@ MANYMOD:    procedure   /* --- common MOD operands in any version */
 
 MANYSET:    procedure   /* --- common SET operands in any version */
    parse arg L R     ;  if SETERR( R ) then  return 0
-   ERR = lastmsg.1() ;  'nomsg query' R   /* Query Point can fail */
-   OPD = lastmsg.1()                      /* -------------------- */
-   if       rc = 0 & ERR <> OPD  then  OPD = word( OPD, 1 )
-   else  if rc = 0 & ERR == OPD  then  OPD = MATCH( R, 'Point' )
-   else  if rc = 5   then  do             /* KeditW 1.0 Error 213 */
-      ERR = MATCH( R, 'MOUSETEXT SCReen' )
-      if ERR > '' then  OPD = ERR         /* known KeditW 1.0 213 */
-                  else  parse var OPD "Error 213: 'QUERY " OPD "'"
+   OPD = MATCH( R, 'AUTOCOLOR PARSER Point' )
+   if OPD > '' then  return KNOW2( L, OPD )
+   'nomsg query' R   ;  OPD = lastmsg.1() /* QUERY uses long name */
+   if       rc = 0   then  OPD = word( OPD, 1 )
+   else  if rc = 5 & abbrev( OPD, "Error 213: 'QUERY " ) then  do
+      parse var OPD "Error 213: 'QUERY " OPD "'"
    end                                    /* -------------------- */
    else  OPD = ''    ;  if OPD <> ''   then  return KNOW2( L, OPD )
    exit UNEXPECTED( rc, 'QUERY' R )       /* => bug or KeditW 1.5 */
@@ -392,6 +390,10 @@ UNEXPECT.2: procedure   /* --- KEXPAND bug for KeditW 1.5 feature */
    'alert' ALERT.1 'title' ALERT.2 FIX ;  exit max( 4, ERR )
 
 DELIMITS:   procedure   /* --- delimiters used as implicit Locate */
+   DEBUG = debugging.1()               ;  'debugging off'
+   DELIM = DELIMI.S( arg( 1 ))         ;  'debugging' DEBUG
+   return DELIM                           /***** trusted code *****/
+DELIMI.S:   procedure   /* --- delimiters used as implicit Locate */
    S = ''                              ;  D = delimit( S )
    do while D <> ''
       S = S right( D, 1 )              ;  D = delimit( S )

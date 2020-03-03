@@ -1,0 +1,114 @@
+* Keditw32 1.6.x syntax coloring for LUA 5.3 with some deficits:
+
+* 1) Labels :: NAME :: not matched, but TK_DBCOLON :: is colored.
+* 2) Long strings start with a [[, [=[, [==[, etc. and end with a
+*    a matching ]], ]=], ]==], etc.  Keditw32 Language Definitions
+*    support only identical delimiters for strings.  CAVEAT: Only
+*    long strings with at most one = are colored as long comments.
+* 3) Long comments are long strings immediately following --, e.g.,
+*    --[[ COMMENT ]].  For comments at most four = are supported,
+*    because Keditw32 permits only up to eight comment definitions.
+* 4) An END belonging to a FOR .. DO or WHILE .. DO matches the DO
+*    instead of the FOR or WHILE; good enough for syntax coloring.
+* 5) C syntax works for numerals, e.g., 161, 0.161e3, 0xA1.  The
+*    Lua syntax for hex. floats or binary exponents, e.g., 0x0.1E
+*    or 0xA23p-4, is also colored as number (TBD: why? It's no C).
+* 6) SELF is colored as keyword, but it is no keyword.
+
+:case
+ ignore
+:comment
+*paired long comments with at most four =
+ paired --[====[ ]====] nonest
+ paired --[===[   ]===] nonest
+ paired --[==[     ]==] nonest
+ paired --[=[       ]=] nonest
+ paired --[[         ]] nonest
+*simple rest of line comment
+ line   --              any
+*long strings with at most one = colored as comment
+ paired   [=[       ]=] nonest
+ paired   [[         ]] nonest
+:identifier
+*cover keywords (excl. postcompare)
+ [A-Z_a-z]      [0-9A-Z_a-z]
+:keyword
+*break                  (sub-keyword of FOR, REPEAT, WHILE)
+ break
+*do                     (maybe sub-keyword of FOR or WHILE)
+ do
+*else                   (sub-keyword of IF .. THEN .. )
+ else
+*elseif                 (sub-keyword of IF .. THEN .. )
+ elseif
+*end                    (sub-keyword of DO, FOR, FUNCTION, IF, WHILE)
+ end
+ for
+ function
+ goto
+ if
+*in                     (sub-keyword of FOR .. IN .. )
+ in
+ local
+ repeat
+ return
+*then                   (sub-keyword of IF .. THEN .. )
+ then
+*until                  (sub-keyword of REPEAT .. UNTIL ..)
+ until
+ while
+*constants and operators
+ and
+ false
+ nil
+ not
+ or
+ true
+*SELF is no keyword, add it anyway
+ self
+:match
+ (    )
+ {    }
+ [    ]
+ do,function,if end     then,elseif,else
+ repeat         until
+:number
+*C exponential notation
+ C
+:string
+*expect escaped lineend in strings:
+ single         backslash multiline
+ double         backslash multiline
+:postcompare
+*See 'ecolor': 9 blue (like keywords), 8 black, 6 dark cyan (strings), 1 red.
+*The sort order is significant, anything already handled above does not work,
+*e.g., most strings, identifiers, keywords, and comments are already colored.
+
+*TK_DOTS ... before TK_CONCAT ..
+ text ...       alternate 9
+ text ..        alternate 9
+ text //        alternate 9
+ text <<        alternate 9
+ text <=        alternate 9
+ text ==        alternate 9
+ text ~=        alternate 9
+ text >=        alternate 9
+ text >>        alternate 9
+*blue TK_DBCOLON for labels
+ text ::        alternate 9
+*blue for # operator
+ text #         alternate 9
+*red for invalid specials
+ class [!$?@`]  alternate 1
+ text \         alternate 1
+*red controls and non-ASCII
+ class [~!-~]   alternate 1
+*red unmatched long strings
+ text [==[      alternate 1
+ text ]==]      alternate 1
+ text [===[     alternate 1
+ text ]===]     alternate 1
+ text [====[    alternate 1
+ text ]====]    alternate 1
+ text [=====    alternate 1
+ text =====]    alternate 1

@@ -35,6 +35,7 @@
 /*                <URL:http://purl.net/xyzzy/kex/kexpath.kex>     */
 /* Requires:      macros KEXPAND.KEX and KEXPATH.KEX              */
 /*                Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+/*                KeditW32 1.6 (work in progress, 1.5 not tested) */
 
 /* BASE           insert <base href="URL" /> in local XHTML copy  */
 /* BINARY         edit binaries using LRECL based on window width */
@@ -93,9 +94,11 @@
 /* NBSP           convert blanks in marked block to XHTML &#160;  */
 /* NETSCAPE       view the focus URL with your favourite browser  */
 /* OEMKEY         OEMKEY.KML header for KEYB GR key modifications */
+/* PARSER       * (Kedit32) simplify SET PARSER NAME NAME.KLD     */
 /* PROFILE      * KHELP.KEX allows normal 'command khelp profile' */
 /* Query operand  expands operand for KHELP QUERY/EXTRACT operand */
 /* QX             simplified XQ.KEX and RELOAD.KEX samples macros */
+/* RANGE        * support RANGE ALL in addition to RANGE BLOCK    */
 /* REXX           edit REXX script or copy REXXTRAP.CMD stuff     */
 /* REXXTRAP       update REXXTRAP.CMD functions in *.CMD scripts  */
 /* RING         * DIR currently edited files TAGging modified     */
@@ -130,6 +133,7 @@
 /* XID            x =:=\x.= or x =:=\x.y, for XID .y edit =:=\=.y */
 /* XLAT           858, 1252, UTF-4, UTF-8, and UTF-16 conversions */
 /* XMLCHECK       check that XML or XHTML file is well formed XML */
+/* XPM            check, simplify, or convert XPM2 & XPM3 images  */
 /* XTREE          DIR all subdirecories TAGging empty directories */
 /* XX             XEDIT file with name completion (DIR ambiguous) */
 /* ZIP            edit preselected files (e.g. here: ZIP manuals) */
@@ -175,23 +179,24 @@
    S = S space( '+1 LONGEST      -3 MEMORY       -1 MONITOR      ' )
    S = S space( '+1 MONO         -1 MSGLINE      +1 MUSTARD      ' )
    S = S space( '+5 NAME         +1 NBSP         +1 NETSCAPE     ' )
-   S = S space( '+6 OEMKEY       -3 PROFILE      +1 QX           ' )
-   S = S space( '-1 REXX         +1 REXXTRAP     -1 RING         ' )
-   S = S space( '+1 RW           +1 RXHELP       +4 S-STAR       ' )
-   S = S space( '-5 SAY          +3 SEQBOX       +5 START        ' )
-   S = S space( '-1 STATUS       +1 TALL         -1 TIME         ' )
-   S = S space( '-1 TRACE        +1 TREE         +1 UNBLANK      ' )
-   S = S space( '+1 UNESCAPE     +1 UNIX         +5 UNTITLED     ' )
-   S = S space( '+1 UTF          +1 VI           +1 WINDOWS      ' )
-   S = S space( '-1 WINHELP      +1 WINK         -1 WMSG         ' )
-   S = S space( '+5 WO           +1 X-WIKI       +1 XD           ' )
-   S = S space( '+1 XDIR         +1 XHTML        +5 XID          ' )
-   S = S space( '+1 XLAT         +1 XMLCHECK     +1 XTREE        ' )
+   S = S space( '+6 OEMKEY       -1 PARSER       -3 PROFILE      ' )
+   S = S space( '+1 QX           -1 RANGE        -1 REXX         ' )
+   S = S space( '+1 REXXTRAP     -1 RING         +1 RW           ' )
+   S = S space( '+1 RXHELP       +4 S-STAR       -5 SAY          ' )
+   S = S space( '+3 SEQBOX       +5 START        -1 STATUS       ' )
+   S = S space( '+1 TALL         -1 TIME         -1 TRACE        ' )
+   S = S space( '+1 TREE         +1 UNBLANK      +1 UNESCAPE     ' )
+   S = S space( '+1 UNIX         +5 UNTITLED     +1 UTF          ' )
+   S = S space( '+1 VI           +1 WINDOWS      -1 WINHELP      ' )
+   S = S space( '+1 WINK         -1 WMSG         +5 WO           ' )
+   S = S space( '+1 X-WIKI       +1 XD           +1 XDIR         ' )
+   S = S space( '+1 XHTML        +5 XID          +1 XLAT         ' )
+   S = S space( '+1 XMLCHECK     +1 XPM          +1 XTREE        ' )
    S = S space( '+1 XX           +1 ZIP          +1 ZOO          ' )
    S = S space( ' 0 [TEST]                                       ' )
 
-   X = translate( space( arg( 1 )))    ;  N = 0
 
+   X = translate( space( arg( 1 )))    ;  N = 0
    if datatype( X, 'W' ) = 0  then  N = wordpos( X, S ) - 1
    if N > 0 then  do    /* X is an explicitly covered KHELP topic */
       S = word( S, N )  /* S = 0 for temporarily disabled topics  */
@@ -467,18 +472,6 @@ KHELP:      procedure   /* --- expand and map KHELP abbreviations */
    if S <> arg( 1 )  then  say 'khelp' S '(KEXPAND rc' R || ')'
    return S
 
-VERSION:    procedure   /* --- if not supported in KEDIT version: */
-   parse upper source . . ALERT.2
-   ALERT.2 = ALERT.2 'warning: OK to continue anyway'
-   ALERT.1 = arg( 1 ) version.1() version.2() || arg( 2 )
-   ALERT.1 = centre( ALERT.1, max( 42, length( ALERT.1 )))
-   ALERT.0 = 'OKCANCEL DEFBUTTON 2'    ;  'extract /BEEP'
-   if arg( 3 ) then  'set beep off'       /* after KEXPAND beeped */
-   if version.1() <> 'KEDIT'  then  ALERT.0 = ALERT.0 'ICONE'
-   'alert' delimit( ALERT.1 ) 'title' delimit( ALERT.2 ) ALERT.0
-   'set beep' BEEP.1                      /* old BEEP before exit */
-   if ALERT.2 <> 'OK'   then  exit 1   ;  else  return ''
-
 WINHELP:    procedure   /* --- bypass two KeditW 1.0 KHELP issues */
    X = 'keditw.hlp'                    ;  arg L R
    if L <> 0   then  L = L R           ;  else  L = R
@@ -489,11 +482,15 @@ WINHELP:    procedure   /* --- bypass two KeditW 1.0 KHELP issues */
    if R <> '=' then  return arg( 1 )      /* map KeditW KHELP =   */
    say 'khelp EQUALSIGN'               ;  return 'EQUALSIGN'
 
+VERSION:    procedure   /* ignore arg(3) "KEXPAND beeped already" */
+   return WARNING( arg( 1 ) version.1() version.2() || arg( 2 ))
+
 WARNING:    procedure   /* --- support early exit 1 for bad topic */
-   parse upper source . . ALERT.2
+   parse upper source . . ALERT.2      ;  parse arg ALERT.1
    ALERT.2 = ALERT.2 'warning: OK to continue anyway'
-   ALERT.1 = centre( arg( 1 ), max( 42, length( arg( 1 ))))
+   ALERT.1 = centre( ALERT.1, max( 42, length( ALERT.1 )))
    ALERT.0 = 'OKCANCEL DEFBUTTON 2'
    if version.1() <> 'KEDIT'  then  ALERT.0 = ALERT.0 'ICONE'
    'alert' delimit( ALERT.1 ) 'title' delimit( ALERT.2 ) ALERT.0
    if ALERT.2 <> 'OK'   then  exit 1   ;  else  return ''
+

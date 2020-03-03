@@ -408,16 +408,16 @@ U16I: procedure                        /* UTF-16LE (or BE) input  */
 INIT: procedure                        /* initialize new settings */
    'ft BAK'                         ;  if rc <> 0  then  exit rc
    OLD = fileid.1()
-   'nomsg query attr'               ;  INIT.1 = lastmsg.1()
-   'nomsg query arbchar'            ;  INIT.2 = lastmsg.1()
-   'nomsg query arrow'              ;  INIT.3 = lastmsg.1()
-   'nomsg query backup'             ;  INIT.4 = lastmsg.1()
-   'nomsg query number'             ;  INIT.5 = lastmsg.1()
-   'nomsg query undoing'            ;  INIT.6 = lastmsg.1()
-   'nomsg query varblank'           ;  INIT.7 = lastmsg.1()
-   'nomsg query wrap'               ;  INIT.8 = lastmsg.1()
+   SET = 'attr arbchar arrow backup number undoing varblank wrap'
+   if version.1() <> 'KEDIT'  then  do
+      if toolset.2() = 'USER' then  SET = SET 'toolset'
+   end
+   do N = 1 to words( SET )
+      'nomsg query' word( SET, N )  ;  INIT.N = lastmsg.1()
+   end
+
    'x "' || arg( 1 ) || '" (NEW NOPROF NODEFEXT)'
-   do N = 1 to 8  ;  'set' INIT.N   ;  end
+   do N = 1 to words( SET )         ;  'set' INIT.N   ;  end
    'refresh'                        ;  return OLD
 
 /* -------------------------------------------------------------- */

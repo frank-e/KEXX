@@ -64,9 +64,9 @@
    end
    say 'href="' || URL || '"' ;  exit 0
 
-QUOT: procedure                        /* percent-encode spaces:  */
+QUOT: procedure
    parse arg SRC     ;  DST = ''       ;  POS = pos( ' '    , SRC )
-   do while POS > 0
+   do while POS > 0                    /* percent-encode spaces:  */
       DST = DST || left( SRC, POS -1 ) || '%20'
       SRC =      substr( SRC, POS +1 ) ;  POS = pos( ' '    , SRC )
    end
@@ -74,5 +74,10 @@ QUOT: procedure                        /* percent-encode spaces:  */
    do while POS > 0
       DST = DST || left( SRC, POS -1 ) || '&'
       SRC =      substr( SRC, POS +5 ) ;  POS = pos( '&amp;', SRC )
+   end
+   SRC = DST || SRC  ;  DST = ''       ;  POS = pos( '&'    , SRC )
+   do while POS > 0
+      DST = DST || left( SRC, POS -1 ) || '^&'
+      SRC =      substr( SRC, POS +1 ) ;  POS = pos( '&'    , SRC )
    end
    return DST || SRC

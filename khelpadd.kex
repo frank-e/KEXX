@@ -26,7 +26,7 @@
 
    rc = XKHELP( NAME, TYPE, INFO )  ;  if rc <> 0  then  exit rc
    'extract /FILEID'                   /* kedit local XEDIT.HTM:  */
-   rc = XXEDIT( NAME, TYPE, INFO, 'D:\inetpub\ftproot\xedit.htm' )
+   rc = XXEDIT( NAME, TYPE, INFO, 'C:\inetpub\ftproot\xedit.htm' )
    if rc <> 0 & rc <> 4 then  exit rc  /* ----------------------- */
    SAVE = 'Please check and save'   ;  'refresh'
    if rc = 0      then  SAVE = SAVE FILEID.1 'and'

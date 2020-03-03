@@ -37,16 +37,22 @@
 /*                does not work, RxHelp uses BROWSER = 'FIREFOX'  */
 /*                in these cases.  Replace FIREFOX by the browser */
 /*                normally used to 'start' URLs, e.g., IEXPLORE.  */
+/* ToDo:          ooREXX 4.1.x HTML books                         */
+/* Updated 2012:  KeditW 1.6.1 returns full names in opsys.1(),   */
+/*                e.g., "WINDOWS 7" instead of "WINDOWS".  This   */
+/*                script assumes that opsys.2() = 7 is only used  */
+/*                for DOS, this will fail miserably for Win NT 7. */
+/* Updated 2017:  Clearer ooRexx 6.0.4 reference manual entries.  */
 /* Requires:      HELPMSG.EXE if running under OS/2 or MDOS       */
 /*                DOSREXX.INF if running under PC DOS 7.x         */
 /*                ooREXX 4.01 HTML  if running under NT or NTVDM, */
 /*                FIREFOX for file:///somewhere/file.htm#fragment */
-/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2010) */
+/* Requires:      Kedit 5.0 or KeditW 1.x (Frank Ellermann, 2011) */
 
    TOPIC = space( arg( 1 ))      ;  VER = 20          /* OS/2 2.x */
    if TOPIC = '' & command() = 0 then  TOPIC = focusword.1()
-   if opsys.1() = 'DOS'          then  VER = word( opsys.2(), 1 )
-
+   if opsys.1() = 'DOS' | abbrev( opsys.1(), 'WINDOWS' )
+      then  VER = word( opsys.2(), 1 )                /* NT, DOS  */
    if       VER = 20    then  'dosq helpmsg rexx' TOPIC
    else  if VER <> 7    then  rc = OOREXX( TOPIC )    /* NT DOS 5 */
    else  if TOPIC = ''  then  'dosq view dosrexx'     /* PC DOS 7 */
@@ -54,288 +60,120 @@
    exit rc
 
 OOREXX:  procedure                  /* -------------------------- */
-   arg TOPIC                     ;  parse source . . SRC
-   URL = 'file:///D:/Programme/bin/Rexx/ooREXX%204.0.1/'
-   B.1 = 'Reference%20Manual/'   ;  B.2 = 'RxSock/'
+   arg TOPIC                        ;  parse source . . SRC
 
-   T.1   = space( 'ABBREV       1 x23581.htm#BIFABBREV'      )
-   T.2   = space( 'ABS          1 x23581.htm#BIFABS'         )
-   T.3   = space( 'ADDRESS      1 x23581.htm#BIFADDRESS'     )
-   T.4   = space( 'ARG          1 x23581.htm#BIFARG'         )
-   T.5   = space( 'B2X          1 x23581.htm#BIFB2X'         )
-   T.6   = space( 'BEEP         1 x23581.htm#BIFBEEP'        )
-   T.7   = space( 'BITAND       1 x23581.htm#BIFBITAND'      )
-   T.8   = space( 'BITOR        1 x23581.htm#BIFBITOR'       )
-   T.9   = space( 'BITXOR       1 x23581.htm#BIFBITXOR'      )
-   T.10  = space( 'C2D          1 x23581.htm#BIFC2D'         )
-   T.11  = space( 'C2X          1 x23581.htm#BIFC2X'         )
-   T.12  = space( 'CENTER       1 x23581.htm#BIFCENTER'      )
-   T.13  = space( 'CHANGESTR    1 x23581.htm#BIFCHANGESTR'   )
-   T.14  = space( 'CHARIN       1 x23581.htm#BIFCHARIN'      )
-   T.15  = space( 'CHAROUT      1 x23581.htm#BIFCHAROUT'     )
-   T.16  = space( 'CHARS        1 x23581.htm#BIFCHARS'       )
-   T.17  = space( 'COMPARE      1 x23581.htm#BIFCOMPARE'     )
-   T.18  = space( 'CONDITION    1 x23581.htm#BIFCONDITION'   )
-   T.19  = space( 'COPIES       1 x23581.htm#BIFCOPIES'      )
-   T.20  = space( 'COUNTSTR     1 x23581.htm#BIFCOUNTSTR'    )
-   T.21  = space( 'D2C          1 x23581.htm#BIFD2C'         )
-   T.22  = space( 'D2X          1 x23581.htm#BIFD2X'         )
-   T.23  = space( 'DATATYPE     1 x23581.htm#BIFDATATYPE'    )
-   T.24  = space( 'DATE         1 x23581.htm#BIFDATE'        )
-   T.25  = space( 'DELSTR       1 x23581.htm#BIFDELSTR'      )
-   T.26  = space( 'DELWORD      1 x23581.htm#BIFDELWORD'     )
-   T.27  = space( 'DIGITS       1 x23581.htm#BIFDIGITS'      )
-   T.28  = space( 'DIRECTORY    1 x23581.htm#BIFDIRECTORY'   )
-   T.29  = space( 'ENDLOCAL     1 x23581.htm#BIFENDLOCAL'    )
-   T.30  = space( 'ERRORTEXT    1 x23581.htm#BIFERRORTEXT'   )
-   T.31  = space( 'FILESPEC     1 x23581.htm#BIFFILESPEC'    )
-   T.32  = space( 'FORM         1 x23581.htm#BIFFORM'        )
-   T.33  = space( 'FORMAT       1 x23581.htm#BIFFORMAT'      )
-   T.34  = space( 'FUZZ         1 x23581.htm#BIFFUZZ'        )
-   T.35  = space( 'INSERT       1 x23581.htm#BIFINSERT'      )
-   T.36  = space( 'LASTPOS      1 x23581.htm#BIFLASTPOS'     )
-   T.37  = space( 'LEFT         1 x23581.htm#BIFLEFT'        )
-   T.38  = space( 'LENGTH       1 x23581.htm#BIFLENGTH'      )
-   T.39  = space( 'LINEIN       1 x23581.htm#BIFLINEIN'      )
-   T.40  = space( 'LINEOUT      1 x23581.htm#BIFLINEOUT'     )
-   T.41  = space( 'LINES        1 x23581.htm#BIFLINES'       )
-   T.42  = space( 'LOWER        1 x23581.htm#BIFLOWER'       )
-   T.43  = space( 'MAX          1 x23581.htm#BIFMAX'         )
-   T.44  = space( 'MIN          1 x23581.htm#BIFMIN'         )
-   T.45  = space( 'OVERLAY      1 x23581.htm#BIFOVERLAY'     )
-   T.46  = space( 'POS          1 x23581.htm#BIFPOS'         )
-   T.47  = space( 'QUALIFY      1 x23581.htm#BIFQUALIFY'     )
-   T.48  = space( 'QUEUED       1 x23581.htm#BIFQUEUED'      )
-   T.49  = space( 'RANDOM       1 x23581.htm#BIFRANDOM'      )
-   T.50  = space( 'REVERSE      1 x23581.htm#BIFREVERSE'     )
-   T.51  = space( 'RIGHT        1 x23581.htm#BIFRIGHT'       )
-   T.52  = space( 'RXFUNCADD    1 x23581.htm#BIFRXFUNCADD'   )
-   T.53  = space( 'RXFUNCDROP   1 x23581.htm#BIFRXFUNCDROP'  )
-   T.54  = space( 'RXFUNCQUERY  1 x23581.htm#BIFRXFUNCQUERY' )
-   T.55  = space( 'RXQUEUE      1 x23581.htm#BIFRXQUEUE'     )
-   T.56  = space( 'SETLOCAL     1 x23581.htm#BIFSETLOCAL'    )
-   T.57  = space( 'SIGN         1 x23581.htm#BIFSIGN'        )
-   T.58  = space( 'SOURCELINE   1 x23581.htm#BIFSOURCELINE'  )
-   T.59  = space( 'SPACE        1 x23581.htm#BIFSPACE'       )
-   T.60  = space( 'STREAM       1 x23581.htm#BIFSTREAM'      )
-   T.61  = space( 'STRIP        1 x23581.htm#BIFSTRIP'       )
-   T.62  = space( 'SUBSTR       1 x23581.htm#BIFSUBSTR'      )
-   T.63  = space( 'SUBWORD      1 x23581.htm#BIFSUBWORD'     )
-   T.64  = space( 'SYMBOL       1 x23581.htm#BIFSYMBOL'      )
-   T.65  = space( 'TIME         1 x23581.htm#BIFTIME'        )
-   T.66  = space( 'TRACE        1 x23581.htm#BIFTRACE'       )
-   T.67  = space( 'TRANSLATE    1 x23581.htm#BIFTRANSLATE'   )
-   T.68  = space( 'TRUNC        1 x23581.htm#BIFTRUNC'       )
-   T.69  = space( 'UPPER        1 x23581.htm#BIFUPPER'       )
-   T.70  = space( 'USERID       1 x23581.htm#BIFUSERID'      )
-   T.71  = space( 'VALUE        1 x23581.htm#BIFVALUE'       )
-   T.72  = space( 'VAR          1 x23581.htm#BIFVAR'         )
-   T.73  = space( 'VERIFY       1 x23581.htm#BIFVERIFY'      )
-   T.74  = space( 'WORD         1 x23581.htm#BIFWORD'        )
-   T.75  = space( 'WORDINDEX    1 x23581.htm#BIFWORDINDEX'   )
-   T.76  = space( 'WORDLENGTH   1 x23581.htm#BIFWORDLENGTH'  )
-   T.77  = space( 'WORDPOS      1 x23581.htm#BIFWORDPOS'     )
-   T.78  = space( 'WORDS        1 x23581.htm#BIFWORDS'       )
-   T.79  = space( 'X2B          1 x23581.htm#BIFX2B'         )
-   T.80  = space( 'X2C          1 x23581.htm#BIFX2C'         )
-   T.81  = space( 'X2D          1 x23581.htm#BIFX2D'         )
-   T.82  = space( 'XRANGE       1 x23581.htm#BIFXRANGE'      )
-   T.83  = space( 'RxMessageBox                1 x28104.htm' )
-   T.84  = space( 'RxWinExec                   1 x28244.htm' )
-   T.85  = space( 'SysAddRexxMacro             1 x28341.htm' )
-   T.86  = space( 'SysBootDrive                1 x28368.htm' )
-   T.87  = space( 'SysClearRexxMacroSpace      1 x28377.htm' )
-   T.88  = space( 'SysCloseEventSem            1 x28386.htm' )
-   T.89  = space( 'SysCloseMutexSem            1 x28423.htm' )
-   T.90  = space( 'SysCls                      1 x28460.htm' )
-   T.91  = space( 'SysCreateEventSem           1 x28472.htm' )
-   T.92  = space( 'SysCreateMutexSem           1 x28496.htm' )
-   T.93  = space( 'SysCreatePipe               1 x28515.htm' )
-   T.94  = space( 'SysCurPos                   1 x28528.htm' )
-   T.95  = space( 'SysCurState                 1 x28568.htm' )
-   T.96  = space( 'SysDriveInfo                1 x28594.htm' )
-   T.97  = space( 'SysDriveMap                 1 x28643.htm' )
-   T.98  = space( 'SysDropFuncs                1 x28708.htm' )
-   T.99  = space( 'SysDropRexxMacro            1 x28717.htm' )
-   T.100 = space( 'SysDumpVariables            1 x28734.htm' )
-   T.101 = space( 'SysFileCopy                 1 x28779.htm' )
-   T.102 = space( 'SysFileDelete               1 x28826.htm' )
-   T.103 = space( 'SysFileExists               1 x28900.htm' )
-   T.104 = space( 'SysFileMove                 1 x28931.htm' )
-   T.105 = space( 'SysFileSearch               1 x28979.htm' )
-   T.106 = space( 'SysFileSystemType           1 x29051.htm' )
-   T.107 = space( 'SysFileTree                 1 x29081.htm' )
-   T.108 = space( 'SysFork                     1 x29248.htm' )
-   T.109 = space( 'SysFromUnicode              1 x29265.htm' )
-   T.110 = space( 'SysGetErrortext             1 x29389.htm' )
-   T.111 = space( 'SysGetFileDateTime          1 x29415.htm' )
-   T.112 = space( 'SysGetKey                   1 x29457.htm' )
-   T.113 = space( 'SysGetMessage               1 x29483.htm' )
-   T.114 = space( 'SysGetMessageX              1 x29527.htm' )
-   T.115 = space( 'SysIni                      1 x29576.htm' )
-   T.116 = space( 'SysIsFile                   1 x29662.htm' )
-   T.117 = space( 'SysIsFileCompressed         1 x29694.htm' )
-   T.118 = space( 'SysIsFileDirectory          1 x29725.htm' )
-   T.119 = space( 'SysIsFileEncrypted          1 x29756.htm' )
-   T.120 = space( 'SysIsFileLink               1 x29787.htm' )
-   T.121 = space( 'SysIsFileNotContentIndexed  1 x29818.htm' )
-   T.122 = space( 'SysIsFileOffline            1 x29849.htm' )
-   T.123 = space( 'SysIsFileSparse             1 x29880.htm' )
-   T.124 = space( 'SysIsFileTemporary          1 x29911.htm' )
-   T.125 = space( 'SysLinVer                   1 x29942.htm' )
-   T.126 = space( 'SysLoadFuncs                1 x29952.htm' )
-   T.127 = space( 'SysLoadRexxMacroSpace       1 x29961.htm' )
-   T.128 = space( 'SysMkDir                    1 x29978.htm' )
-   T.129 = space( 'SysOpenEventSem             1 x30052.htm' )
-   T.130 = space( 'SysOpenMutexSem             1 x30069.htm' )
-   T.131 = space( 'SysPostEventSem             1 x30086.htm' )
-   T.132 = space( 'SysPulseEventSem            1 x30119.htm' )
-   T.133 = space( 'SysQueryProcess             1 x30140.htm' )
-   T.134 = space( 'SysQueryRexxMacro           1 x30216.htm' )
-   T.135 = space( 'SysReleaseMutexSem          1 x30233.htm' )
-   T.136 = space( 'SysReorderRexxMacro         1 x30274.htm' )
-   T.137 = space( 'SysRequestMutexSem          1 x30296.htm' )
-   T.138 = space( 'SysResetEventSem            1 x30343.htm' )
-   T.139 = space( 'SysRmDir                    1 x30376.htm' )
-   T.140 = space( 'SysSaveRexxMacroSpace       1 x30466.htm' )
-   T.141 = space( 'SysSearchPath               1 x30483.htm' )
-   T.142 = space( 'SysSetFileDateTime          1 x30532.htm' )
-   T.143 = space( 'SysSetPriority              1 x30587.htm' )
-   T.144 = space( 'SysShutdownSystem           1 x30656.htm' )
-   T.145 = space( 'SysSleep                    1 x30717.htm' )
-   T.146 = space( 'SysStemCopy                 1 x30747.htm' )
-   T.147 = space( 'SysStemDelete               1 x30826.htm' )
-   T.148 = space( 'SysStemInsert               1 x30880.htm' )
-   T.149 = space( 'SysStemSort                 1 x30923.htm' )
-   T.150 = space( 'SysSwitchSession            1 x30995.htm' )
-   T.151 = space( 'SysSystemDirectory          1 x31014.htm' )
-   T.152 = space( 'SysTempFileName             1 x31023.htm' )
-   T.153 = space( 'SysTextScreenRead           1 x31065.htm' )
-   T.154 = space( 'SysTextScreenSize           1 x31108.htm' )
-   T.155 = space( 'SysToUnicode                1 x31131.htm' )
-   T.156 = space( 'SysUtilVersion              1 x31242.htm' )
-   T.157 = space( 'SysVersion                  1 x31259.htm' )
-   T.158 = space( 'SysVolumeLabel              1 x31275.htm' )
-   T.159 = space( 'SysWait                     1 x31315.htm' )
-   T.160 = space( 'SysWaitEventSem             1 x31332.htm' )
-   T.161 = space( 'SysWaitNamedPipe            1 x31375.htm' )
-   T.162 = space( 'SysWinDecryptFile           1 x31400.htm' )
-   T.163 = space( 'SysWinEncryptFile           1 x31445.htm' )
-   T.164 = space( 'SysWinGetDefaultPrinter     1 x31490.htm' )
-   T.165 = space( 'SysWinGetPrinters           1 x31499.htm' )
-   T.166 = space( 'SysWinSetDefaultPrinter     1 x31533.htm' )
-   T.167 = space( 'SysWinVer                   1 x31598.htm' )
-   T.168 = space( 'ADDRESS      1 c2332.htm#KEYADDRESS'      )
-   T.169 = space( 'ARG          1 x2468.htm'                 )
-   T.170 = space( 'CALL         1 x2554.htm'                 )
-   T.171 = space( 'DO           1 x2806.htm'                 )
-   T.172 = space( 'DROP         1 x2926.htm'                 )
-   T.173 = space( 'EXIT         1 x2973.htm'                 )
-   T.174 = space( 'EXPOSE       1 x3023.htm'                 )
-   T.175 = space( 'FORWARD      1 x3060.htm'                 )
-   T.176 = space( 'GUARD        1 x3127.htm'                 )
-   T.177 = space( 'IF           1 x3177.htm'                 )
-   T.178 = space( 'INTERPRET    1 x3247.htm'                 )
-   T.179 = space( 'ITERATE      1 x3318.htm'                 )
-   T.180 = space( 'LEAVE        1 x3361.htm'                 )
-   T.181 = space( 'LOOP         1 x3406.htm'                 )
-   T.182 = space( 'NOP          1 x3526.htm'                 )
-   T.183 = space( 'NUMERIC      1 x3548.htm'                 )
-   T.184 = space( 'OPTIONS      1 x3635.htm'                 )
-   T.185 = space( 'PARSE        1 x3648.htm'                 )
-   T.186 = space( 'PROCEDURE    1 x3857.htm'                 )
-   T.187 = space( 'PULL         1 x3946.htm'                 )
-   T.189 = space( 'PUSH         1 x4015.htm'                 )
-   T.188 = space( 'QUEUE        1 x4048.htm'                 )
-   T.190 = space( 'RAISE        1 x4081.htm'                 )
-   T.191 = space( 'REPLY        1 x4186.htm'                 )
-   T.192 = space( 'RETURN       1 x4223.htm'                 )
-   T.193 = space( 'SAY          1 x4283.htm'                 )
-   T.194 = space( 'SELECT       1 x4337.htm'                 )
-   T.195 = space( 'SIGNAL       1 x4408.htm'                 )
-   T.196 = space( 'TRACE        1 x4501.htm'                 )
-   T.197 = space( 'USE          1 x4906.htm'                 )
-   T.198 = space( '::ATTRIBUTE  1 c4965.htm#ATTRD'           )
-   T.199 = space( '::CLASS      1 x5057.htm'                 )
-   T.200 = space( '::CONSTANT   1 x5129.htm'                 )
-   T.201 = space( '::METHOD     1 x5150.htm'                 )
-   T.202 = space( '::OPTIONS    1 x5244.htm'                 )
-   T.203 = space( '::REQUIRES   1 x5304.htm'                 )
-   T.204 = space( '::ROUTINE    1 x5334.htm'                 )
-   T.205 = space( '.CONTEXT     1 x23284.htm'                )
-   T.206 = space( '.ENDOFLINE   1 c23115.htm#ENDOFLINE'      )
-   T.207 = space( '.ENVIRONMENT 1 c23115.htm#ENVO'           )
-   T.208 = space( '.ERROR       1 x23190.htm'                )
-   T.209 = space( '.FALSE       1 c23115.htm#FALSE'          )
-   T.210 = space( '.INPUT       1 x23203.htm'                )
-   T.211 = space( '.LINE        1 x23296.htm'                )
-   T.212 = space( '.LOCAL       1 x23174.htm'                )
-   T.213 = space( '.METHODS     1 x23307.htm'                )
-   T.214 = space( '.NIL         1 c23115.htm#NIL'            )
-   T.215 = space( '.OUTPUT      1 x23219.htm'                )
-   T.216 = space( '.ROUTINES    1 x1862.htm#ENSYM'           )
-   T.217 = space( '.RS          1 x23326.htm'                )
-   T.218 = space( '.TRUE        1 c23115.htm#TRUE'           )
-   T.219 = space( '.STDERR      1 x23236.htm'                )
-   T.220 = space( '.STDIN       1 x23248.htm'                )
-   T.221 = space( '.STDOUT      1 x23260.htm'                )
-   T.222 = space( '.STDQUE      1 x23272.htm'                )
-   T.223 = space( 'RC           1 x33151.htm#SPEC'           )
-   T.224 = space( 'RESULT       1 c34330.htm'                )
-   T.225 = space( 'SELF         1 c34330.htm'                )
-   T.226 = space( 'SIGL         1 x33151.htm#CONSIGL'        )
-   T.227 = space( 'SUPER        1 c34330.htm'                )
-   T.228 = space( '------------ 1 i38047.htm'                )
-   T.229 = space( 'SockLoadFuncs  2  c416.htm#SOCKLOADFUNCS' )
-   T.230 = space( 'SockDropFuncs               2 x523.htm'   )
-   T.231 = space( 'SockVersion                 2 x539.htm'   )
-   T.232 = space( 'SockAccept                  2 x559.htm'   )
-   T.233 = space( 'SockBind                    2 x618.htm'   )
-   T.234 = space( 'SockClose                   2 x677.htm'   )
-   T.235 = space( 'SockConnect                 2 x712.htm'   )
-   T.236 = space( 'SockGetHostByAddr           2 x809.htm'   )
-   T.237 = space( 'SockGetHostByName           2 x843.htm'   )
-   T.238 = space( 'SockGetHostId               2 x873.htm'   )
-   T.239 = space( 'SockGetPeerName             2 x891.htm'   )
-   T.240 = space( 'SockGetSockName             2 x934.htm'   )
-   T.241 = space( 'SockGetSockOpt              2 x977.htm'   )
-   T.242 = space( 'SockInit                    2 x1102.htm'  )
-   T.243 = space( 'SockIoctl                   2 x1123.htm'  )
-   T.244 = space( 'SockListen                  2 x1179.htm'  )
-   T.245 = space( 'SockPSock_Errno             2 x1229.htm'  )
-   T.246 = space( 'SockRecv                    2 x1253.htm'  )
-   T.247 = space( 'SockRecvFrom                2 x1320.htm'  )
-   T.248 = space( 'SockSelect                  2 x1386.htm'  )
-   T.249 = space( 'SockSend                    2 x1456.htm'  )
-   T.250 = space( 'SockSendTo                  2 x1523.htm'  )
-   T.251 = space( 'SockSetSockOpt              2 x1598.htm'  )
-   T.252 = space( 'SockShutDown                2 x1724.htm'  )
-   T.253 = space( 'SockSock_Errno              2 x1778.htm'  )
-   T.254 = space( 'SockSocket                  2 x1797.htm'  )
-   T.255 = space( 'SockSoClose                 2 x1864.htm'  )
-   T.0 = 255                     ;  BROWSER = 'FIREFOX'
+   URL = 'file:///C:/etc/bin/Rexx/ooREXX%204.2.0/rexxref/'
+   if TOPIC <= '@'   then  return BROWSE( URL || 'ix01.html' )
 
-   if TOPIC <= '@' then  TOPIC = '------------'
-   do N = 1 to T.0
-      X = word( T.N, 1 )         ;  'dmsg' right( N, 3 ) X
-      if translate( X ) = TOPIC  then  leave
-   end
-   if N > T.0  then  do
-      'emsg' SRC 'knows no "' || TOPIC || '" for' URL
-      return 4
-   end
+   T =   'Abbrev Abs Address Arg B2x Beep Bitand Bitor'
+   T = T 'Bitxor C2d C2x Center Changestr Charin Charout'
+   T = T 'Chars Compare Condition Copies Countstr D2c D2x'
+   T = T 'Datatype Date Delstr Delword Digits Directory'
+   T = T 'Endlocal Errortext Filespec Form Format Fuzz'
+   T = T 'Insert Lastpos Left Length Linein Lineout Lines'
+   T = T 'Lower Max Min Overlay Pos Qualify Queued Random'
+   T = T 'Reverse Right Rxfuncadd Rxfuncdrop Rxfuncquery'
+   T = T 'Rxqueue Setlocal Sign Sourceline Space Stream'
+   T = T 'Strip Substr Subword Symbol Time Trace Translate'
+   T = T 'Trunc Upper Userid Value Var Verify Word'
+   T = T 'Wordindex Wordlength Wordpos Words X2b X2c X2d'
+   T = T 'Xrange'
 
-   X = word( T.N, 3 )            ;  TMP = dosenv( 'TMP' )
-   N = word( T.N, 2 )            ;  URL = URL || B.N || X
-   if sign( pos( '#', URL ))  then  URL = BROWSER URL
-   if TMP = '' then  TMP = .     ;  TMP = TMP || '\kedittmp.cmd'
-   'x "' || TMP || '" (noprof)'  ;  if rc <> 0  then  exit rc
-   ':0 i start' URL '&& exit'    ;  'nomsg change /%20/%%20/ 1 *'
-   'ff'                          ;  X = 'winexec min'
-   if version.1() = 'KEDIT'   then  X = 'dosn'
-   X 'cmd /k "' || TMP || '"'    ;  N = rc
-   if N = 0 then  do
-      'erase "' || TMP || '"'    ;  say URL
-   end
-   else  'emsg' SRC 'cannot run' X 'cmd /k "' || TMP || '"'
-   return N
+   N = wordpos( TOPIC, translate( T ))
+   if N = 1
+      then  return BROWSE( URL || 'xbuiltin.html#bifAbbrev' )
+   if N > 1
+      then  return BROWSE( URL || 'bif' || word( T, N ) || '.html' )
+
+   T =   'Rxmessagebox Rxwinexec Sysaddrexxmacro Sysbootdrive'
+   T = T 'Sysclearrexxmacrospace Syscloseeventsem'
+   T = T 'Sysclosemutexsem Syscls Syscreateeventsem'
+   T = T 'Syscreatemutexsem Syscreatepipe Syscurpos'
+   T = T 'Syscurstate Sysdriveinfo Sysdrivemap Sysdropfuncs'
+   T = T 'Sysdroprexxmacro Sysdumpvariables Sysfilecopy'
+   T = T 'Sysfiledelete Sysfileexists Sysfilemove'
+   T = T 'Sysfilesearch Sysfilesystemtype Sysfiletree'
+   T = T 'Sysfork Sysfromunicode Sysgeterrortext'
+   T = T 'Sysgetfiledatetime Sysgetkey Sysgetmessage'
+   T = T 'Sysgetmessagex Sysini Sysisfile'
+   T = T 'Sysisfilecompressed Sysisfiledirectory'
+   T = T 'Sysisfileencrypted Sysisfilelink'
+   T = T 'Sysisfilenotcontentindexed Sysisfileoffline'
+   T = T 'Sysisfilesparse Sysisfiletemporary Syslinver'
+   T = T 'Sysloadfuncs Sysloadrexxmacrospace Sysmkdir'
+   T = T 'Sysopeneventsem Sysopenmutexsem Sysposteventsem'
+   T = T 'Syspulseeventsem Sysqueryprocess'
+   T = T 'Sysqueryrexxmacro Sysreleasemutexsem'
+   T = T 'Sysreorderrexxmacro Sysrequestmutexsem'
+   T = T 'Sysreseteventsem Sysrmdir Syssaverexxmacrospace'
+   T = T 'Syssearchpath Syssetfiledatetime Syssetpriority'
+   T = T 'Sysshutdownsystem Syssleep Sysstemcopy'
+   T = T 'Sysstemdelete Syssteminsert Sysstemsort'
+   T = T 'Sysswitchsession Syssystemdirectory'
+   T = T 'Systempfilename Systextscreenread'
+   T = T 'Systextscreensize Systounicode Sysutilversion'
+   T = T 'Sysversion Sysvolumelabel Syswait'
+   T = T 'Syswaiteventsem Syswaitnamedpipe Syswindecryptfile'
+   T = T 'Syswinencryptfile Syswingetdefaultprinter'
+   T = T 'Syswingetprinters Syswinsetdefaultprinter'
+   T = T 'Syswinver'
+
+   N = wordpos( TOPIC, translate( T ))
+   if N > 1
+      then  return BROWSE( URL || 'utl' || word( T, N ) || '.html' )
+
+   T =   'Address Arg Call Do Drop Exit Expose Forward'
+   T = T 'Guard If Interpret Iterate Leave Loop Nop'
+   T = T 'Numeric Options Parse Procedure Pull Push'
+   T = T 'Queue Raise Reply Return Say Select Signal'
+   T = T 'Trace Use'
+
+   N = wordpos( TOPIC, translate( T ))
+   if N = 1
+      then  return BROWSE( URL || 'instrc.html#keyAddress' )
+   if N > 1
+      then  return BROWSE( URL || 'key' || word( T, N ) || '.html' )
+
+   T.1   = '::ATTRIBUTE  dire.html#attrd'
+   T.2   = '::CLASS      clasdi.html'
+   T.3   = '::CONSTANT   constantd.html'
+   T.4   = '::METHOD     methd.html'
+   T.5   = '::OPTIONS    optionsd.html'
+   T.6   = '::REQUIRES   requ.html'
+   T.7   = '::ROUTINE    routd.html'
+   T.8   = '.CONTEXT     contexte.html'
+   T.9   = '.ENDOFLINE   oneof.html#ENDOFLINE'
+   T.10  = '.ENVIRONMENT oneof.html#envo'
+   T.11  = '.ERROR       erobj.html'
+   T.12  = '.FALSE       oneof.html#FALSE'
+   T.13  = '.INPUT       inputt.html'
+   T.14  = '.LINE        linee.html'
+   T.15  = '.LOCAL       locenv.html'
+   T.16  = '.METHODS     methe.html'
+   T.17  = '.NIL         oneof.html#nil'
+   T.18  = '.OUTPUT      outp.html'
+   T.19  = '.ROUTINES    routinee.html'
+   T.20  = '.RS          rs.html'
+   T.21  = '.TRUE        oneof.html#TRUE'
+   T.22  = '.STDERR      errorobj.html'
+   T.23  = '.STDIN       stdinobj.html'
+   T.24  = '.STDOUT      stdoutobj.html'
+   T.25  = '.STDQUE      stdqueobj.html'
+   T.26  = 'RC           spvard.html'
+   T.27  = 'RESULT       spvard.html'
+   T.28  = 'SELF         spvard.html'
+   T.29  = 'SIGL         spvard.html'
+   T.30  = 'SUPER        spvard.html'
+
+   do N = 1 to 30
+      if TOPIC = word( T.N, 1 )
+         then  return BROWSE( URL || word( T.N, 2 ))
+   end N
+
+   'emsg' SRC 'knows no "' || TOPIC || '" for' URL
+   return 4
+
+BROWSE:  procedure
+   parse arg URL                 ;  say 'start' URL
+   'dosq start' URL              ;  return rc
+

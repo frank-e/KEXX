@@ -269,8 +269,13 @@ COLOUR:     procedure   /* --- swap GRAY and DARK GRAY numbers in */
 KEDITW:     procedure   /* --- use the numerical Kedit 5.0 scheme */
    S =   '128 240 185 160 240  31  79 143 143 176  31 143  31'
    S = S ' 31 143  31  31  63  63  63 137 185 160 128  31  79'
-   'set coloring off'   ;  'set attributes' S 224 246 248 248
-   return rc                     /* ...syntax COLORING won't work */
+   'set attributes' S 224 246 248 248  ;  'extract /ECOLOR */'
+   'color filearea Low BLAck ON BRIght BLAck'
+   do N = 1 to ECOLOR.0
+      K = subword( ECOLOR.N, 1 + wordpos( 'ON', ECOLOR.N ))
+      'ecolor' changestr( 'ON' K, ECOLOR.N, 'ON BRIght BLAck' )
+   end N
+   return rc
 
 SCHEME:     procedure   /* --- use the new (2006) Kedit 5 scheme  */
    'MONITOR color'               /* MONITOR resets Kedit defaults */

@@ -1,0 +1,59 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] XNT [name]                              */
+/* Purpose:       'XNT a n y' is a shorthand for 'X "a n y.cmd"', */
+/*                'XNT' alone is a shorthand for 'X untitled.cmd'.*/
+/*                An empty (new) file is filled with the template */
+/*                specified in macro XNT after KEXX label COPY:   */
+/* Requires:      NT KEDITW32 or OS/2 KEDIT 5 for long file names */
+/*                                        (Frank Ellermann, 2016) */
+
+   NAME = strip( strip( strip( arg( 1 )),, '"' ))
+   if NAME = ''         then  do
+      if size.1() = 0 & ft.1() = 'CMD' then  NAME = fn.1()
+                                       else  NAME = 'untitled'
+   end
+   'x "' || NAME || '.cmd"'
+   if rc <> 0           then  exit rc
+   if sign( size.1())   then  exit rc
+   SALT = alt.1() alt.2()
+   do N = COPY() to sourceline()
+      'i' sourceline( N )
+   end
+   'set alt' SALT          ;  exit rc
+
+COPY: if arg() then  return sigl ;  else  return 1 + COPY( 'sigl' )
+@echo off & @rem based on XNT.kex script template version 2016-03-05
+setlocal enableextensions & prompt @
+if not "%~2" == ""     call "%~0" "%*"
+if not "%~2" == ""     goto DONE & @rem expect one argument
+if     "%~1" == ""     goto HELP & @rem expect one argument
+if     "%~1" == "?"    goto HELP & @rem missing switch char
+if     "%~1" == "/?"   goto HELP & @rem minimal requirement
+if     "%~1" == "-?"   goto HELP & @rem permit DOS SWITCHAR
+if     exist "%~1\*"   goto HELP & @rem bypass subdirectory
+:DOIT --------------------------------------------------------------
+set NEED=notepad.exe
+for %%x in (%NEED%) do if not exist "%%~f$PATH:x" goto NEED
+set PROG=%NEED%
+set NEED=%~1
+if not exist "%NEED%"  goto NEED
+echo %0 uses "%PROG%" for %~1
+goto WAIT
+:DEST --------------------------------------------------------------
+echo/
+echo Error: %0 cannot create "%DEST%"
+goto WAIT
+:NEED --------------------------------------------------------------
+echo/
+echo Error: %0 found no "%NEED%"
+:HELP --------------------------------------------------------------
+echo Usage: %0 FILE
+echo/
+echo The FILE or directory can be a relative unquoted path,
+echo because wild cards and multiple files are not allowed.
+echo/
+:WAIT if first CMD line option was /c ------------------------------
+set NEED=usebackq tokens=2 delims=/
+for /F "%NEED% " %%c in ('%CMDCMDLINE%') do if /I "%%c" == "c" pause
+:DONE -------------- (Frank Ellermann, 2019) -----------------------

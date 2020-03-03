@@ -58,7 +58,7 @@
 /*                Please configure the INTERRUP.LST path below.   */
 /* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2010) */
 
-   INT = 'c:\etc\rbrown\interrup.lst'  /*** configure your path ***/
+   INT = 'c:\etc\chm\rbrown\interrup.lst' /** configure INT path **/
 
    parse upper source . . ME           ;  'nomsg x "' || INT || '"'
    if rc == 0  then  'locate' focustof() - focuseof()

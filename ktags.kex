@@ -1,0 +1,210 @@
+'set novalue on'        /* KEXX variant of a SIGNAL ON NOVALUE */
+
+/* ---- configurable section --------------------------------- */
+/* command to make KTAGS on the fly if needed and requested,   */
+/* replace -f by > for a traditional CTAGS.EXE, change files   */
+/* and options as needed, e.g. -vdstc *.cpp *.c *.h *.asm -f   */
+
+/* Open watcom\binw\ctags.exe does not exist, just copy an old */
+/* binb\ctags or run ctags only under NT (binnt) + OS/2 (binp) */
+
+CTAGS = 'C:\ETC\WATCOM\BINW\CTAGS -stdm *.c *.h *.asm -f'
+CTAGS = 'C:\ETC\WATCOM\BINNT\CTAGS *.c'
+TOPIC = 'ktags.os2'                 /* OS/2 Watcom clib topics */
+
+if opsys.1() <> 'OS/2'  then  do
+   if pos( 'WATCOM', translate( dosenv( 'INCLUDE' ))) > 0
+      then  TOPIC = 'ktags.wh'      /* file with Watcom topics */
+      else  TOPIC = 'ktags.qh'      /* otherwise use QH topics */
+end
+
+/* ---- from here no editing needed, hopefully :-) ----------- */
+/* 05/17/90 by Chris Dunford, based on CTAGS.KEX by Nico Mak   */
+/* 05/13/93 Frank Ellermann: Added ARBCHAR handling for TABs.  */
+/* 11/17/94:                 TAB handling for WATCOM ctags.    */
+/* 03/10/95: Replaced MS C 6 QuickHelp by WATCOM 10.0 WHELP.   */
+/* 09/22/98: Use QH or WHELP depending on actual environment.  */
+/*           Use many new KEDIT features like focusword.1().   */
+/*           Edited documentation, for details see KTAGS.DOC.  */
+/* 10/03/98: Added create/change TAGS dialog, store location   */
+/*           in source as point, not unreliable line numbers.  */
+/* 02/10/09: For KEDITW replace DOSQ by WINEXEC.  Use INCLUDE  */
+/*           path to find (most) global header files.          */
+
+/* ---- note current point in current file ------------------- */
+
+if right( directory.1(), 1 ) <> '\'       /* KEDIT root quirk  */
+   then  KTAGS = directory.1() || '\tags'
+   else  KTAGS = directory.1() || 'tags'  /* C-tags (default)  */
+
+'editv get KTAGS.0 KTAGS.C'        /* if set in dialog below   */
+POINT = '.ktags.' || KTAGS.0       /* points noted as .ktags.N */
+if KTAGS.0 = ''   then  POINT = POINT || '0'    /* 1st start   */
+if KTAGS.C = ''   then  KTAGS.C = KTAGS
+                  else  KTAGS = KTAGS.C
+'point' POINT                       /* mark current line point */
+KTAGS.OLD = '"' || fileid.1() || '" (nodefext)' POINT
+
+/* ---- go back to previous file if no argument -------------- */
+
+if command() & arg() <> 1  then  do /* on command line no arg. */
+   if KTAGS.0 = ''   then  do                   /* 1st start   */
+      say 'read KTAGS.DOC, usage: KTAGS [topic]'
+      say 'tries to locate topic in CTAGS-file:' KTAGS
+      say 'if found KTAGS shows its source with Kedit'
+      say 'otherwise scans topics in help file:' TOPIC
+      exit 1
+   end
+   else if KTAGS.0 > 0  then  do
+      N = KTAGS.0 ; 'editv get KTAGS.' || N
+      KTAGS.0 = N - 1 ; 'editv put KTAGS.0'
+
+      parse var KTAGS.OLD KTAGS.OLD '(nodefext)' .
+      parse var KTAGS.N   KTAGS.NEW '(nodefext)' POINT
+
+      do until N = 0                /* check sources in ring   */
+         parse var KTAGS.N KTAGS.N  '(nodefext)' .
+         if KTAGS.N = KTAGS.OLD  then  leave
+         N = N - 1
+         'editv get KTAGS.' || N
+         if N > 0 then  iterate
+
+         'kedit' KTAGS.NEW '(nodefext)'
+         'kedit' KTAGS.OLD '(nodefext new)'
+         'nomsg quit'               /* ...quit unless modified */
+      end                           /* back to previous file   */
+
+      'kedit' KTAGS.NEW '(nodefext)'
+      ':0 locate' POINT ;  exit rc  /* back to previous point  */
+   end
+   else  do
+      say 'you are already back where you started KTAGS'
+      'cmsg editv list KTAGS.1 KTAGS.2 KTAGS.3 KTAGS.4 ...'
+      exit 1
+   end
+end
+
+/* ---- edit / create / change KTAGS file -------------------- */
+
+FOCUS = arg( 1 )                    /* compare KHELP FOCUSWORD */
+if FOCUS = ''  then  FOCUS = focusword.1()
+
+'kedit' KTAGS '(noprofile nodefext)'
+if rc = 0   then  do                /* else ignore locked tags */
+   if size.1() = 0   then  do       /* empty: change or create */
+      'qquit'
+      N = 'OK to create cTAGS on the fly' || d2c(10)
+      N = N || 'or specify another cTAGS file'
+
+      do until rc = 0
+         KTAGS = strip( KTAGS, ,'"' )     /* strip KTAGS.KEX " */
+         'dialog' delimit( N ) 'editfield' delimit( KTAGS )
+
+         if DIALOG.2 = 'OK'   then        /* else assume empty */
+            if DIALOG.1 = KTAGS  then  do /* create new tags ? */
+               DOSN = 'dosn'                          /* yes   */
+               if version.1() <> 'KEDIT'  then  DOSN = 'winexec'
+               DOSN CTAGS || KTAGS        /* WINEXEC if KeditW */
+               'put line' KTAGS ''        /* forced non-empty  */
+            end                           /*  if no *.C source */
+            else KTAGS = '"' || DIALOG.1 || '"'       /* no    */
+
+         'kedit' KTAGS '(noprofile nodefext)'
+
+         if rc = 0 & size.1() > 0 & KTAGS.C <> KTAGS  then  do
+            KTAGS.C = KTAGS         /* changed KTAGS are ok.,  */
+            'editv put KTAGS.C'     /* note this for session   */
+         end
+      end
+   end
+
+   call SCAN FOCUS, KTAGS.OLD       /* look for FOCUS in KTAGS */
+end
+
+/* ---- look for FOCUS word in TOPIC file -------------------- */
+
+'kedit' TOPIC '(noprofile nodefext)'
+if rc <> 0 | size.1() = 0  then  do
+   if rc = 0   then  'qquit'        /* missing PATH option :-) */
+   'extract /PATH/'                 ;  'path' macropath.1()
+   'kedit' TOPIC '(noprofile nodefext)'
+
+   if rc <> 0 | size.1() = 0  then  do
+      if rc = 0   then  'qquit'     /* qquit empty TOPIC file  */
+      'kedit' KTAGS.OLD '(nodefext new)'
+      'emsg TOPIC file' TOPIC 'not found or unable to open it'
+      rc = 1                        /* even not in MACROPATH   */
+   end
+   'path' PATH.1                    ;  if rc <> 0  then  exit rc
+end
+
+call SCAN FOCUS, KTAGS.OLD          /* look for FOCUS in TOPIC */
+
+'emsg "' || FOCUS || '" neither found in' KTAGS 'nor in' TOPIC
+exit 1
+
+/* ---- look for FOCUS word in KTAGS or in TOPIC file -------- */
+
+SCAN: procedure            /* we are already in KTAGS or TOPIC */
+   parse arg FOCUS, KTAGS.OLD
+
+   SOURCE = ''                      ;  STRING = ''
+   N = delimit( FOCUS || d2c( 9 ))  ;  'case Mixed Respect'
+   'nomsg tfind' delimit( FOCUS || ' ' ) '|' N        /* TABs  */
+
+   if rc = 0   then  do                   /* FOCUS word found: */
+      if abbrev( curline.3(), FOCUS || ' ' )
+         then N = ' '                     /* blank delimiters  */
+         else N = d2c( 9 )                /* TABs as delimiter */
+
+      parse value curline.3() with . (N) SOURCE (N) STRING
+
+      if abbrev( STRING, '/^' )  then  do /* vi-style /^line$/ */
+         NEWSTR = ''
+         STRING = substr( STRING, 3, length( STRING ) - 4 )
+
+         do while STRING <> ''            /* get rid of all \\ */
+            parse value STRING with N '\\' STRING
+            NEWSTR = NEWSTR || N
+            if STRING <> ''   then  NEWSTR = NEWSTR || '\'
+         end
+         do while NEWSTR <> ''            /* get rid of all \/ */
+            parse value NEWSTR with N '\/' NEWSTR
+            STRING = STRING || N
+            if NEWSTR <> ''   then  STRING = STRING || '/'
+         end
+
+         STRING = delimit( STRING )       /* make Kedit target */
+      end
+   end
+
+   'qquit'  ;  'x' KTAGS.OLD '(nodefext new)'   /* qq KTAGS    */
+
+   if SOURCE = '' & STRING = ''  then  return   /* not found   */
+   if SOURCE = '' then  do                /* got a help topic  */
+      if version.1() <> 'KEDIT'  then  'winexec nowait' STRING
+                                 else  'dosq' STRING
+      say 'dosq' STRING '(' || rc || ')'
+   end
+   else do                                /* got a tags source */
+      'extract /PATH/'              ;  'path INCLUDE'
+      'kedit' SOURCE '(nodefext)'   ;  N = rc
+      'path' PATH.1
+
+      if N <> 0   then  do
+         say FOCUS 'defined in' SOURCE || ': cannot open file'
+         exit N                           /* source locked :-( */
+      end
+
+      'editv get KTAGS.0'  ;  if KTAGS.0 = ''   then  KTAGS.0 = 0
+      N =  KTAGS.0 + 1     ;  KTAGS.N = KTAGS.OLD
+      KTAGS.0 = N          ;  'editv put KTAGS.0 KTAGS.' || N
+
+      'extract /ARBCHAR/CASE/'
+      'set arbchar on' d2c( 9 ) left( STRING, 1 )
+      'case Mixed Respect' ;  ':0 tfind' STRING
+      'nomsg set arbchar' ARBCHAR.1 ARBCHAR.2 ARBCHAR.3
+      'nomsg set case' CASE.1 CASE.2 CASE.3
+   end
+
+   exit                          /* TFIND errors are visible   */

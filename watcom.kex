@@ -1,0 +1,592 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] WATCOM                                  */
+/* Purpose:       WATCOM defines some macros for the WATCOM C/C++ */
+/*                DOS (binw) tools.                               */
+/* Macro OPCODE:  Please edit the MYOP path for your box below.   */
+/*                OPCODE tries to locate a given hex. or symbolic */
+/*                opcode in a file with assembler opcodes.  The   */
+/*                opcode61.lst in ktags.zip covers most opcodes   */
+/*                for INTEL 8088, 8086/8087, 186/187, 286/287,    */
+/*                386/387, 486, 586 (P1), 587 (MMX), 686 (P2),    */
+/*                and 687 (P3) processors.                        */
+/* Macro XH:      XH xyzzy => X xyzzy.H with actual INCLUDE path. */
+/* Macro WMAKE:   Shows a WMAKE macro cheat sheet.                */
+/* Macro WHELP:   WHELP book [x] = whelp book [x], default CMIX   */
+/* Macro WVIEW:   WVIEW book [x] = view  book [x]                 */
+/*                Copy PC DOS 7 VIEW.exe to %WATCOM%\BINP\HELP if */
+/*                you have no better tool for OS/2 *.INF files.   */
+/* Macro CLIBS:   WDISasm %WATCOM%\lib286\dos\clibs.lib module    */
+/* Macro CLIBL:   WDISasm %WATCOM%\lib286\dos\clibl.lib module    */
+/*                The CLIB? macros use macro WATCOM clib? symbol  */
+/*                to find the library module for a given symbol.  */
+/*                WLIB extracts the module from the library to a  */
+/*                temporary object file.  WDIS disassembles this  */
+/*                object to a temporary assembler listing.  The   */
+/*                macro locates the given symbol in the listing   */
+/*                and erases both temporary files.                */
+/*                One trailing and max. three leading underscores */
+/*                are automatically added to the given symbol if  */
+/*                it cannot be located as is.  To limit the size  */
+/*                of this macro most DBCS (wchar) symbols are not */
+/*                listed.  The index at the end of this macro is  */
+/*                based on the Open Watcom C/C++ 12.0 libraries.  */
+/* See also:      <URL:http://purl.net/xyzzy/kex/ktags.zip>,      */
+/*                <URL:http://purl.net/xyzzy/kex/kex.kex>,        */
+/*                <URL:http://purl.net/xyzzy/kex/kexpand.kex>,    */
+/*                <URL:http://purl.net/xyzzy/kex/kexpath.kex>,    */
+/*                <URL:http://purl.net/xyzzy/kex/cdd.kex>,        */
+/*                KHELP SYNEX, KHELP CHDisk, KHELP CHDRive        */
+/* Requires:      KEX.KEX to find its own code with CLIB symbols, */
+/*                KEXPAND.KEX and KEXPATH.KEX needed for KEX.KEX, */
+/*                CDD.KEX with a SYNONYM CHD CDD (for Kedit 5.0), */
+/*                Open WATCOM C/C++ 12.0 in directory %WATCOM%,   */
+/*                PC DOS 7 VIEW.exe copy in %WATCOM%\BINP\HELP,   */
+/*                Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2010) */
+
+   PATH = dosenv( 'WATCOM' )     ;  parse upper source . . THIS
+   parse arg CLIB WHAT           ;  CDD = 'nomsg synex chd'
+
+   if CLIB = '?'  then  exit WMAKE()   /* show WMAKE cheat sheet  */
+   if CLIB = ''   then  do
+      "def wmake 'macro" THIS "?'"     /* define the WMAKE macro  */
+      call CLIB THIS, 'clibs'          /* define the CLIBS macro  */
+      call CLIB THIS, 'clibl'          /* define the CLIBL macro  */
+
+      HELP = PATH || '\binw\whelp.exe' /* define the WHELP macro  */
+      PREP = "parse arg X; if X = '' then X = 'cmix';"
+      'def whelp' PREP "'dosq" HELP || "' X"
+
+      PATH = PATH || '\binp\help'      /* define the WVIEW macro  */
+      PREP = "D = directory.1(); '" || CDD PATH || "';"
+      'def wview' PREP "'dosq view' arg(1); '" || CDD || "' D"
+
+      PREP = '"' || "' || arg( 1 ) || '.h" || '"' || "'; R = rc;"
+      PREP = "X = path.1(); 'path INCLUDE'; 'x" PREP
+      'def xh' PREP "'path' X; exit R" /* define XH to xedit *.h  */
+
+      MYOP = 'c:\etc\chm\rbrown\opcode61.lst'
+      PREP = "parse arg X; if X = '' then X = 'EI|DI';"
+      'def opcode' PREP "'x" MYOP || "'; ':0 l w' delimit(X)"
+      exit 0
+   end
+
+   CLIB = PATH || '\lib286\dos\' || CLIB || '.lib'
+   'macro kex' THIS              ;  if rc <> 0  then  exit rc
+   ':0 tfind /CLIB: "def"/'      ;  if rc <> 0  then  exit rc
+   TMP = dosenv( 'TMP' )         ;  HERE = directory.1()
+   if TMP = '' then  TMP = dosenv( 'TMP' )
+   if TMP = '' then  TMP = HERE  ;  if dir()    then  'x'
+   'wrap off'  ;  'stay on'      ;  'case M I'  ;  'word nonblank'
+   'nomsg locate word' delimit( WHAT ) /* try plausible variants: */
+   if rc <> 0  then  'nomsg l word' delimit(    '' || WHAT || '_' )
+   if rc <> 0  then  'nomsg l word' delimit(   '_' || WHAT )
+   if rc <> 0  then  'nomsg l word' delimit(   '_' || WHAT || '_' )
+   if rc <> 0  then  'nomsg l word' delimit(  '__' || WHAT )
+   if rc <> 0  then  'nomsg l word' delimit(  '__' || WHAT || '_' )
+   if rc <> 0  then  'nomsg l word' delimit( '___' || WHAT )
+   if rc <> 0  then  do
+      WHAT = WHAT 'is no listed' ;  if ring.0() > 0   then 'quit'
+      'emsg' WHAT CLIB 'symbol'  ;  exit 1
+   end
+
+   N = 2 + 2 * ( 40 <= pos( WHAT, curline.3()))
+   THIS = word( curline.3(), N ) ;  if ring.0() > 0   then 'quit'
+   'x' THIS || '.lst (new)'      ;  if 0 <> rc  then  exit rc
+   if ring.0() > 0   then 'quit' ;  CDD '"' || TMP || '"'
+   if rc <> 0  then  exit rc     ;  'dosq wlib' CLIB '*' || THIS
+   if rc = 0   then  'dosq wdis -fi -l -a' THIS || '.obj'
+   if rc = 0   then  'erase' THIS || '.obj'
+   if rc = 0   then  'x' THIS || '.lst'
+   if rc = 0   then  'erase' THIS || '.lst'
+   ERR = rc                      ;  CDD '"' || HERE || '"'
+   if ERR <> 0 then  'emsg wdis or wlib' CLIB 'exec error' ERR
+   if ERR = 0  then  'nomsg :0 l /ASSUME/ l' delimit( WHAT )
+   if ERR = 0 & size.1() = 0  then  do
+      'nomsg quit'   ;  ERR = 4  ;  say 'empty' THIS || '.lst'
+   end
+   exit ERR
+
+WMAKE:   procedure                     /* max. 10 'dialog' lines: */
+   P = '$@  full target name           Qualifiers (R = required)   '
+   Q = '$*  target without extension   $^@  full file name         '
+   P = P || x2c( 0A ) || Q
+   Q = '$^  current target             $^*  strip extension        '
+   P = P || x2c( 0A ) || Q
+   Q = '$[R first   dependent          $^&  strip path + extension '
+   P = P || x2c( 0A ) || Q
+   Q = '$]R last    dependent          $^.  strip path             '
+   P = P || x2c( 0A ) || Q
+   Q = '$?  younger dependents         $^:  path of file name      '
+   P = P || x2c( 0A ) || Q
+   Q = 'WMAKE macro cheat sheet'
+   if version.1() = 'KEDIT'
+      then  'dialog' delimit( P ) 'title' delimit( Q )
+      else  'dialog' delimit( P ) 'title' delimit( Q ) 'fixed'
+   return rc
+
+/* -------------------------------------------------------------- */
+CLIB: "def" arg(2) "'macro" arg(1) arg(2) || "' arg(1)"  ;  return
+CodeModelMismatch             cmodel   _expand_                      nexpand
+D16Emulate_                   hk87     _fbtom_                       fbtom
+F4DivZero                     fstat086 _fcalloc_                     fcalloc
+F4OverFlow                    fstat086 _fdopen_                      _ifdopen
+F4UnderFlow                   fstat086 _fexpand_                     fexpand
+F8DivZero                     fstat086 _ffree_                       ffree
+F8InvalidOp                   fstat086 _fgetchar_                    _ifgetch
+F8OverFlow                    fstat086 _fgetwchar_                   _ifgetwc
+F8RetInf_                     fstat086 _fheapchk_                    fheapchk
+F8UnderFlow                   fstat086 _fheapgrow_                   heapgrow
+_CrtDbgBreak_                 dbgbreak _fheapmin_                    fheapmin
+_CrtDbgReport_                dbgrpt   _fheapset_                    fheapset
+_CrtSetReportFile_            dbgrptfi _fheapshrink_                 fheapmin
+_CrtSetReportHook_            dbgrptho _fheapwalk_                   fheapwal
+_CrtSetReportMode_            dbgrptmo _fieeetomsbin_                fsms086
+_DGroup_                      dgroup   _filelengthi64_               64fillen
+_DoINTR_                      dointr   _fileno_                      fileno
+_F8RetInf_                    fstat086 _findclose_                   findclos
+_FPStatus_                    fstat086 _findfirst_                   findfirs
+_Not_Enough_Memory_           cstart   _findfirsti64_                64findfi
+__8087                        _8087    _findnext_                    findnext
+__8087cw                      8087cw   _findnexti64_                 64findne
+__AllocSeg_                   allocseg _fltused_                     fltused
+__Bits                        bits     _fmalloc_                     fmalloc
+__CMain                       cmain086 _fmemccpy_                    fmemccpy
+__CVTBuffer_                  cvtbuf   _fmemchr_                     fmemchr
+__CacheOSTZ_                  tzset    _fmemcmp_                     fmemcmp
+__ChkTTYIOMode_               iomodtty _fmemcpy_                     fmemcpy
+__DOSseg__                    dosseg   _fmemicmp_                    fmemicmp
+__DontCacheOSTZ_              tzset    _fmemmove_                    fmemmove
+__EDA                         fdmth086 _fmemset_                     fmemset
+__EDC                         fdc086   _fmsbintoieee_                msfs086
+__EDD                         fdmth086 _fmsize_                      fmsize
+__EDM                         fdmth086 _fmtob_                       fmtob
+__EDS                         fdmth086 _fnthctype_                   fnthctyp
+__Enable_FPE_                 fpe87    _fpreset_                     chk8087
+__End_XI                      sgdef086 _fputchar_                    _ifputch
+__End_YI                      sgdef086 _fputwchar_                   _ifputwc
+__EnterWVIDEO_                enterdb  _frealloc_                    frealloc
+__ExpandDGROUP_               grownear _freect_                      freect
+__FDA                         fdmth086 _fsopen_                      fopen
+__FDC                         fdc086   _fstat_                       _ifstat_
+__FDD                         fdmth086 _fstati64_                    64fstat
+__FDFS                        fdfs086  _fstrcat_                     fstrcat
+__FDI4                        fdi4086  _fstrchr_                     fstrchr
+__FDI8                        fdi8086  _fstrcmp_                     fstrcmp
+__FDM                         fdmth086 _fstrcpy_                     fstrcpy
+__FDN                         fdn086   _fstrcspn_                    fstrcspn
+__FDS                         fdmth086 _fstrdup_                     fstrdup
+__FDU4                        fdi4086  _fstricmp_                    fstricmp
+__FDU8                        fdi8086  _fstrlen_                     fstrlen
+__FDU87                       _7fu8086 _fstrlwr_                     fstrlwr
+__FFiniRtns                   initrtns _fstrncat_                    fstrncat
+__FInitRtns                   initrtns _fstrncmp_                    fstrncmp
+__FPEHandler                  fpe87    _fstrncpy_                    fstrncpy
+__FPE_exception_              fpexcept _fstrnicmp_                   fstrnicm
+__FPE_handler                 crwdata  _fstrnset_                    fstrnset
+__FSA                         fsmth086 _fstrpbrk_                    fstrpbrk
+__FSC                         fsc086   _fstrrchr_                    fstrrchr
+__FSD                         fsmth086 _fstrrev_                     fstrrev
+__FSFD                        fsfd086  _fstrset_                     fstrset
+__FSI1                        fsi4086  _fstrspn_                     fstrspn
+__FSI2                        fsi4086  _fstrspnp_                    fstrspnp
+__FSI4                        fsi4086  _fstrstr_                     fstrstr
+__FSI8                        fsi8086  _fstrtok_                     fstrtok
+__FSM                         fsmth086 _fstrupr_                     fstrupr
+__FSN                         fsn086   _ftime_                       _iftime_
+__FSS                         fsmth086 _fullpath_                    fullpath
+__FSU1                        fsi4086  _get_osfhandle_               oshdl
+__FSU2                        fsi4086  _getch_                       _igetch_
+__FSU4                        fsi4086  _getche_                      _igetche
+__FSU8                        fsi8086  _getcwd_                      _igetcwd
+__FSU87                       _7fu8086 _getdcwd_                     getdcwd
+__FiniRtns                    initrtns _getdiskfree_                 diskfree
+__Fini_Argv_                  initargv _getdrive_                    getdrive
+__Fini_FPE_handler_           fpe87    _getw_                        getw
+__FreeSeg_                    freeseg  _getws_                       _igetws_
+__GETDS                       cstart   _gmtime_                      gmtime
+__GetIOMode_                  iomode   _grow_handles_                hdlman
+__GrabFP87_                   grabfp87 _harderr_                     harderr
+__GrowSeg_                    growseg  _hardresume_                  harderr
+__HShift                      crwdata  _hardretn_                    harderr
+__HeapInit_                   heapinit _hdopen_                      hdopen
+__HeapManager_expand_         nexpand  _heapchk_                     nheapchk
+__HeapMin_                    heapmin  _heapenable_                  heapen
+__HeapSet_                    heapset  _heapgrow_                    heapgrow
+__HeapWalk_                   heapwalk _heapmin_                     nheapmin
+__HugeValue                   hugeval  _heapset_                     nheapset
+__I4D                         i4d      _heapshrink_                  nheapmin
+__I4FD                        i4fd086  _heapwalk_                    nheapwal
+__I4FS                        i4fs086  _itoa_                        _iitoa__
+__I4M                         i4m      _itow_                        uitoa
+__I8DQ                        i8d086   _localtime_                   localtim
+__I8DQE                       i8d086   _locking_                     _ilockin
+__I8DR                        i8d086   _lrotl_                       lrot
+__I8DRE                       i8d086   _lrotr_                       lrot
+__I8FD                        i8fd086  _lseek_                       _ilseek_
+__I8FS                        i8fs086  _lseeki64_                    64lseek
+__I8LS                        i8ls086  _ltoa_                        _iltoa__
+__I8M                         i8m086   _ltow_                        ultoa
+__I8ME                        i8m086   _makepath_                    makepath
+__I8RS                        i8rs086  _mbsnicmp_                    mbsnicmp
+__IOMode_                     iomodtty _memavl_                      memavl
+__InitFiles_                  initfile _memicmp_                     _imemicm
+__InitRtns                    initrtns _memmax_                      memmax
+__Init_Argv_                  initargv _mkdir_                       _imkdir_
+__Init_FPE_handler_           fpe87    _mktemp_                      mktemp
+__Init_Tmpfl_                 tmpfl    _msize_                       nmsize
+__IsKTable                    isktable _ncalloc_                     ncalloc
+__IsTable                     istable  _nexpand_                     nexpand
+__LastFree_                   grownear _nfree_                       nfree
+__LocaleSetting               locale   _nheapchk_                    nheapchk
+__LpCmdLine                   crwdata  _nheapgrow_                   heapgrow
+__LpPgmName                   crwdata  _nheapmin_                    nheapmin
+__MachineType_                mtype    _nheapset_                    nheapset
+__MemAllocator                mem      _nheapshrink_                 nheapmin
+__MemFree                     mem      _nheapwalk_                   nheapwal
+__MkTmpFile_                  tmputil  _nmalloc_                     nmalloc
+__ModF                        amodf086 _nmsize_                      nmsize
+__NHeapWalk_                  nheapwal _nrealloc_                    nrealloc
+__Null_Argv_                  nullargv _open_                        _iopen__
+__PIA                         pia      _open_osfhandle_              hdopen
+__PIS                         pia      _opendir_                     dir
+__PTC                         __PTC    _os_handle_                   oshdl
+__PTS                         __PTS    _plib_free_                   liballoc
+__RDI4                        fdi4086  _plib_malloc_                 liballoc
+__RDU4                        fdi4086  _putenv_                      _iputenv
+__RmTmpFile_                  tmputil  _putw_                        putw
+__SARD                        sard     _putws_                       _iputws_
+__SHLD                        shld     _rotl_                        rotl
+__SHRD                        shrd     _rotr_                        rotr
+__STACKLOW                    crwdata  _searchenv_                   searchen
+__STACKTOP                    crwdata  _setenv_                      setenv
+__STK                         stk      _setjmp_                      setjmp
+__STKOVERFLOW_                stk      _small_code_                  cmodel
+__SetIOMode_                  stiomode _snprintf_                    bprintf
+__SetIOMode_nogrow_           iomode   _snwprintf_                   ubprintf
+__Slash_C_                    _slashc  _splitpath2_                  split2
+__Start_XI                    sgdef086 _splitpath_                   splitpat
+__Start_YI                    sgdef086 _stat_                        _istat__
+__U4D                         i4d      _stati64_                     64stat
+__U4FD                        i4fd086  _stprintf_                    u_stprtf
+__U4FS                        i4fs086  _strdate_                     strdate
+__U4M                         i4m      _strdup_                      _istrdup
+__U64Add_                     u64add   _strerror_                    strerror
+__U64Div_                     u64div   _stricmp_                     _istricm
+__U64Mul_                     u64mul   _stricoll_                    _istrico
+__U64Shift_                   u64shift _strlwr_                      _istrlwr
+__U8DQ                        i8d086   _strncoll_                    _istrnco
+__U8DQE                       i8d086   _strnicmp_                    _istrnic
+__U8DR                        i8d086   _strnicoll_                   _istnico
+__U8DRE                       i8d086   _strnset_                     _istrnse
+__U8FD                        i8fd086  _strrev_                      _istrrev
+__U8FD7                       _7u8f086 _strset_                      _istrset
+__U8FS                        i8fs086  _strspnp_                     _istrspn
+__U8FS7                       _7u8f086 _strtime_                     strtime
+__U8LS                        i8ls086  _strupr_                      _istrupr
+__U8M                         i8m086   _swprintf_                    usprintf
+__U8ME                        i8m086   _sys_fullpath_                fullpath
+__U8RS                        u8rs086  _sys_wfullpath_               ufulpath
+__ZBuf2F                      amodf086 _telli64_                     64tell
+__ZBuf2LD                     bufld086 _tempnam_                     tempnam
+___Alphabet                   alphabet _timezone                     tzset
+___ClosedStreams              iob      _tolower_                     _itolowe
+___DbgReportFiles             dbgdata  _toupper_                     _itouppe
+___DbgReportHook              dbgdata  _tzname                       tzset
+___DbgReportModes             dbgdata  _tzset_                       _itzset_
+___EFG_printf                 noefgfmt _ultoa_                       _iultoa_
+___EFG_scanf                  noefgfmt _ultow_                       ultoa
+___Exec_addr                  execaddr _ustrtok_                     ustrtok
+___FPE_handler                crwdata  _utime_                       _iutime_
+___FPE_handler_exit           exit     _utoa_                        _iutoa__
+___FPE_int                    fpeint   _utow_                        uitoa
+___IsDBCS                     mbisdbcs _vbprintf_                    bprintf
+___LargestSizeB4MiniHeapRover nmalloc  _vbwprintf_                   ubprintf
+___LargestSizeB4Rover         fmalloc  _vsnprintf_                   bprintf
+___MBCodePage                 mbinit   _vsnwprintf_                  ubprintf
+___MBCSIsTable                mbislead _vswprintf_                   uvsprint
+___MiniHeapFreeRover          nfree    abort_                        abort
+___MiniHeapRover              nmalloc  abs_                          abs
+___NFiles                     iomode   access_                       accss
+___NHandles                   hdlman   asctime_                      asctime
+___NonIBM                     nonibm   atexit_                       atexit
+___OpenStreams                iob      atoi_                         atoi
+___Rest8087                   save8087 atol_                         atol
+___RmTmpFileFn                fclose   bcmp_                         bcmp
+___Save8087                   save8087 bcopy_                        bcopy
+___WD_Present                 enterdb  bdos_                         bdos086
+____Argc                      ___argc  break_off_                    break
+____Argv                      ___argc  break_on_                     break
+___abort                      abort    bsearch_                      bsearch
+___argc                       argcv    btom_                         btom
+___argv                       argcv    bzero_                        bzero
+___begtext                    cstart   calloc_                       calloc
+___bheap                      bheapseg cgets_                        cgets
+___chipbug                    chipvar  chdir_                        chdir
+___dilyr                      timeutil chkctype_                     chkctype
+___diyr                       timeutil chmod_                        chmod
+___dst_adjust                 tzset    chsize_                       chsiz
+___end_dst                    tzset    clearenv_                     clearenv
+___env_mask                   environ  clearerr_                     clearerr
+___exec_para                  doexec   clock_                        clock
+___fheap                      fmalloc  close_                        close
+___fheapRover                 fmalloc  closedir_                     dir
+___fheap_clean                heapmod  cprintf_                      cprintf
+___fheapchk_current           fheapchk cputs_                        cputs
+___heap_enabled               heapen   creat_                        creat
+___historical_splitparms      histsplt cscanf_                       cscanf
+___init_mode                  iomode   ctime_                        asctime
+___int23_exit                 exit     delay_                        delay
+___io_mode                    iomode   div_                          div
+___iob                        iob      dosexterr_                    dosexter
+___lmt                        timstamp dup2_                         dup2
+___longjmp_handler            ljmphdl  dup_                          dup
+___nheap_clean                heapmod  eof_                          eof
+___nheapbeg                   nmalloc  execl_                        exl
+___nheapchk_current           nheapchk execle_                       exle
+___p_overlay                  doexec   execlp_                       exlp
+___start_dst                  tzset    execlpe_                      exlpe
+___tmpfnext                   tmpfl    execv_                        exv
+___umaskval                   umaskval execve_                       exve
+__allocfp_                    allocfp  execvp_                       exvp
+__amblksiz                    amblksiz execvpe_                      exvpe
+__argc                        argcv    exit_                         exit
+__argv                        argcv    fclose_                       fclose
+__assert_                     assert   fcloseall_                    ioexit
+__brk_                        sbrk     fdopen_                       fdopen
+__brktime_                    gmtime   feof_                         feof
+__cbyte                       crwdata  ferror_                       ferror
+__ccmdline_                   cenvarg  fflush_                       fflush
+__cenvarg_                    cenvarg  fgetc_                        fgetc
+__child                       crwdata  fgetchar_                     fgetchar
+__chipbug                     chipvar  fgetpos_                      fgetpos
+__chk8087_                    chk8087  fgets_                        fgets
+__chktty_                     chktty   fgetwc_                       ufgetc
+__clib_atoll_                 atoll    fgetwchar_                    ufgetcha
+__clib_lltoa_                 lltoa    fgetws_                       ufgets
+__clib_strdup_                strdup   filelength_                   filelen
+__clib_ulltoa_                lltoa    fileno_                       fileno
+__clib_watoll_                uatoll   flushall_                     flushall
+__clib_wcsdup_                ustrdup  fopen_                        fopen
+__clib_wlltoa_                ulltoa   fprintf_                      fprintf
+__clib_wulltoa_               ulltoa   fputc_                        fputc
+__close_                      _clse    fputchar_                     fputchar
+__close_ovl_file              crwdata  fputs_                        fputs
+__commode                     comtflag fputwc_                       ufputc
+__create_wide_environment_    crtwenv  fputwchar_                    ufputcha
+__curbrk                      crwdata  fputws_                       ufputs
+__demangle_t_                 demangl  fread_                        fread
+__do_exit_with_msg__          cstart   free_                         nfree
+__doclose_                    fclose   freopen_                      fopen
+__doexec                      doexec   fscanf_                       fscanf
+__dos_filetime_cvt_           filtmcvt fseek_                        fseek
+__dos_finddata_cvt_           findfirs fsetpos_                      fsetpos
+__dos_finddatai64_cvt_        64findfi fstat_                        fstat
+__dos_wfinddata_cvt_          ufindfir fsync_                        fsync
+__dos_wfinddatai64_cvt_       u64findf ftell_                        ftell
+__doserrno                    errno    ftime_                        ftime
+__doserror_                   doserror fwprintf_                     ufprintf
+__dospawn                     dospawn  fwrite_                       fwrite
+__execaddr_                   execaddr fwscanf_                      ufscanf
+__exit_                       cstart   getc_                         getc
+__exit_with_msg_              xmsg     getch_                        getch
+__fatal_runtime_error_        xmsg     getchar_                      getchar
+__filbuf_                     fgetc    getche_                       gtche
+__fill_buffer_                fgetc    getcmd_                       gtcmddos
+__flush_                      flush    getcwd_                       gtcwd
+__flushall_                   flushall getenv_                       getenv
+__fmemneed_                   fmemneed getpid_                       gtpid
+__fmode                       iob      gets_                         gets
+__fpatan_chk                  chipa16  getwc_                        ugetc
+__fpatan_wrap                 chipw16  getwchar_                     ugetchar
+__fprem1_chk                  chipr16  getws_                        ugets
+__fprem_                      fprem086 gmtime_                       gmtime
+__fprem_chk                   chipr16  halloc_                       haloc
+__fprtf_                      fprtf    hfree_                        haloc
+__fptan_chk                   chipt16  inp_                          inp
+__freeenvp_                   setenvp  inpw_                         inpw
+__freefp_                     freefp   int86_                        intx086
+__fsetbits_                   fsetbits int86x_                       intx086
+__full_io_exit_               ioexit   intdos_                       intd086
+__fwprtf_                     ufprtf   intdosx_                      intdx086
+__get_HugeValue_ptr_          hvalptr  intr_                         intr
+__get_amblksiz_ptr_           ambsptr  isalnum_                      isalnum
+__get_daylight_ptr_           dyltptr  isalpha_                      isalpha
+__get_doserrno_ptr_           errno    isascii_                      isascii
+__get_environ_ptr_            envptr   isatty_                       isatt
+__get_errno_ptr_              errno    iscntrl_                      iscntrl
+__get_iob_ptr_                iobptr   iscsym_                       _iiscsym
+__get_osmajor_ptr_            osmjptr  iscsymf_                      _iiscsyf
+__get_osminor_ptr_            osmnptr  isdigit_                      isdigit
+__get_osmode_ptr_             osmdptr  isgraph_                      isgraph
+__get_ovl_stack               crwdata  isleadbyte_                   _iislead
+__get_psp_ptr_                pspptr   islower_                      islower
+__get_std_file_               iobaddr  isprint_                      isprint
+__get_std_stream_             iobaddr  ispunct_                      ispunct
+__get_sys_errlist_ptr_        selptr   isspace_                      isspace
+__get_sys_nerr_ptr_           sneptr   isupper_                      isupper
+__get_timezone_ptr_           tmznptr  iswalnum_                     uisalnum
+__get_tzname_ptr_             tznmptr  iswalpha_                     uisalpha
+__get_wenviron_ptr_           wenvptr  iswascii_                     uisascii
+__getctime_                   gtctm    iswcntrl_                     uiscntrl
+__grab_int23_                 sigsy    iswctype_                     iswctype
+__grab_int_ctrl_break_        sigsy    iswdigit_                     uisdigit
+__grow_iomode_                stiomode iswgraph_                     uisgraph
+__hook8087_                   hk87     iswlower_                     uislower
+__ibm_bios_disk_              b_disk   iswprint_                     uisprint
+__ibm_bios_equiplist_         biosfunc iswpunct_                     uispunct
+__ibm_bios_keybrd_            biosfunc iswspace_                     uisspace
+__ibm_bios_memsize_           biosfunc iswupper_                     uisupper
+__ibm_bios_printer_           biosfunc iswxdigit_                    uisxdig
+__ibm_bios_serialcom_         biosfunc isxdigit_                     isxdigit
+__ibm_bios_timeofday_         b_timofd itoa_                         itoa
+__init_8087_                  chk8087  kbhit_                        kbhit
+__init_8087_emu               init8087 labs_                         labs
+__init_80x87                  init8087 ldiv_                         ldiv086
+__init_execve_                exve     lfind_                        lfind
+__ioalloc_                    ioalloc  localeconv_                   localeco
+__is_nonIBM_                  nonibm   localtime_                    localtim
+__isascii_                    _i_isasc lock_                         lock
+__iscsym_                     iscsym   locking_                      locking
+__iscsymf_                    iscsymf  longjmp_                      setjmp
+__isindst_                    timeutil lsearch_                      lsearch
+__leapyear_                   timeutil lseek_                        lseek
+__lseek_                      lseekdos ltoa_                         ltoa
+__mbinit_                     mbinit   malloc_                       nmalloc
+__nec98_bios_disk_            n_disk   max_                          max
+__nec98_bios_equiplist_       n_equipl memccpy_                      memccpy
+__nec98_bios_keybrd_          n_keybrd memchr_                       memchr
+__nec98_bios_memsize_         n_mem    memcmp_                       memcmp
+__nec98_bios_printer_         n_print  memcpy_                       memcpy
+__nec98_bios_serialcom_       n_serial memicmp_                      memicmp
+__nec98_bios_timeofday_       n_timofd memmove_                      memmove
+__nmemneed_                   nmemneed memset_                       memset
+__no87                        crwdata  min_                          min
+__null_int23_exit_            exit     mkdir_                        mkdir
+__nullarea                    cstart   mktime_                       mktime
+__old_8087                    _old8087 movedata_                     movedata
+__open_flags_                 fopen    mtob_                         mtob
+__osmajor                     crwdata  nosound_                      sound
+__osminor                     crwdata  nthctype_                     nthctype
+__osmode                      crwdata  onexit_                       onexit
+__parse_tz_                   tzset    open_                         open
+__plusplus_fstat_             plusfsta opendir_                      dir
+__plusplus_open_              plusopen outp_                         outp
+__prtf_                       prtf     outpw_                        outpw
+__psp                         crwdata  perror_                       perror
+__purgefp_                    freefp   printf_                       printf
+__putenv_                     putenv   putc_                         putc
+__qread_                      qread    putch_                        putch
+__qwrite_                     qwrit    putchar_                      putchar
+__raise                       _raise   putenv_                       putenv
+__real87                      _8087    puts_                         puts
+__restore_int23_              sigsy    putwc_                        uputc
+__restore_int_ctrl_break_     sigsy    putwchar_                     uputchar
+__restore_ovl_stack           crwdata  putws_                        uputs
+__scnf_                       scnf     qsort_                        qsort
+__setEFGfmt_                  setefg   raise_                        signl
+__set_EDOM_                   seterrno rand_                         rand
+__set_EINVAL_                 seterrno read_                         read
+__set_ERANGE_                 seterrno readdir_                      dir
+__set_commode_                comtflag realloc_                      nrealloc
+__set_doserrno_               seterrno remove_                       remove
+__set_errno_                  seterrno rename_                       renam
+__set_errno_dos_              dosret   rewind_                       rewind
+__set_handles_                hdlman   rewinddir_                    dir
+__setbits_                    bits     rmdir_                        rmdir
+__setenvp_                    setenvp  sbrk_                         sbrk
+__shrink_iomode_              stiomode scanf_                        scanf
+__shutdown_stream_            fclose   segread_                      segread
+__sigabort_                   signl    setbuf_                       setbuf
+__sigfpe_handler_             signl    setenv_                       setenv
+__stacksize                   stksize  setlocale_                    setlocal
+__sys_errlist                 strerror setmode_                      setmd
+__sys_nerr                    strerror setvbuf_                      setvbuf
+__terminate_                  abort    signal_                       signl
+__unhook8087_                 hk87     sisinit_                      sisinit
+__wSlash_C_                   _uslashc sleep_                        sleep
+__wasctime_                   uasctime snprintf_                     snprintf
+__wassert_                    uassert  sopen_                        open
+__wctime_                     uasctime sound_                        sound
+__wenviron                    environ  spawnl_                       spl
+__wfilbuf_                    ufgetc   spawnle_                      sple
+__wfill_buffer_               ufgetc   spawnlp_                      splp
+__wopen_flags_                ufopen   spawnlpe_                     splpe
+__wprtf_                      uprtf    spawnv_                       spv
+__wputenv_                    uputenv  spawnve_                      spve
+__wscnf_                      uscnf    spawnvp_                      spvp
+__wsetenv_                    usetenv  spawnvpe_                     spvpe
+_access_                      _iaccess sprintf_                      sprintf
+_asctime_                     asctime  srand_                        rand
+_assert_                      assert   sscanf_                       sscanf
+_atouni_                      atouni   stackavail_                   stack086
+_bcalloc_                     bcalloc  stat_                         stat
+_bexpand_                     bexpand  strcat_                       strcat
+_bfree_                       bfree    strchr_                       strchr
+_bfreeseg_                    bfreeseg strcmp_                       strcmp
+_bgetcmd_                     gtcmddos strcmpi_                      _istrcmp
+_bheapchk_                    bheapchk strcoll_                      strcoll
+_bheapmin_                    bheapmin strcpy_                       strcpy
+_bheapseg_                    bheapseg strcspn_                      strcspn
+_bheapset_                    bheapset strdup_                       _icstrdu
+_bheapshrink_                 bheapmin strerror_                     strerror
+_bheapwalk_                   bheapwal strftime_                     strftime
+_bios_disk_                   biosdisk stricmp_                      stricmp
+_bios_equiplist_              biosequi strlen_                       strlen
+_bios_keybrd_                 bioskeyb strlwr_                       strlwr
+_bios_memsize_                biosmems strncat_                      strncat
+_bios_printer_                biosprin strncmp_                      strncmp
+_bios_serialcom_              biosseri strncpy_                      strncpy
+_bios_timeofday_              biostime strnicmp_                     strnicmp
+_bmalloc_                     bmalloc  strnset_                      strnset
+_bmsize_                      bmsize   strpbrk_                      strpbrk
+_bprintf_                     bprintf  strrchr_                      strrchr
+_brealloc_                    brealloc strrev_                       strrev
+_bwprintf_                    ubprintf strset_                       strset
+_chain_intr_                  chainint strspn_                       strspn
+_close_                       _iclose_ strspnp_                      strspnp
+_cmdname_                     cmdname  strstr_                       strstr
+_control87_                   cntrl87  strtok_                       strtok
+_controlfp_                   cntrlfp  strtol_                       strtol
+_cstart_                      cstart   strtoul_                      strtol
+_ctime_                       asctime  strupr_                       strupr
+_d2ttime_                     d2ttime  strxfrm_                      strxfrm
+_daylight                     tzset    swab_                         swab
+_dieeetomsbin_                fdmd086  swprintf_                     usprintf
+_disable_                     disable  swscanf_                      usscanf
+_dmsbintoieee_                mdfd086  system_                       system
+_dopen_                       _idopen_ tell_                         tell
+_dos_allocmem_                dosmem   time_                         time
+_dos_close_                   dosfile  tmpfile_                      tmpfl
+_dos_commit_                  dosfile  tmpnam_                       tmpnm
+_dos_creat_                   doscreat tolower_                      tolower
+_dos_creatnew_                doscreat toupper_                      toupper
+_dos_findclose_               dosfind  towlower_                     utolower
+_dos_findfirst_               dosfind  towupper_                     utoupper
+_dos_findnext_                dosfind  tzset_                        tzset
+_dos_freemem_                 dosmem   ultoa_                        ltoa
+_dos_getdate_                 dosgtime umask_                        umask
+_dos_getdiskfree_             dosdisk  ungetc_                       ungetc
+_dos_getdrive_                dosdrive ungetch_                      ungetch
+_dos_getfileattr_             dosattr  ungetwc_                      uungetc
+_dos_getftime_                dosftime unlink_                       unlnk
+_dos_gettime_                 dosgtime unlock_                       unlck
+_dos_getvect_                 d_getvec utime_                        utime
+_dos_keep_                    d_keep   utoa_                         itoa
+_dos_open_                    dosfile  vcprintf_                     cprintf
+_dos_read_                    dosio    vcscanf_                      cscanf
+_dos_setblock_                dosmem   vfprintf_                     vfprintf
+_dos_setdate_                 dosstime vfscanf_                      fscanf
+_dos_setdrive_                dosdrive vfwprintf_                    uvfprint
+_dos_setfileattr_             dosattr  vfwscanf_                     ufscanf
+_dos_setftime_                dosftime vprintf_                      vprintf
+_dos_settime_                 dosstime vscanf_                       scanf
+_dos_setvect_                 d_setvec vsnprintf_                    snprintf
+_dos_write_                   dosio    vsprintf_                     vsprintf
+_dosret0_                     dosret   vsscanf_                      sscanf
+_dosretax_                    dosret   vswprintf_                    uvsprint
+_dup_                         _idup___ vswscanf_                     usscanf
+_enable_                      enable   vwprintf_                     uvprintf
+_environ                      environ  vwscanf_                      uscanf
+_errno                        errno    wctomb_                       wctomb
+_exit_                        exit

@@ -1,0 +1,238 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         MACRO PARSER [lang [file]]                      */
+/* Option:        SYNONYM PARSER MACRO PARSER                     */
+/* Purpose:       'MACRO PARSER lang file' first resets a parser  */
+/*                with 'SET PARSER lang file'.  This affects all  */
+/*                edited 'COLORING ON lang' files.  Additionally  */
+/*                the current file gets 'COLORING ON lang'.  If   */
+/*                that is already the case a 'QUERY PARSER lang'  */
+/*                shows the reset parser.                         */
+/*                'MACRO PARSER lang' loads a builtin '*lang.KLD' */
+/*                or works like 'MACRO PARSER lang lang.KLD', see */
+/*                above.                                          */
+/*                Any 'SET PARSER NULL *NULL.KLD' is ignored, the */
+/*                null parser cannot be set.  If a specified file */
+/*                or lang.KLD cannot be loaded (erroneous or not  */
+/*                found) the macro exits.                         */
+/*                'MACRO PARSER' without arguments determines the */
+/*                'lang' for the currently edited file.  This can */
+/*                be autocolor.2( ft.1()) for all file extensions */
+/*                associated with builtin parsers.  Alternatively */
+/*                coloring.3() determines the 'lang'.  If that is */
+/*                also NULL the macro uses 'QUERY PARSER' to show */
+/*                all loaded parsers, and gives up.               */
+/*                Otherwise 'MACRO PARSER' switches the coloring  */
+/*                to 'COLORING ON lang' for the determined 'lang' */
+/*                or reports 'QUERY PARSER lang', if the coloring */
+/*                already matches 'COLORING ON lang'.             */
+/* Special case:  Editing a KLD is handled as special case, i.e., */
+/*                the syntax coloring of the KLD is not modified. */
+/* Restrictions:  'MACRO PARSER lang' disallows "bad" characters  */
+/*                checking symbol( LANG ) = 'BAD'.  This gets rid */
+/*                of silly names; notably lang.KLD is supposed to */
+/*                be valid (or too long for MAXPATH=259).  If you */
+/*                need "bad" non-ASCII names try 'SET PARSER':    */
+/*                'SET PARSER' supports various shorthands like   */
+/*                'SET FILEID' to indicate the same drive, path,  */
+/*                name, or extension as in the current file.      */
+/*                File extension .KLD can be omitted, e.g., *C is */
+/*                handled as *C.KLD, and LUA is handed as LUA.KLD */
+/*                if a LUA.KLD is found in the MACROPATH.         */
+/*                Later 'QUERY PARSER' reports these shorthands   */
+/*                as set (unexpanded), and you cannot tell which  */
+/*                parser is actually used.                        */
+/*                The only way to get rid of an unwanted language */
+/*                is to restart KEDITW or KEDITW32.  The builtin  */
+/*                languages cannot be deleted; and they are used  */
+/*                in predefined 'SET AUTOCOLOR' associations.     */
+/* Test suite:    Replace "if 0" by "if 1" in the first line to   */
+/*                test CHKPATH(), a procedure eliminating \. and  */
+/*                \.. in a PATH.  If that's okay reset "if 0" and */
+/*                'set macropath .' temporarily:  For a lang.KLD  */
+/*                in ...\DOCUMENTS\KEDIT MACROS or ...\KEDITW or  */
+/*                its USER + SAMPLES subdirectories an explicit   */
+/*                path for one of these directories is supposed   */
+/*                to be removed automagically.  E.g., a lang.KLD  */
+/*                given as ...\KEDITW\SAMPLES\lang.KLD should be  */
+/*                trimmed to lang.KLD in procedure TRIM().  This  */
+/*                should also work with \. and \.. in the path.   */
+/*                Example, ...\ignore\..\KEDITW\.\USER\lang.KLD   */
+/*                is actually ...\KEDITW\USER\lang.KLD and can be */
+/*                set as lang.KLD, because KEDITW anyway checks   */
+/*                its own directory with subdir.s USER + SAMPLES. */
+/* See also:      KHelp PARSER, Query PARSER, KH SYNonym, KH KLD, */
+/*                KH Autocolor, Query Autocolor, KH Coloring,     */
+/*                KH Printcoloring                                */
+/* Requires:      KeditW or Keditw32 1.x  (Frank Ellermann, 2017) */
+
+   if 0  then  exit TEST()             /* 1: run CHKPATH() tests  */
+   if version.1() <> 'KEDIT'  then  return SETLANG( arg( 1 ))
+   'emsg Sorry, KEDIT' version.2() 'has no syntax highlighting'
+   exit 4
+
+SETLANG: procedure
+   arg LANG PARSER                     /* uppercase two arguments */
+
+   if LANG <> ''                    then  do
+      if PARSER = '' then  do
+         if symbol( LANG ) = 'BAD'     /* only ordinary US-ASCII  */
+            then  return EMSG( 'unsupported' PARSER, 20 )
+         PARSER = LANG || '.KLD'       /* check builtin *xyz.KLD  */
+         INIT = 'BASIC C CSHARP COBOL FORTRAN HTML INI JAVA'
+         INIT = INIT 'KLD PASCAL REXX RESOURCE XBASE NULL'
+         if wordpos( LANG, INIT ) > 0  then  PARSER = '*' || PARSER
+      end
+      else  if words( PARSER ) > 1  then  do
+         if pos( '"', PARSER ) <> 0 then  do
+            parse var PARSER P.1 '"' P.2 '"' P.3
+            if P.1 <> '' | P.2 = '' | P.3 <> ''
+               then  return EMSG( 'invalid' PARSER, 20 )
+            PARSER = P.2
+         end
+         PARSER = TRIM( PARSER )       /* get rid of MACROPATH    */
+         if words( PARSER ) > 1  then  PARSER = '"' || PARSER || '"'
+      end
+
+      if LANG = 'NULL' & PARSER = '*NULL.KLD'
+         then  rc = 0                  /* cannot reset *NULL.KLD  */
+         else  'set PARSER' LANG PARSER
+      if rc <> 0  then  return rc      /* bad Language Definition */
+      if fn.1() = LANG & ft.1() = 'KLD'   then  do
+         'query parser' LANG        ;  return rc
+      end
+   end
+   else  if ft.1() <> 'KLD'   then  do /* use predefined language */
+      LANG = autocolor.2( ft.1())
+      if LANG = 'NULL'        then  LANG = coloring.3()
+      if LANG = 'NULL'        then  do /* unknown PARSER, give up */
+         'query PARSER'             ;  if rc <> 0  then  return rc
+         return 1                      /* not really good enough  */
+      end
+   end
+   else if words( fn.2()) = 1 then  do /* else edited file is KLD */
+      PARSER = TRIM( fileid.2())
+      if words( PARSER ) > 1  then  PARSER = '"' || PARSER || '"'
+      return SETLANG( fn.2() PARSER )
+   end
+   else  return EMSG( 'invalid "' || fn.2() || '"', 20 )
+
+   if       coloring.1() = 'OFF' then  PARSER = 'OFF'
+   else  if coloring.3() <> LANG then  PARSER = coloring.3()
+   else                                PARSER = ''
+
+   if PARSER <> ''               then  do
+      say 'coloring ON' LANG '(was' PARSER || ')'
+      'coloring on' LANG            ;  return rc
+   end
+   'query parser' LANG              ;  return rc
+
+TRIM:    procedure
+   arg PATH                         ;  POS = lastpos( '\', PATH )
+   FILE = substr( PATH, POS + 1 )   ;  if POS = 0  then  return FILE
+   PATH = left(   PATH, POS - 1 )   ;  SCAN = macropath.1()
+
+   LAST = dosenv( 'HOMEDRIVE' ) || dosenv( 'HOMEPATH' )
+   LAST = LAST || '\Documents\KEDIT Macros'
+   if dosdir( LAST, 'A', 'D' ) = ''
+      then  exit EMSG( 'invalid' LAST, 20 )
+   DIRS = startup.1()               ;  POS = lastpos( '\', DIRS )
+   if POS = 0  then  exit EMSG( 'startup' DIRS, 20 )
+   DIRS = left(   DIRS, POS - 1 )
+   LAST = LAST || ';' || DIRS
+   LAST = LAST || ';' || DIRS || '\USER'
+   LAST = LAST || ';' || DIRS || '\SAMPLES'
+
+   if sign( pos( ';', SCAN )) then  DIRS = SCAN
+   else  if SCAN = 'OFF'      then  DIRS = '.'
+   else  if SCAN = 'ON'       then  DIRS = '*PATH'
+   else                             DIRS = '*' || SCAN
+   if       SCAN <> 'OFF'     then  DIRS = DIRS || ';' || LAST
+
+   do while DIRS <> ''
+      parse var DIRS NEXT ';' DIRS
+      NEXT = strip( NEXT )
+      if abbrev( NEXT, '*' )  then  do /* recursion not supported */
+         MORE = translate( dosenv( substr( NEXT, 2 )))
+         do while MORE <> ''
+            parse var MORE NEXT ';' MORE
+            if PATH = CHKPATH( NEXT )  then  return FILE
+         end
+      end
+      else  if NEXT = '='  then  nop   /* depends on edited file  */
+      else  if NEXT = '.'  then  nop   /* depends on current dir. */
+      else  if PATH = CHKPATH( NEXT )  then  return FILE
+   end
+   return arg( 1 )                     /* PATH not found in DIRS  */
+
+CHKPATH: procedure                     /* remove \..\ or \.\ crap */
+   P.0 = strip( arg( 1 ))           ;  CWD = directory.2()
+   if right(  CWD,    1 ) <> '\' then  CWD = CWD || '\'
+   if substr( CWD, 2, 1 ) <> ':' then  do
+         P.. = pos( '\', CWD, 3 )      /* UNC: \\server\share\etc */
+         DRV = left( CWD, pos( '\', CWD, P.. + 1 ) - 1 )
+   end
+   else  DRV = left( CWD, 2 )
+   if       abbrev( P.0, '\\' )  then  nop
+   else  if abbrev( P.0, '\' )   then  P.0 = DRV || P.0
+   else  if abbrev( P.0, '.\' )  then  P.0 = CWD || P.0
+   else  if abbrev( P.0, '..\' ) then  P.0 = CWD || P.0
+   P.2 = pos( '\.', P.0 )              /* nothing to do if no \.  */
+   P.1 = pos( '\' , P.0 )              /* else check backslashes  */
+
+   if P.2 > 0  then  do while 0 < P.1 & P.1 <= length( P.0 )
+      P.2 = pos( '\', P.0, P.1 + 1 )
+      if P.2 = 0  then  P.2 = length( P.0 ) + 1
+      P.. = substr( P.0, P.1, P.2 - P.1 )
+      if    P.. = '\..'    then  do    /* FOR y\..\z OR x\y\..\z  */
+            P.1 = lastpos( '\', P.0, P.1 - 1 )
+         if P.1 = 0        then  do    /* IN y\..\z   : OUT z     */
+            P.0 = substr( P.0, P.2 )
+            P.1 = pos( '\', P.0 )      /* reset 1st backslash     */
+         end                           /* IN x\y\..\z ; OUT x\z   */
+         else  P.0 = left( P.0, P.1 - 1 ) || substr( P.0, P.2 )
+      end
+      else if  P.. = '\.'  then  do    /* IN x\y\.\z  ; OUT x\y\z */
+               P.0 = left( P.0, P.1 - 1 ) || substr( P.0, P.2 )
+      end
+      else     P.1 = P.2               /* continue search at P.2  */
+   end
+   return translate( P.0 )             /* caller needs upper case */
+
+TEST:    procedure                     /* CHKPATH() test suite    */
+   parse arg SRC, DST
+   if SRC <> ''   then  do
+      if DST = CHKPATH( SRC ) then  return 0
+      say ' input' SRC              ;  say 'expect' DST
+      say 'result' CHKPATH( SRC )   ;  return 1
+   end
+
+   B =     TEST( 'back slash'                 , 'BACK SLASH'      )
+   B = B + TEST( 'no\dots\here'               , 'NO\DOTS\HERE'    )
+   B = B + TEST( 'one\.\only'                 , 'ONE\ONLY'        )
+   B = B + TEST( 'two\dots\..\here'           , 'TWO\HERE'        )
+   B = B + TEST( 'this\is\...\crap'           , 'THIS\IS\...\CRAP')
+   B = B + TEST( 'a\b\.\c\c\..\d\e\e\..\f\.\g', 'A\B\C\D\E\F\G'   )
+   B = B + TEST( 'must\..\work\or\else\..\not', '\WORK\OR\NOT'    )
+   B = B + TEST( 'c:\..\not\.\tested'         , '\NOT\TESTED'     )
+   B = B + TEST( 'at\end\1\.'                 , 'AT\END\1'        )
+   B = B + TEST( 'at\end\2\..'                , 'AT\END'          )
+   B = B + TEST( 'at\end\3\...'               , 'AT\END\3\...'    )
+   B = B + TEST( '\\xyzzy\c$\temp\..'         , '\\XYZZY\C$'      )
+
+   if length( directory.2()) > 3 then  do
+      CWD = directory.2()           ;  PAR = lastpos( '\', CWD )
+      CWD = translate( CWD || '\' ) ;  PAR = left( CWD, PAR )
+      DRV = left( CWD, 2 )             /* require ?: drive letter */
+      B = B + TEST( '\re\la\..\la\.\0'        , DRV || '\RE\LA\0' )
+      B = B + TEST( '.\re\la\..\la\.\1'       , CWD || 'RE\LA\1'  )
+      B = B + TEST( '..\re\la\..\la\.\2'      , PAR || 'RE\LA\2'  )
+      B = B + TEST( '...\re\la\..\la\.\3'     , '...\RE\LA\3'     )
+   end
+   return EMSG( B 'error(s) in 16 CHKPATH() tests', sign( B ))
+
+EMSG:    procedure expose sigl
+   parse source . . SRC
+   'emsg' arg( 1 ) '(RC' arg( 2 ) '@' || SRC || ':' || sigl || ')'
+   return arg( 2 )
+

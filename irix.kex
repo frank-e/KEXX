@@ -1,0 +1,138 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] IRIX                                    */
+/* Purpose:       Decode text files with %-encoded UTF-8 IRIs to  */
+/*                raw UTF-4 or to pure Latin-1 as a special case. */
+/* Procedure:     IRIX first checks that the edited file consists */
+/*                of US-ASCII 32..126 characters, and refuses to  */
+/*                process anything else (HT, CR, LF, BEL, etc.).  */
+/*                Then percent-encoded %hh bytes are converted to */
+/*                characters, and resulting UTF-8 lines encoded   */
+/*                as UTF-4.  Percent-encoded Latin-1 input files  */
+/*                end up as Latin-1.  Other UTF-8 files end up as */
+/*                valid UTF-4 triggering a warning, because UTF-4 */
+/*                has to be converted back.                       */
+/*                Invalid UTF-8 ends up as bad UTF-4 with u+FFFD  */
+/*                replacements.  A %-character not introducing a  */
+/*                %hh hex. byte is reported as fatal error, and   */
+/*                terminates the script.  Use UNDO to reset the   */
+/*                at this point inconsistent file.                */
+/* Requires:      Kedit 5.0 or KeditW 1.6 (Frank Ellermann, 2015) */
+
+   'extract /LINE/COLUMN/WRAP/'     ;  'wrap on'
+   do X = 127 to 255 + 32
+      'nomsg locate' delimit( d2c( X // 256 ))
+      if rc <> 2  then  exit STOP( 'non-ASCII or control' )
+   end
+
+   'locate :1'
+   do while focuseof() = 0
+      MORE = curline.3()            ;  Y = MORE
+      LINE = ''                     ;  X = pos( '%', MORE )
+
+      do while sign( X )
+         LINE = LINE || left( MORE, X - 1 )
+         MORE = substr( MORE, X + 1 )
+         if length( MORE ) < 2      then  exit STOP( 'bad %xx' )
+         parse var MORE X 3 MORE
+         if datatype( X, 'x' ) =  0 then  exit STOP( 'bad %xx' )
+         LINE = LINE || x2c( X )    ;  X = pos( '%', MORE )
+      end
+
+      LINE = LINE || MORE              /* add rest of input line  */
+      if LINE <> Y   then  'replace' UTF8( LINE )
+      if rc <> 0     then  STOP( 'replace rc' rc )
+      'next'
+   end
+
+   Y = 0
+   do X = 128 to 159
+      'nomsg locate' delimit( d2c( X // 256 ))
+      if rc <> 2  then  do
+         'emsg Warning: UTF-4 characters near line' line.1()
+         exit STOP()                   /* convert back to UTF-8   */
+      end
+   end
+
+   exit STOP()                         /* found pure Latin-1 file */
+
+STOP:
+   if arg() = 1   then  'emsg Fatal:' arg( 1 ) 'near line' line.1()
+   'locate :' LINE.1 'cl :' COLUMN.1
+   'wrap' WRAP.1                    ;  return arg()
+
+UTF8: procedure                        /* convert UTF-8 to UTF-4: */
+   parse arg SRC                    ;  DST = ''
+   ASCII = xrange( '00'x, '7F'x )
+   do while SRC \== ''
+      POS = verify( SRC, ASCII ) - 1
+      if POS < 0  then  leave          /* remaining SRC is ASCII  */
+      DST = DST || left( SRC, POS )    /* copy ASCII begin as is  */
+      SRC = substr( SRC, POS + 1 )
+      parse var SRC TOP 2 SRC       ;  TOP = c2d( TOP )
+
+      LOS = length( SRC )
+      if LOS = 0  then  TMP = 0
+                  else  TMP = c2d( left( SRC, 1 )) % 16
+      if       TOP < 192            then  LEN = -0       /* 80:BF */
+      else  if TOP < 194            then  LEN = -1       /* C0:C1 */
+      else  if TOP < 224            then  LEN = +1
+      else  if TOP = 224 & TMP =  8 then  LEN = -2       /* E08x  */
+      else  if TOP = 224 & TMP =  9 then  LEN = -2       /* E09x  */
+      else  if TOP = 237 & TMP = 10 then  LEN = -2       /* EDAx  */
+      else  if TOP = 237 & TMP = 11 then  LEN = -2       /* EDBx  */
+      else  if TOP < 240            then  LEN = +2
+      else  if TOP = 240 & TMP =  8 then  LEN = -3       /* F08x  */
+      else  if TOP < 244            then  LEN = +3
+      else  if TOP = 244 & TMP =  8 then  LEN = +3       /* F48x  */
+      else  if TOP < 248            then  LEN = -3       /* F4:F7 */
+      else  if TOP < 252            then  LEN = -4       /* F8:FB */
+      else  if TOP < 254            then  LEN = -5       /* FC:FD */
+      else                                LEN = -0       /* FE:FF */
+      BAD = ( LEN <= 0 )            ;  LEN = abs( LEN )
+      if LOS < LEN   then  do
+         BAD = 1                    ;  LEN = LOS
+      end
+      CHR = left( SRC, LEN )        ;  SRC = substr( SRC, LEN + 1 )
+      TMP = verify( CHR, xrange( '80'x, 'BF'x ))
+      if TMP > 0  then  do             /* found invalid tail byte */
+         BAD = 1                       /* restore invalid bytes:  */
+         SRC = substr( CHR, TMP ) || SRC
+      end
+      if BAD = 0  then  do             /* validated UTF-8 to bits */
+         TOP = D2B( TOP, 8 )        ;  LEN = verify( TOP, 1 ) - 2
+         TOP = copies( 0, LEN ) || right( TOP, 6 - LEN )
+         do L = 1 to LEN               /* tail pieces of six bits */
+            parse var CHR TMP 2 CHR
+            TOP = TOP || right( D2B( c2d( TMP ), 8 ), 6 )
+         end
+         if LEN = 2              then  TOP = 00 || TOP
+         if abbrev( TOP, 0000 )  then  TOP = substr( TOP, 5 )
+         LEN = length( TOP ) % 4
+         if LEN > 2 | abbrev( TOP, 100 )  then  do
+            DST = DST || x2c( 8 || LEN )
+            do L = 1 to LEN            /* use pieces of four bits */
+               parse var TOP TMP 5 TOP
+               DST = DST || B2C( 1001 || TMP )
+            end
+         end
+         else  DST = DST || B2C( TOP )
+      end
+      else  DST = DST || '849F9F9F9D'x
+   end
+   return DST || SRC                   /* add rest of input line  */
+
+B2C:  procedure                        /* 8 bits to character     */
+   arg BIN                          ;  DEC = 0
+   do N = 1 to 8
+      DEC = 2 * DEC + substr( BIN, N, 1 )
+   end
+   return d2c( DEC )                   /* KEDIT 5 has no B2X()    */
+
+D2B:  procedure                        /* decimal to 4 or 8 bits  */
+   arg DEC, BITS                    ;  BIN = ''
+   do N = 1 to BITS
+      BIN = ( DEC // 2 ) || BIN     ;  DEC = DEC % 2
+   end
+   return BIN                          /* KEDIT 5 has no X2B()    */
+

@@ -13,52 +13,71 @@ if datatype( INITIAL.0, 'w' ) then  do N = 1 to INITIAL.0
    'set' INITIAL.N   ;  if rc <> 0  then  exit rc
 end
 
-do ;  if dir() | FILE( 'MACROS.KML' )  then  do
-      'forward half' ;  if dir() then  exit 0
-   end                        /* special in-memory files */
-else  if TYPE( 'KML KEX REX CLS NRX' ) then  do
+do ;  if TYPE( 'LUA' ) | REXX()  then  do
       'eolout lf'    ;  'tabs incr 3'
-      if TYPE( 'REX' )  then  'eofin prevent'
    end                        /* UNIX lineends, EOF = LF */
-else  if TYPE( 'BAT CMD INI SYS' ) then  do
-      'tabsin off'
-      if TYPE( 'BAT CMD' )       then  'tabs incr 3'
-      if TYPE( 'BAT INI SYS' )   then  'eofout eoleof'
-   end                        /* EOF char. for old *.BAT */
-else  if TYPE( 'S SH ASM INC NMK' ) then  do
+else  if TYPE( 'ASM INC S SH NMK DIFF' ) | FCIV()  then  do
       'eolout lf'
-   end                        /* UNIX lineends, EOF = LF */
-else  if TYPE( 'AWK C H CPP HPP' )  then  do
+   end                        /* normal TABSin expansion */
+else  if TYPE( 'AWK C H CPP HPP CXX HXX JS CSS' )  then  do
       'eolout lf'    ;  'tabs incr 5'
    end                        /* indent cuddled up else_ */
-else  if TYPE( 'JS PAC' ) | NAME( 'COOKIES' )   then  do
-      'eolout crlf'  ;  'tabs incr 5'  ;  'eofout none'
-      'eolin lf'     ;  'tabsin off'   ;  'eofin allow'
-   end                        /* weird netscape lineends */
 else  if NAME( 'CTAGS TAGS KTAGS MAKEFILE' )    then  do
       'eolout lf'    ;  'tabsin off'
    end                        /* do not expand tags TABs */
+else  if TYPE( 'BAT CMD INI SYS' )  then  do
+      'tabsin off'   ;  'tabs incr 3'
+      if TYPE( 'BAT INI SYS' )   then  'eofout eoleof'
+   end                        /* EOF char. for old *.BAT */
 end
 
-if opmode.1() = 'REAL'  then  'undoing on 200 100'
-                        else  'undoing on 999 200'
-'extract /LASTMSG'   ;  'nomsg refresh'
-'macro status'       ;  'nomsg msg' LASTMSG.1
+if dir() | FILE( 'MACROS.KML' )  then  'forward half'
+else  do                      /* REFRESH or FORWARD load */
+   if       opmode.1() = 'REAL'  then  'undoing on 200 100'
+   else  if opmode.1() <> 'GUI'  then  'undoing on 999 200'
+   else                                'undoing on 999 999'
+   'extract /LASTMSG'      ;  'nomsg refresh'
+   'macro status'          ;  'nomsg msg' LASTMSG.1
+end
 
 if version.1() <> 'KEDIT'  then  do
-   if monitor.1() = 'WINDOWS' then  do
-      if TYPE( 'CSS JS PAC AWK' )   then  'coloring on C'
-      if TYPE( 'CLS CMD NRX' )      then  do N = 1 to 2
-         L = line.1()                  ;  'locate :' || N
-         if abbrev( curline.3(), '/*' )
-            then  'coloring on REXX'   ;  'locate :' || L
-      end                     /* line 1 can be #! magic  */
+   'ecolor H magenta'         /* for unmatched right end */
+   'ecolor L dark cyan'    ;  'ecolor M dark magenta'
+   'ecolor N dark blue'    ;  'ecolor O dark gray'
+   'ecolor P dark green'   ;  'ecolor Q red'
+   C = color.1( 'F' )      ;  N = wordpos( 'ON', C )
+
+   if N > 0 then  do          /* expect ... ON ... color */
+      C = subword( C, N )  ;  'extract /ECOLOR */'
+      do N = 1 to ECOLOR.0
+         K = wordpos( 'ON', ECOLOR.N )
+         K = subword( ECOLOR.N, 1 + K )
+         'ecolor' changestr( 'ON' K, ECOLOR.N, C )
+      end N                   /* BG matching filearea BG */
    end
-   else  'coloring off'
+   if FCIV()   then  do
+      C = 'FREECIV'        ;  'parser' C C || '.KLD'
+      'ecolor A red'       ;  'ecolor G dark green'
+      'coloring on' C
+   end
+
+   I = 'quit'              ;  'toolset top default'
+   'def tool_' || I '"win close file"'
+   'toolbutton' I 'exit /Close file/'
+   'toolset top user' changestr( 'PRINT', toolset.3(), I )
 end
 else  'nomsg macro dosmouse'  /* old Kedit 5 experiment  */
 exit 0
 
-TYPE: return sign( wordpos( ft.1(), arg( 1 )))
-NAME: return sign( wordpos( fn.1(), arg( 1 )))
-FILE: return sign( wordpos( fn.1() || '.' || ft.1(), arg( 1 )))
+FCIV: procedure               /* lots of special cases   */
+      FCIV = 'MUSICSPEC RULESET SOUNDSPEC SPEC TILESPEC'
+      if TYPE( FCIV 'SAV' )   then  return 1
+      FCIV = 'HELPDATA.TXT MODPACKS.DB MODPACKS.LIST'
+      if FILE( FCIV )         then  return 1
+      return NAME( '.FREECIV-CLIENT-RC-2' )
+REXX: return TYPE( 'REX REXX KEX KML CLS NRX REXG REXP' )
+TYPE: return WPOS( arg( 1 ), ft.1())
+NAME: return WPOS( arg( 1 ), fn.1())
+FILE: return WPOS( arg( 1 ), fn.1() || . || ft.1())
+WPOS: return sign( wordpos( arg( 2 ), arg( 1 )))
+

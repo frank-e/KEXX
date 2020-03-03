@@ -1,0 +1,54 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Example:       ...\KEDITW\keditw32.exe %1 (PROF README         */
+/* Purpose:       Start KEDITW32.exe with profile README.kex for  */
+/*                one file %1.  If the file name is "README" run  */
+/*                the default profile.                            */
+/*                If the file name is not "README" start Windows  */
+/*                rundll32.exe shell32.dll,OpenAs_RunDLL %1 (and  */
+/*                quit).                                          */
+/*                In other words, edit any README.whatever file,  */
+/*                otherwise run the "openas" command for unknown  */
+/*                file extensions.                                */
+/* Installation:  Start `regedit` and locate HKCR\Unknown\shell.  */
+/*                The standard shell value can be "openas", and   */
+/*                there should be a HKCR\Unknwown\shell\openas.   */
+/*                Keep HKCR\Unknown\shell\openas as is, and keep  */
+/*                HKCR\Unknown\shell\opendlg as is.  If there is  */
+/*                a HKCR\Unknown\shell\edit it will be replaced   */
+/*                in the next step.                               */
+/*                Add a new HKCR\Unknown\shell\edit with subkey   */
+/*                HKCR\Unknown\shell\edit\command and a standard  */
+/*                shell\edit\command value `... %1 (PROF README`, */
+/*                where ... is the path of Keditw32.exe, e.g.:    */
+/*                C:\Program Files (x86)\KEDITW\Keditw32.exe      */
+/*                Change the standard shell value from "openas"   */
+/*                to "edit".                                      */
+/*                A right click on a foo.bar file (unknown .bar)  */
+/*                should now offer "edit" as standard action for  */
+/*                a double click in the explorer.                 */
+/* Uninstall:     Delete HKCR\Unknown\shell\edit in regedit, and  */
+/*                reset the HKCR\Unknown\shell value from "edit"  */
+/*                to "openas".                                    */
+/*                A right click on a foo.bar file (unknown .bar)  */
+/*                should now offer "openas" as standard action in */
+/*                the explorer.                                   */
+/* See also:      KH defprof, KH winexec                          */
+/* Requires:      KeditW 1.x              (Frank Ellermann, 2017) */
+
+   if \ profile()       then  do
+      'emsg This macro works only as profile'
+      exit 1
+   end
+   if fn.1() = 'README' then  do
+      'macro' defprof.1()        ;  exit rc
+   end
+
+   if sign( pos( '(x86)\', startup.1()))
+      then  EXEC = dosenv( 'SystemRoot' ) || '\System32\'
+      else  EXEC = dosenv( 'SystemRoot' ) || '\SysNative\'
+   EXEC = EXEC || 'rundll32.exe' EXEC || 'shell32.dll,OpenAs_RunDLL'
+   EXEC = EXEC fileid.2()        ;  'winexec nowait' EXEC
+   if rc <> 0  then  exit rc     /* showing winexec error message */
+   'set autoexit on'             ;  'quit'
+

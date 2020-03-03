@@ -1,0 +1,81 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] SUBRIP                                  */
+/* Purpose:       Check file with SubRip subTitles (NAME.srt) for */
+/*                YouTube upload, because YouTube accepts files   */
+/*                with unintended jumps, e.g., --> 00:00:12,500   */
+/*                followed by 00:00:12,001 --> instead of a valid */
+/*                00:00:12,501 (or later)                         */
+/* Backport:      Kedit 5 or KeditW 1.0 should be easy (untested) */
+/* Requires:                   KeditW 1.x (Frank Ellermann, 2019) */
+
+   S = 1 ;  R = 1 ;  TIME = -1   ;  HERE = line.1()
+   'top' ;  'next'               ;  if rc <> 0  then  exit rc
+
+   do L = 1 while focuseof() = 0
+      LINE = curline.3()
+      if S = 1 then  do          /* state 1: next number          */
+         if datatype( LINE, 'w' )   then  if R = LINE then  do
+               R = R + 1         ;  S = S + 1
+               'next'            ;  iterate L
+         end
+         exit FAIL( L, R, LINE )
+      end
+      if S = 2 then  do          /* state 2: next hh:mm:ss,ddd    */
+         parse var LINE LINE '-->' NEXT
+         LINE = TEST( L, TIME, LINE )              /* start...    */
+         TIME = TEST( L, LINE, NEXT )              /*     ...stop */
+         S = S + 1
+         'next'                  ;  iterate L
+      end
+      if S = 3 then  do          /* state 3: text (not blank)     */
+         if LINE = ''   then  exit FAIL( L, 'text1', LINE )
+         S = S + 1
+         'next'                  ;  iterate L
+      end
+      if S = 4 then  do          /* state 4: more text (optional) */
+         if LINE = ''   then  S = 1                /* was state 5 */
+                        else  S = S + 1
+         'next'                  ;  iterate L
+      end
+      if S = 5 then  do          /* state 5: blank line           */
+         if LINE <> ''  then  exit FAIL( L, 'blank', LINE )
+         S = 1
+         'next'                  ;  iterate L
+      end
+
+      exit FAIL( L, '1..5', S )
+   end L
+
+   if S <> 1   then  exit FAIL( L, '1 (blank)', S )
+   ':' HERE                      ;  say 'found no error'
+   exit rc
+
+TEST: procedure expose HERE      /* check: where + time + next    */
+   arg LINE, TIME, NEXT          ;  WORK = strip( NEXT )
+   if datatype( TIME, 'w' ) = 0  then  exit FAIL( LINE, 'w', TIME )
+
+   HH = substr( WORK, 1, 2 )     ;  WORK = substr( WORK, 3 )
+   if abbrev( WORK, ':' ) = 0    then  exit FAIL( LINE, ':', NEXT )
+   MM = substr( WORK, 2, 2 )     ;  WORK = substr( WORK, 4 )
+   if abbrev( WORK, ':' ) = 0    then  exit FAIL( LINE, ':', NEXT )
+   SS = substr( WORK, 2, 2 )     ;  WORK = substr( WORK, 4 )
+   if abbrev( WORK, ',' ) = 0    then  exit FAIL( LINE, ',', NEXT )
+   WORK = substr( WORK, 2 )
+   if datatype( WORK, 'w' ) = 0  then  exit FAIL( LINE, 'w', WORK )
+   if work << 000 | 999 << WORK  then  exit FAIL( LINE, '?', WORK )
+   if datatype( HH, 'w' ) = 0    then  exit FAIL( LINE, 'w' , HH )
+   if HH << 00 | 99 << HH        then  exit FAIL( LINE, 'hh', HH )
+   if datatype( MM, 'w' ) = 0    then  exit FAIL( LINE, 'w' , MM )
+   if MM << 00 | 59 << MM        then  exit FAIL( LINE, 'mm', MM )
+   if datatype( SS, 'w' ) = 0    then  exit FAIL( LINE, 'w' , SS )
+   if SS << 00 | 59 << SS        then  exit FAIL( LINE, 'ss', SS )
+   WORK = HH || MM || SS || WORK
+   if WORK < TIME + 1            then  exit FAIL( LINE, TIME, WORK )
+                                 else  return WORK
+
+FAIL: procedure expose HERE      /* error: where + want + got     */
+   arg LINE, WANT, HAVE          ;  ':' HERE
+   say 'Line' LINE || ': want' WANT || ', got' HAVE
+   exit 1
+

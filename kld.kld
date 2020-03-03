@@ -1,0 +1,71 @@
+* KLD.KLD - KEDIT Language Definition for KLD files
+* Extended USER\KLD.KLD, a copy of the old built-in
+* PARSER KLD was shipped as SAMPLES\KLD.KLD.
+
+:case
+ ignore
+:number
+ none
+:comment
+ line * firstnonblank
+:header
+ line : column 1
+:identifier
+*added to cover keywords
+ [a-z]
+:keyword
+*case
+ ignore
+ respect
+*column
+ exclude
+*comment
+ multiple
+ nest
+ nonest
+ paired
+ single
+*header
+ any
+ column
+ firstnonblank
+ line
+*identifier
+ alternate
+*keyword
+ type
+*label
+ delimiter
+*markup
+ reference
+ tag
+*match
+*number
+ ada
+ cobol
+ c
+ decimal
+ integer
+ none
+ pascal
+ rexx
+*option
+ deepnesting
+ preprocessor
+*postcompare
+ class
+ text
+*string
+ backslash
+ double
+ multiline
+ notafter
+ verbatim
+:match
+*[~X], [XYZ], [X-Z] classes
+ [~,[   ],]     \-,-,\[,\\,\]
+:postcompare
+ text   ,       alternate 9
+*control or non-ascii:
+ class  [~!-~]  alternate 1
+

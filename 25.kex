@@ -1,0 +1,41 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         MACRO 25                                        */
+/* Purpose:       In an INI-file with NAME = VALUE lines move the */
+/*                equalsign to column 25.  Comment lines starting */
+/*                with ';' or '#' are not modified.  Likewise all */
+/*                lines starting with '[' or '*' are kept as is.  */
+/*                Lines without '=' or the first '=' in column 25 */
+/*                (or later) are also kept as is.                 */
+/*                The macro reports the number of modified lines  */
+/*                and the number of lines longer than 79, e.g.,   */
+/*                   23 lines modified, 46 too long (new: 11)     */
+/*                This would indicate 11 too long lines caused by */
+/*                the modifications.  46-11=35 lines were already */
+/*                too long.                                       */
+/* Requires:      Kedit 5.0 or KeditW 1.x (Frank Ellermann, 2017) */
+
+   COL = 24                      ;  LEN = 79
+   MOD = 0                       ;  BAD = 0
+   OLD = 0                       ;  NEW = 0
+   do L = 1 to size.1()
+      'l :' || L                 ;  CUR = curline.3()
+
+      BAD = BAD + ( LEN <= length( CUR ))
+      if abbrev( CUR, ';' )   then  iterate
+      if abbrev( CUR, '#' )   then  iterate
+      if abbrev( CUR, '*' )   then  iterate
+      if abbrev( CUR, '[' )   then  iterate
+      POS = pos( '=', CUR )
+      if POS = 0 | POS > COL  then  iterate
+
+      OLD = OLD + ( LEN <= length( CUR ))
+      TOP = left( CUR, POS - 1 ) ;  CUR = substr( CUR, POS )
+      CUR = left( TOP, COL ) || CUR
+      NEW = NEW + ( LEN <= length( CUR ))
+      'replace' CUR              ;  'refresh'
+      MOD = MOD +  1
+   end
+
+   NEW = NEW - OLD
+   say MOD 'lines modified,' BAD 'too long (new:' NEW || ')'

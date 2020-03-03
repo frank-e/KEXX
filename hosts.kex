@@ -1,0 +1,9 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] HOSTS ...                               */
+/* Example:       HOSTS ...                                       */
+/* Purpose:       HOSTS ...                                       */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2018) */
+
+   'x C:\Windows\System32\drivers\etc\hosts'
+

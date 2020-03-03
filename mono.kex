@@ -50,6 +50,12 @@
       S =   '240 128 128  48 128 111  63 111 111 128 111 111 111'
       S = S '111 111 111 111 111 111 111 176 128  48 240 111  63'
       'set coloring off'   ;  'set attributes' S 224 246 248 248
+      'set attributes' S 224 246 248 248  ;  'extract /ECOLOR */'
+      'color filearea Low BLAck ON BRIght White'
+      do N = 1 to ECOLOR.0
+         K = subword( ECOLOR.N, 1 + wordpos( 'ON', ECOLOR.N ))
+         'ecolor' changestr( 'ON' K, ECOLOR.N, 'ON BRIght White' )
+      end N
       exit rc                    /* ...syntax COLORING won't work */
    end
 

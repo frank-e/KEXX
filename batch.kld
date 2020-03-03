@@ -1,0 +1,195 @@
+* Experimental KEDITW32 syntax highlighting for *.bat or *.cmd files
+* loaded with 'parser BATCH BATCH.KLD' for a 'coloring on BATCH' or
+* in a profile for 'autocolor .bat BATCH' and 'autocolor .cmd BATCH'.
+* Caveat, ECHO and %FOO:bar=baz% constructs do not work as expected.
+* Requires: KEDITW32 on Windows NT           (Frank Ellermann, 2016)
+
+:case
+ ignore
+:header
+*header section can handle :FOO labels perfectly, unlike a label section
+ line : firstnonblank
+:comment
+*comment REM to ignore the rest of the batch line (better than nothing)
+ line rem any
+:string
+*double notafter [^] is good enough for ^"no "string"
+ double notafter [^]
+*notafter [~(] in simple FOR .. IN  ('..') DO .. cases
+ single notafter [~(]
+:number
+ integer
+:match
+ ( )
+:identifier
+*identifier is a superset of keywords, e.g., adding / would kill echo/
+ [a-zA-Z0-9_]
+:keyword
+*Windows NT internal CMD.exe commands with extensions and sub-keywords.
+ assoc
+*break                  (legacy ON/OFF or breakpoint)
+ break
+ call
+ cd
+ chdir
+ cls
+*cmd                    (not listed, CMD is no internal command)
+*cmdextversion          (sub-keyword in extended IF CMDEXTVERSION ..)
+ cmdextversion
+ color
+ copy
+ date
+*defined                (sub-keyword in extended IF DEFINED ..)
+ defined
+ del
+ dir
+*disabledelayedexpansion sub-keyword in SETLOCAL DISABLEDELAYEDEXPANSION
+ disabledelayedexpansion
+*disableextensions      (sub-keyword in SETLOCAL DISABLEEXTENSIONS)
+ disableextensions
+*do                     (sub-keyword of FOR .. IN ( .. ) DO ..)
+ do
+ echo
+*else                   (sub-keyword in IF .. ( .. ) ELSE ..)
+ else
+*enabledelayedexpansion (sub-keyword in SETLOCAL ENABLEDELAYEDEXPANSION)
+ enabledelayedexpansion
+*enableextensions       (sub-keyword in SETLOCAL ENABLEEXTENSIONS)
+ enableextensions
+ endlocal
+*equ                    (sub-keyword in extended IF .. EQU ..)
+ equ
+ erase
+*errorlevel             (sub-keyword in IF ERRORLEVEL ..)
+ errorlevel
+*exist                  (sub-keyword in IF EXIST ..)
+ exist
+ exit
+ for
+ ftype
+*geq                    (sub-keyword in extended IF .. GEQ ..)
+ geq
+ goto
+*gtr                    (sub-keyword in extended IF .. GTR ..)
+ gtr
+ if
+*in                     (sub-keyword of FOR .. IN ( .. ) DO ..)
+ in
+*leq                    (sub-keyword in extended IF .. LEQ ..)
+ leq
+*lss                    (sub-keyword in extended IF .. LSS ..)
+ lss
+ md
+ mkdir
+ mklink
+ move
+*neq                    (sub-keyword in extended IF .. NEQ ..)
+ neq
+*not                    (sub-keyword in IF NOT ..)
+ not
+*off                    (sub-keyword of ECHO, VERIFY, or legacy BREAK OFF)
+ off
+*on                     (sub-keyword of ECHO, VERIFY, or legacy BREAK ON )
+ on
+ path
+ pause
+ popd
+ prompt
+ pushd
+ rd
+*rem                    (listed above as line comment, no special ()<>&|^)
+ ren
+ rename
+ rmdir
+ set
+ setlocal
+ shift
+ start
+ time
+ title
+ type
+ ver
+ verify
+ vol
+*experimental           (cheating, 22 char. devices are no sub-keywords)
+ aux
+ com1
+ com2
+ com3
+ com4
+ com5
+ com6
+ com7
+ com8
+ com9
+ con
+ lpt1
+ lpt2
+ lpt3
+ lpt4
+ lpt5
+ lpt6
+ lpt7
+ lpt8
+ lpt9
+ nul
+ prn
+:postcompare
+*See 'ecolor': 9 blue (like keywords), 8 black, 6 dark cyan (strings), 1 red.
+*The sort order is significant, anything already handled above does not work,
+*e.g., most strings, identifiers, keywords, and comments are already colored.
+ text aux:      alternate 9
+ text com1:     alternate 9
+ text com2:     alternate 9
+ text com3:     alternate 9
+ text com4:     alternate 9
+ text com5:     alternate 9
+ text com6:     alternate 9
+ text com7:     alternate 9
+ text com8:     alternate 9
+ text com9:     alternate 9
+ text con:      alternate 9
+ text lpt1:     alternate 9
+ text lpt2:     alternate 9
+ text lpt3:     alternate 9
+ text lpt4:     alternate 9
+ text lpt5:     alternate 9
+ text lpt6:     alternate 9
+ text lpt7:     alternate 9
+ text lpt8:     alternate 9
+ text lpt9:     alternate 9
+ text nul:      alternate 9
+ text prn:      alternate 9
+*:EOF                      (sub-keyword of extended GOTO :EOF)
+ text :eof      alternate 9
+*;                         (unescaped PATH separator semi-colon)
+ text ^;        alternate 8
+ text ;         alternate 9
+*                          (unescaped wildcard characters outside of string)
+ text ^*        alternate 8
+ text ^?        alternate 8
+ class [*?]     alternate 6
+*@                         (unescaped no-echo separator)
+ text ^@        alternate 8
+ text @         alternate 9
+*==                        (like subkeyword EQU for IF .. == ..)
+ text ^=        alternate 8
+ text ==        alternate 9
+*+,,                       (special case COPY .. +,,)
+ text +,,       alternate 9
+*Variable references       (unescaped %[0-9], %%[a-zA-Z], %*, %IDENTIFIER%)
+ text ^%        alternate 8
+ text %%~       alternate 6
+ text %%        alternate 6
+ text %*        alternate 6
+ text %~        alternate 6
+ text %         alternate 6
+*Keep ^ at end             (red for unescaped ^, <, >>, >&, >, &&, &, ||, |)
+ text ^^        alternate 8
+ text ^<        alternate 8
+ text ^>        alternate 8
+ text ^>        alternate 8
+ text ^&        alternate 8
+ text ^|        alternate 8
+ class [^<>&|]  alternate 1
+

@@ -159,16 +159,16 @@ EDIT: procedure   /* -------------------------------------------- */
    if 0 <= rc  then  'macro status'    ;  return 0
 
 INIT: procedure   /* -------------------------------------------- */
-   'nomsg query attr'      ;  HEXE.1 = lastmsg.1()
-   'nomsg query arbchar'   ;  HEXE.2 = lastmsg.1()
-   'nomsg query arrow'     ;  HEXE.3 = lastmsg.1()
-   'nomsg query backup'    ;  HEXE.4 = lastmsg.1()
-   'nomsg query number'    ;  HEXE.5 = lastmsg.1()
-   'nomsg query undoing'   ;  HEXE.6 = lastmsg.1()
-   'nomsg query varblank'  ;  HEXE.7 = lastmsg.1()
-   'nomsg query wrap'      ;  HEXE.8 = lastmsg.1()
-                              HEXE.0 = 8
-   do N = 0 to HEXE.0      ;  'editv put HEXE.' || N  ;  end
+   SET = 'attr arbchar arrow backup number undoing varblank wrap'
+   if version.1() <> 'KEDIT'  then  do
+      if toolset.2() = 'USER' then  SET = SET 'toolset'
+   end
+
+   HEXE.0 = words( SET )               ;  'editv put HEXE.0'
+   do N = 1 to HEXE.0
+      'nomsg query' word( SET, N )     ;  HEXE.N = lastmsg.1()
+      'editv put HEXE.' || N
+   end
 
    parse source . . PROF               ;  'nomsg query macro' PROF
    if rc <> 0  then  return PROF       ;  return PROF 'PROFDEBUG'

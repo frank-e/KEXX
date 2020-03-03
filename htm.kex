@@ -14,7 +14,7 @@
 /* Requires:      Kedit 5.0, XDIR.KEX, TREE.KEX                   */
 /*                                        (Frank Ellermann, 2003) */
 
-   PATH = 'd:\inetpub\ftproot\'
+   PATH = 'c:\inetpub\ftproot\'
    if arg( 1 ) = '' then do                     /* TREE shorthand */
       'macro TREE "' || PATH || '"' ;  exit rc
    end

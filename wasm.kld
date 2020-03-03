@@ -1,0 +1,976 @@
+* Experimental KEDITW32 syntax highlighting for WATCOM *.asm files
+* loaded with 'parser WASM WASM.KLD' for 'coloring on WASM' or in
+* a profile for 'autocolor .asm WASM'.
+* Requires: KEDITW32 on Windows NT           (Frank Ellermann, 2016)
+
+:case
+ ignore
+:comment
+ line ; any
+:label
+ delimiter : column 1
+ column 1
+:string
+ double
+ single
+:number
+ integer
+:match
+ ( )
+ [ ]
+*FIXME, might start with more keywords: END     ELSE
+ if,ifb,ifnb,ifdef,ifndef,ifidn,ifdif   endif   elseif,else
+*FIXME: might start with more keywords
+ macro,rept                             endm
+ proc                                   endp
+ segment,struct                         ends
+:identifier
+*disallow leading digit
+ [a-zA-Z_] [a-zA-Z0-9_]
+:keyword
+*JWASM extras (maybe belonging to ordinary WASM)
+ basic
+ c
+ elseif1
+ elseif2
+ fastcall
+ flat
+ fortran
+ frame
+ pascal
+ rept
+ stdcall
+ syscall
+ vararg
+*directives (WASM list incl. unsupported directives)
+ addr
+ alias
+ align
+ and
+ assume
+ byte
+ casemap
+ catstr
+ comm
+ comment
+ db
+ dd
+ df
+ dosseg
+ dp
+ dq
+ dt
+ dup
+ dw
+ dword
+ echo
+ else
+ elseif
+ end
+ endif
+ endm
+ endp
+ ends
+ eq
+ equ
+ equ2
+ even
+ exitm
+ extern
+ externdef
+ extrn
+ far
+ for
+ forc
+ fword
+ ge
+ global
+ group
+ gt
+ high
+ highword
+ if
+ if1
+ if2
+ ifb
+ ifdef
+ ifdif
+ ifdifi
+ ife
+ ifidn
+ ifidni
+ ifnb
+ ifndef
+ include
+ includelib
+ invoke
+ irp
+ irpc
+ label
+ le
+ length
+ lengthof
+ local
+ low
+ lowword
+ lroffset
+ lt
+ macro
+ mask
+ mod
+ name
+ ne
+ near
+ offset
+ opattr
+ option
+ org
+ oword
+ page
+ popcontext
+ proc
+ proto
+ ptr
+ public
+ purge
+ pushcontext
+ pword
+ qword
+ record
+ repeat
+ sbyte
+ sdword
+ seg
+ segment
+ size
+ sizeof
+ struc
+ struct
+ subtitle
+ subttl
+ sword
+ tbyte
+ textequ
+ this
+ title
+ typedef
+ union
+ uses
+ width
+ word
+*instructions
+ aaa
+ aad
+ aam
+ aas
+ adc
+ add
+ addpd
+ addps
+ addsd
+ addss
+ addsubpd
+ addsubps
+ and
+ andnpd
+ andnps
+ andpd
+ andps
+ arpl
+ bound
+ bp
+ bsf
+ bsr
+ bswap
+ bt
+ btc
+ btr
+ bts
+ call
+ callf
+ cbw
+ cdq
+ clc
+ cld
+ clflush
+ cli
+ clts
+ cmc
+ cmova
+ cmovae
+ cmovb
+ cmovbe
+ cmovc
+ cmove
+ cmovg
+ cmovge
+ cmovl
+ cmovle
+ cmovna
+ cmovnae
+ cmovnb
+ cmovnbe
+ cmovnc
+ cmovne
+ cmovng
+ cmovnge
+ cmovnl
+ cmovnle
+ cmovno
+ cmovnp
+ cmovns
+ cmovnz
+ cmovo
+ cmovp
+ cmovpe
+ cmovpo
+ cmovs
+ cmovz
+ cmp
+ cmpeqpd
+ cmpeqps
+ cmpeqsd
+ cmpeqss
+ cmplepd
+ cmpleps
+ cmplesd
+ cmpless
+ cmpltpd
+ cmpltps
+ cmpltsd
+ cmpltss
+ cmpneqpd
+ cmpneqps
+ cmpneqsd
+ cmpneqss
+ cmpnlepd
+ cmpnleps
+ cmpnlesd
+ cmpnless
+ cmpnltpd
+ cmpnltps
+ cmpnltsd
+ cmpnltss
+ cmpordpd
+ cmpordps
+ cmpordsd
+ cmpordss
+ cmppd
+ cmpps
+ cmps
+ cmpsb
+ cmpsd
+ cmpss
+ cmpsw
+ cmpunordpd
+ cmpunordps
+ cmpunordsd
+ cmpunordss
+ cmpxchg
+ cmpxchg8b
+ comisd
+ comiss
+ cpuid
+ cvtdq2pd
+ cvtdq2ps
+ cvtpd2dq
+ cvtpd2pi
+ cvtpd2ps
+ cvtpi2pd
+ cvtpi2ps
+ cvtps2dq
+ cvtps2pd
+ cvtps2pi
+ cvtsd2si
+ cvtsd2ss
+ cvtsi2sd
+ cvtsi2ss
+ cvtss2sd
+ cvtss2si
+ cvttpd2dq
+ cvttpd2pi
+ cvttps2dq
+ cvttps2pi
+ cvttsd2si
+ cvttss2si
+ cwd
+ cwde
+ daa
+ das
+ dec
+ div
+ divpd
+ divps
+ divsd
+ divss
+ emms
+ enter
+ f2xm1
+ fabs
+ fadd
+ faddp
+ fbld
+ fbstp
+ fchs
+ fclex
+ fcmovb
+ fcmovbe
+ fcmove
+ fcmovnb
+ fcmovnbe
+ fcmovne
+ fcmovnu
+ fcmovu
+ fcom
+ fcomi
+ fcomip
+ fcomp
+ fcompp
+ fcos
+ fdecstp
+ fdisi
+ fdiv
+ fdivp
+ fdivr
+ fdivrp
+ femms
+ feni
+ ffree
+ fiadd
+ ficom
+ ficomp
+ fidiv
+ fidivr
+ fild
+ fimul
+ fincstp
+ finit
+ fist
+ fistp
+ fisttp
+ fisub
+ fisubr
+ flat
+ fld
+ fld1
+ fldcw
+ fldenv
+ fldenvd
+ fldenvw
+ fldl2e
+ fldl2t
+ fldlg2
+ fldln2
+ fldpi
+ fldz
+ fmul
+ fmulp
+ fnclex
+ fndisi
+ fneni
+ fninit
+ fnop
+ fnrstor
+ fnrstord
+ fnrstorw
+ fnsave
+ fnsaved
+ fnsavew
+ fnstcw
+ fnstenv
+ fnstenvd
+ fnstenvw
+ fnstsw
+ fpatan
+ fprem
+ fprem1
+ fptan
+ frndint
+ frstor
+ frstord
+ frstorw
+ fsave
+ fsaved
+ fsavew
+ fscale
+ fsetpm
+ fsin
+ fsincos
+ fsqrt
+ fst
+ fstcw
+ fstenv
+ fstenvd
+ fstenvw
+ fstp
+ fstsw
+ fsub
+ fsubp
+ fsubr
+ fsubrp
+ ftst
+ fucom
+ fucomi
+ fucomip
+ fucomp
+ fucompp
+ fwait
+ fxam
+ fxch
+ fxrstor
+ fxsave
+ fxtract
+ fyl2x
+ fyl2xp1
+ haddpd
+ haddps
+ hlt
+ hsubpd
+ hsubps
+ idiv
+ imul
+ in
+ inc
+ ins
+ insb
+ insd
+ insw
+ int
+ into
+ invd
+ invlpg
+ iret
+ iretd
+ iretdf
+ iretf
+ ja
+ jae
+ jb
+ jbe
+ jc
+ jcxz
+ je
+ jecxz
+ jg
+ jge
+ jl
+ jle
+ jmp
+ jmpf
+ jna
+ jnae
+ jnb
+ jnbe
+ jnc
+ jne
+ jng
+ jnge
+ jnl
+ jnle
+ jno
+ jnp
+ jns
+ jnz
+ jo
+ jp
+ jpe
+ jpo
+ js
+ jz
+ lahf
+ lar
+ lddqu
+ ldmxcsr
+ lds
+ lea
+ leave
+ les
+ lfence
+ lfs
+ lgdt
+ lgs
+ lidt
+ lldt
+ lmsw
+ lock
+ lods
+ lodsb
+ lodsd
+ lodsw
+ loop
+ loopd
+ loope
+ looped
+ loopew
+ loopne
+ loopned
+ loopnew
+ loopnz
+ loopnzd
+ loopnzw
+ loopw
+ loopz
+ loopzd
+ loopzw
+ lsl
+ lss
+ ltr
+ maskmovdqu
+ maskmovq
+ maxpd
+ maxps
+ maxsd
+ maxss
+ mfence
+ minpd
+ minps
+ minsd
+ minss
+ monitor
+ mov
+ movapd
+ movaps
+ movd
+ movddup
+ movdq2q
+ movdqa
+ movdqu
+ movhlps
+ movhpd
+ movhps
+ movlhps
+ movlpd
+ movlps
+ movmskpd
+ movmskps
+ movntdq
+ movnti
+ movntpd
+ movntps
+ movntq
+ movq
+ movq2dq
+ movs
+ movsb
+ movsd
+ movshdup
+ movsldup
+ movss
+ movsw
+ movsx
+ movupd
+ movups
+ movzx
+ mul
+ mulpd
+ mulps
+ mulsd
+ mulss
+ mwait
+ near
+ neg
+ nop
+ not
+ or
+ orpd
+ orps
+ out
+ outs
+ outsb
+ outsd
+ outsw
+ packssdw
+ packsswb
+ packuswb
+ paddb
+ paddd
+ paddq
+ paddsb
+ paddsw
+ paddusb
+ paddusw
+ paddw
+ pand
+ pandn
+ pause
+ pavgb
+ pavgusb
+ pavgw
+ pcmpeqb
+ pcmpeqd
+ pcmpeqw
+ pcmpgtb
+ pcmpgtd
+ pcmpgtw
+ pextrw
+ pf2id
+ pf2iw
+ pfacc
+ pfadd
+ pfcmpeq
+ pfcmpge
+ pfcmpgt
+ pfmax
+ pfmin
+ pfmul
+ pfnacc
+ pfpnacc
+ pfrcp
+ pfrcpit1
+ pfrcpit2
+ pfrsqit1
+ pfrsqrt
+ pfsub
+ pfsubr
+ pi2fd
+ pi2fw
+ pinsrw
+ pmaddwd
+ pmaxsw
+ pmaxub
+ pminsw
+ pminub
+ pmovmskb
+ pmulhrw
+ pmulhuw
+ pmulhw
+ pmullw
+ pmuludq
+ pop
+ popa
+ popad
+ popf
+ popfd
+ por
+ prefetch
+ prefetchnta
+ prefetcht0
+ prefetcht1
+ prefetcht2
+ prefetchw
+ psadbw
+ pshufd
+ pshufhw
+ pshuflw
+ pshufw
+ pslld
+ pslldq
+ psllq
+ psllw
+ psrad
+ psraw
+ psrld
+ psrldq
+ psrlq
+ psrlw
+ psubb
+ psubd
+ psubq
+ psubsb
+ psubsw
+ psubusb
+ psubusw
+ psubw
+ pswapd
+ punpckhbw
+ punpckhdq
+ punpckhqdq
+ punpckhwd
+ punpcklbw
+ punpckldq
+ punpcklqdq
+ punpcklwd
+ push
+ pusha
+ pushad
+ pushd
+ pushf
+ pushfd
+ pushw
+ pxor
+ rcl
+ rcpps
+ rcpss
+ rcr
+ rdmsr
+ rdpmc
+ rdtsc
+ rep
+ repe
+ repne
+ repnz
+ rept
+ repz
+ ret
+ retd
+ retf
+ retfd
+ retn
+ rol
+ ror
+ rsm
+ rsqrtps
+ rsqrtss
+ sahf
+ sal
+ sar
+ sbb
+ scas
+ scasb
+ scasd
+ scasw
+ seta
+ setae
+ setb
+ setbe
+ setc
+ sete
+ setg
+ setge
+ setl
+ setle
+ setna
+ setnae
+ setnb
+ setnbe
+ setnc
+ setne
+ setng
+ setnge
+ setnl
+ setnle
+ setno
+ setnp
+ setns
+ setnz
+ seto
+ setp
+ setpe
+ setpo
+ sets
+ setz
+ sfence
+ sgdt
+ shl
+ shld
+ short
+ shr
+ shrd
+ shufpd
+ shufps
+ sidt
+ sldt
+ smsw
+ sp
+ sqrtpd
+ sqrtps
+ sqrtsd
+ sqrtss
+ stc
+ std
+ sti
+ stmxcsr
+ stos
+ stosb
+ stosd
+ stosw
+ str
+ sub
+ subpd
+ subps
+ subsd
+ subss
+ sysenter
+ sysexit
+ test
+ ucomisd
+ ucomiss
+ unpckhpd
+ unpckhps
+ unpcklpd
+ unpcklps
+ verr
+ verw
+ wait
+ wbinvd
+ wrmsr
+ xadd
+ xchg
+ xlat
+ xlatb
+ xor
+ xorpd
+ xorps
+*operands (AH, BH, CH, and DH can confuse hex. xxh coloring)
+ ah
+ al
+ ax
+ bh
+ bl
+ bx
+ ch
+ cl
+ cr0
+ cr2
+ cr3
+ cr4
+ cs
+ cx
+ dh
+ di
+ dl
+ dr0
+ dr1
+ dr2
+ dr3
+ dr6
+ dr7
+ ds
+ dx
+ eax
+ ebp
+ ebx
+ ecx
+ edi
+ edx
+ es
+ esi
+ esp
+ fs
+ gs
+ mm0
+ mm1
+ mm2
+ mm3
+ mm4
+ mm5
+ mm6
+ mm7
+ si
+ ss
+ st0
+ st5
+ st6
+ st7
+ st
+ tr3
+ tr4
+ tr5
+ tr6
+ tr7
+ xmm0
+ xmm1
+ xmm2
+ xmm3
+ xmm4
+ xmm5
+ xmm6
+ xmm7
+*nothing                (sub-keyword of assume)
+ nothing
+*para                   (sub-keyword of segment)
+ para
+*use16                  (sub-keyword of segment)
+ use16
+*use32                  (sub-keyword of segment)
+ use32
+:postcompare
+*Sort LONGer before LONG, otherwise only LONG matches.
+*dot-directives blue (like keywords)
+*seen in a JWASM manual (2.12)
+ text .386c             alternate 9
+ text .allocstack       alternate 9
+ text .elseif           alternate 9
+ text .endprolog        alternate 9
+ text .err1             alternate 9
+ text .err2             alternate 9
+ text .lall             alternate 9
+ text .nolistif         alternate 9
+ text .pushframe        alternate 9
+ text .pushreg          alternate 9
+ text .safeseh          alternate 9
+ text .savereg          alternate 9
+ text .savexmm128       alternate 9
+ text .setframe         alternate 9
+ text .type             alternate 3
+ text .untilcx          alternate 9
+ text .x64p             alternate 9
+ text .x64              alternate 9
+ text .xall             alternate 9
+ text %out              alternate 9
+*ordinary WASM directives (1.9)
+ text .186              alternate 9
+ text .286c             alternate 9
+ text .286p             alternate 9
+ text .286              alternate 9
+ text .287              alternate 9
+ text .386p             alternate 9
+ text .386              alternate 9
+ text .387              alternate 9
+ text .486p             alternate 9
+ text .486              alternate 9
+ text .586p             alternate 9
+ text .586              alternate 9
+ text .686p             alternate 9
+ text .686              alternate 9
+ text .8086             alternate 9
+ text .8087             alternate 9
+ text .alpha            alternate 9
+ text .break            alternate 9
+ text .code             alternate 9
+ text .const            alternate 9
+ text .continue         alternate 9
+ text .cref             alternate 9
+ text .data?            alternate 9
+ text .data             alternate 9
+ text .dosseg           alternate 9
+ text .else             alternate 9
+ text .endif            alternate 9
+ text .endw             alternate 9
+ text .errb             alternate 9
+ text .errdef           alternate 9
+ text .errdifi          alternate 9
+ text .errdif           alternate 9
+ text .erre             alternate 9
+ text .erridni          alternate 9
+ text .erridn           alternate 9
+ text .errnb            alternate 9
+ text .errndef          alternate 9
+ text .errnz            alternate 9
+ text .err              alternate 9
+ text .exit             alternate 9
+ text .fardata?         alternate 9
+ text .fardata          alternate 9
+ text .if               alternate 9
+ text .k3d              alternate 9
+ text .lfcond           alternate 9
+ text .listall          alternate 9
+ text .listif           alternate 9
+ text .listmacroall     alternate 9
+ text .listmacro        alternate 9
+ text .list             alternate 9
+ text .mmx              alternate 9
+ text .model            alternate 9
+ text .no87             alternate 9
+ text .nocref           alternate 9
+ text .nolist           alternate 9
+ text .radix            alternate 9
+ text .repeat           alternate 9
+ text .sall             alternate 9
+ text .seq              alternate 9
+ text .sfcond           alternate 9
+ text .stack            alternate 9
+ text .startup          alternate 9
+ text .tfcond           alternate 9
+ text .until            alternate 9
+ text .while            alternate 9
+ text .xcref            alternate 9
+ text .xlist            alternate 9
+ text .xmm2             alternate 9
+ text .xmm3             alternate 9
+ text .xmm              alternate 9
+*instruction offset $
+ text $                 alternate 3
+*uninitialized dup (?)
+ text ?                 alternate 3
+

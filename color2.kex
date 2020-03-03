@@ -4,8 +4,13 @@
 if version.1() <> 'KEDIT'  then  do
    S =   ' 48 128  32 160 128  31  79  63  63 128  31  63  31'
    S = S ' 31  63  31  31 129 129 129  49 129 176 176  31  79'
-   'set coloring off'   ;  'set attributes' S 224 246 248 248
-   exit rc                 /* ...syntax COLORING won't work */
+   'set attributes' S 224 246 248 248  ;  'extract /ECOLOR */'
+   'color filearea NOBlink Low BLAck ON Cyan'
+   do N = 1 to ECOLOR.0
+      K = subword( ECOLOR.N, 1 + wordpos( 'ON', ECOLOR.N ))
+      'ecolor' changestr( 'ON' K, ECOLOR.N, 'ON CYAN' )
+   end N
+   exit rc
 end
 
 'BLINK   off'              /* allow INTENS globally */

@@ -1,0 +1,14 @@
+* Keditw32 1.6.x syntax coloring for PC DOS CONFIG.SYS files
+
+:case
+ ignore
+:comment
+ line           REM     column 1
+:header
+ line           [       column 1
+:identifier
+ [A-Za-z]       [A-Za-z0-9_.]
+:keyword
+  INCLUDE
+:label
+  delimiter     =       firstnonblank

@@ -1,0 +1,29 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] DIRFORM ...                             */
+/* Example:       DIRFORM ...                                     */
+/* Purpose:       DIRFORM ...                                     */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2016) */
+
+   L = line.1()               ;  F.0 = 0
+
+   if dir() then  do N = 1 to size.1()
+         'locate :' N         ;  if rc <> 0  then  leave
+         F.N = dirfileid.1()  ;  F.0 = N
+   end
+   'locate :' L               ;  'set DIRFORM' arg( 1 )
+   if rc <> 0   then  exit rc ;  if F.0 = 0   then  exit 0
+   D = defsort.1()            ;  'set DEFSORT off'
+   THIS = fileid.1()          ;  'extract /ALT'
+
+   do N = 1 to F.0
+      'dirapp "' || F.N || '"'
+      if rc <> 0  then  iterate
+      A = alt.1() - 1 alt.2() - 1
+      'bottom'                ;  C = curline.3()
+      'del'                   ;  'set ALT' A
+      'x "' || THIS || '"'    ;  'locate :' N
+      'replace' C             ;  'refresh'
+   end
+   'set ALT' ALT.1 + 1 ALT.2 + 1
+   'set DEFSORT' D            ;  'locate :' L

@@ -1,0 +1,46 @@
+* Keditw32 1.6.x syntax coloring for Freeciv rulesets
+
+:case
+*utility/section_file.c entry_from_token()
+ ignore
+:header
+*header coloring for comments
+ line ;         any
+ line #         any
+:comment
+*comment coloring for headers permits paired [ ]
+ paired [ ]     nonest single
+ line *include  column 1
+:identifier
+*utility/registry_ini.c is_secfile_entry_name_valid()
+*[A-Z_0-9\-\.\,\[\]]
+*ignore comma, it clobbers coloring in vectors/tables.
+*ignore '[' and ']', paired [] handled above, unclear.
+*require leading letter, and trailing letter or digit,
+*
+ [A-Z]          [A-Z0-9\-\.\_\[]  [A-Z0-9\]]
+:keyword
+ TRUE
+ FALSE
+:label
+*color NAME in NAME = VALUE
+ delimiter =    firstnonblank
+:match
+ _(   )
+ {    }
+:number
+ decimal
+:string
+*multiline escaped (backslash)
+ double         multiline backslash
+*multiline unescaped (verbatim)
+ delimiter $    multiline
+*include *FILE* content as a string
+ delimiter *
+:postcompare
+*blue comma in NAME = VAL1, VAL2, ...
+ text ,         alternate 9
+*red single quote (unclear)
+ text '         alternate 1
+*red backslash not in string
+ text \         alternate 1
