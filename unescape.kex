@@ -1,0 +1,54 @@
+/**/ signal on novalue  /* force REXX and its way of 'NOVALUE ON' */
+
+/* Usage:         [MACRO] UNESCAPE [=]                            */
+/* Purpose:       Decode '%xx..%xx' stuff in HTML and present the */
+/*                result in file TMP\UNESCAPE.HTM.  The input is  */
+/*                defined by a marked block in the current file.  */
+/*                The current version of UNESCAPE is designed for */
+/*                JavaScript eval(unescape('%xx..%xx')) gibberish */
+/*                treating character '=' at EOL as continuation.  */
+/* Option:        Option '=' restricts UNESCAPE to JavaScript '=' */
+/*                processing. Use this to extract and concatenate */
+/*                a long and probably encoded s='..' string.      */
+/* Requires:      Kedit 5.0               (Frank Ellermann, 2001) */
+
+   if block() = 0 | block.1() = 'NONE' then do
+      'fill'   ;  exit rc              /* force error if no block */
+   end                                 /* in cuurent file marked  */
+
+   'extract /ZONE/LINE/'      ;  'set zone 1 *'
+    'sos save current'                 /* position restored later */
+
+   'sos firstcol  blockstart' ;  HERE = column.1() ;  TOP = line.1()
+   'locate :' || TOP          ;  TEXT = substr( curline.3(), HERE )
+   TEXT = strip( TEXT, 'T', '=' )      /* JavaScript '=' at EOL ? */
+   'sos rightedge blockend'   ;  HERE = column.1() ;  TMP = line.1()
+
+   do TOP = TOP + 1 to TMP - 1         /* add complete TEXT lines */
+      'locate :' || TOP       ;  TEXT = TEXT || curline.3()
+      TEXT = strip( TEXT, 'T', '=' )   /* JavaScript '=' at EOL ? */
+   end                                 /* get start of last line: */
+   'locate :' || TMP          ;  HERE = left( curline.3(), HERE )
+   TMP = dosenv( 'TMP' )      ;  if TMP = '' then TMP = '.'
+   TEXT = TEXT || HERE        ;  'set zone' ZONE.1 ZONE.2
+   'locate :' || LINE.1       ;  'sos restore'     ;  HERE = ''
+
+   if arg(1) = '=' then HERE = TEXT
+   else do while TEXT > ''             /* yet without error check */
+      if abbrev( TEXT, '%' ) then do   /* decode % hex. gibberish */
+         parse var TEXT 2 TOP 4 TEXT   ;  TOP = x2c( TOP )
+      end
+      else parse var TEXT TOP 2 TEXT   /* else get ordinary char. */
+      HERE = HERE || TOP               /* add character to string */
+   end
+
+   'x "' || TMP || '\unescape.htm" (new nodefext)'
+   if rc = 0 then do                   /* length( 'input ' ) < 8  */
+      'bottom' ;  'sos add'            ;  TOP = width.1() - 8
+      do while  length( HERE ) > TOP
+         'input'  left( HERE, TOP )
+         HERE = substr( HERE, TOP + 1 )
+      end
+      'input' HERE
+   end
+   exit rc

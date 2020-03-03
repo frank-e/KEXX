@@ -1,0 +1,55 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         MACRO MSGLINE [n]                               */
+/* Example:       MACRO MSGLINE              5 if MSGLINE ON 1 5  */
+/*                MACRO MSGLINE 5            uses MSGLINE ON 1 5  */
+/*                MACRO MSGLINE 6            uses a message box   */
+/*                MACRO MSGLINE 20           non-scrolling limit  */
+/*                MACRO MSGLINE 21           in two message boxes */
+/*                MACRO MSGLINE -21          in one message box   */
+/*                MACRO MSGLINE -2           in one message box   */
+/*                MACRO MSGLINE -1           ERROR, see "caveats" */
+/*                MACRO MSGLINE 0            40 lines in one box  */
+/*                MACRO MSGLINE -26          maybe, QUERY LSCREEN */
+/*                MACRO MSGLINE -27          in two message boxes */
+/* Purpose:       Explore the KeditW 1.0 SET MSGLINE behaviour if */
+/*                macros produce more than msgline.3() lines.     */
+/*                The values 26 and 27 are only examples, on your */
+/*                PC use the first value shown by QUERY LSCREEN.  */
+/* Results:       More than msgline.3() output lines are shown in */
+/*                a separate message box, up to 20 lines per box. */
+/*                For Kedit 5 up to lscreen.1() message lines can */
+/*                overlay the file area.                          */
+/*                Setting 'MSGLINE ON 1 x' or 'MSGLINE ON -1 x'   */
+/*                for 20 < x < lscreen.1() shows messages up to x */
+/*                lines directly in the file area as for Kedit 5. */
+/*                For 20 < x = lscreen.1() messages with exactly  */
+/*                x lines are shown in a scrolling message box.   */
+/*                This depends on CMDLINE ON and similar settings */
+/*                reserving lines for their own purposes.         */
+/* Message box:   Setting 'MSGLINE ON 1 y' enforces a message box */
+/*                for y + 1 lines, and it will scroll for 20 < y. */
+/* Caveats:       Note that 'MSGLINE ON 1 0' is not allowed.      */
+/* Limits:        Message boxes normally show at most lscreen.1() */
+/*                lines, giving users the chance to exit from a   */
+/*                running macro.  QUERY TOOLBUTTON * and similar  */
+/*                commands demonstrate that lscreen.1() is not an */
+/*                absolute limit.                                 */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   if arg() then  N = arg( 1 )   ;  else  N = msgline.3()
+   'extract /MSGLINE/LSCREEN'    ;  A = abs( N )
+   if N = 0 then  do                /*** WIN MAX test *************/
+      'win max frame'            ;  'win max doc'              /***/
+      A = lscreen.1()                                          /***/
+   end                              /******************************/
+   if A <> N   then  'msgline on 1' min( A - 1, lscreen.1())
+   do L = 1 to A
+      say 'this is message line' L
+   end
+   if N = 0 then  do                /*** WIN MAX test *************/
+      'win restore frame'                                      /***/
+      if lscreen.1() > LSCREEN.1 | lscreen.2() > LSCREEN.2     /***/
+         then  'win restore doc'                               /***/
+   end                              /******************************/
+   'msgline' MSGLINE.1 MSGLINE.2 MSGLINE.3 MSGLINE.4

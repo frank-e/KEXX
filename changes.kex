@@ -1,0 +1,161 @@
+'set novalue on'  /* use KEXX and its way of SIGNAL ON NOVALUE */
+
+/* usage:      synonym Changes 1 macro CHANGEs                 */
+
+/* i.e. replace Kedit's Change command by this macro.  CHANGEs */
+/* is very similar to Change, but like SCHange it changes ALL  */
+/* occurences unless a line count is explicitly specified.     */
+/* In other words, the default count N for SCHange and CHANGEs */
+/* is * (all), the default N for Change or ALter is 1 (first). */
+/* If no target is given, CHANGEs unlike SCHange behaves like  */
+/* Change, and changes only the 1st occurence in current line: */
+
+/* SCHange /from/to/         defaults to SCHange /from/to/ * * */
+/* Change  /from/to/         defaults to Change  /from/to/ 1 1 */
+/* CHANGEs /from/to/         defaults to Change  /from/to/ 1 1 */
+/* Change  /from/to/ target  defaults to Ch /from/to/ target 1 */
+/* CHANGEs /from/to/ target  defaults to Ch /from/to/ target * */
+/* Change  /from/to/ ALL     changes first /from/ in ALL lines */
+/* CHANGEs /from/to/ ALL     changes really ALL /from/ in file */
+
+/* Two REGEXP for KeditW 1.0 added in 2008, but not yet tested */
+/*                                     (Frank Ellermann, 1998) */
+   nop                                 /* (KHELP.kex end mark) */
+
+/* For tests replace "if 0" by "if 1" at the end of the macro. */
+
+   arg TOP ARG                         /* ignore target prefix */
+   if abbrev( 'REGEXP', TOP, 1 ) = 0 then
+   if abbrev( 'PREFIX', TOP, 1 ) = 0 then
+   if abbrev( 'SUFFIX', TOP, 1 ) = 0 then
+   if abbrev( 'WORD'  , TOP, 1 ) = 0 then arg ARG
+
+   TOP = left( ARG, 1 )                /* get rid of /from/to/ */
+   parse var ARG (TOP) . (TOP) . (TOP) ARG
+   ARG = strip( ARG )                  /* strip top/end blanks */
+   parse var ARG TOP 2 LAST            /* to check * . : ; + - */
+
+   if TOP = '*' | sign( pos( TOP, xrange( '0', '9' ))) then do
+      if verify( LAST, xrange( '0', '9' )) = 0        /* line  */
+         then call CHANGE arg( 1 ), 1  /* only line: add star  */
+         else call CHANGE arg( 1 ), 0  /* else line and count  */
+   end   /* we have no trailing blanks in LAST, so this is ok. */
+
+   LAST = strip( LAST )                /* strip leading blanks */
+   if abbrev( 'ALL',       ARG, 3 ) then TOP = ''     /* ALL   */
+   if abbrev( 'BLOCK',     ARG, 5 ) then TOP = ''     /* BLOCK */
+   if abbrev( 'PARAGRAPH', ARG, 4 ) then TOP = ''     /* PARA  */
+
+   if TOP = '.' | TOP = '' then do     /* point, group, empty  */
+      if words( ARG ) = 1 & length( ARG ) > 1
+         then call CHANGE arg( 1 ), 1  /* only point: add star */
+         else call CHANGE arg( 1 ), 0  /* else point and count */
+   end   /* isolated point is erroneous, let Kedit handle this */
+
+   if TOP = ':' | TOP = ';' then do    /* absolute line number */
+      if LAST = '*' | ( datatype( LAST, 'w' ) & 0 <= LAST )
+         then call CHANGE arg( 1 ), 1  /* only abs.: add star  */
+         else call CHANGE arg( 1 ), 0  /* else abs. and count  */
+   end   /* :, :+*, :-N, etc. is invalid, but :* or :+N is ok. */
+
+   if TOP = '+' | TOP = '-' then do    /* +/- search direction */
+      if abbrev( LAST, '*' ) then if LAST = '*'
+         then call CHANGE arg( 1 ), 1  /* only +/- *: add star */
+         else call CHANGE arg( 1 ), 0  /* else +/- * and count */
+
+      TOP = verify( LAST || '$', xrange( '0', '9' ))
+      ARG = substr( LAST, TOP )        /* remove +/- direction */
+
+      if TOP > 1 then if ARG = ''      /* found a line number: */
+         then call CHANGE arg( 1 ), 1  /* only line: add star  */
+         else call CHANGE arg( 1 ), 0  /* else line and count  */
+
+      if ARG = '' then                 /* isolated +/- illegal */
+         call CHANGE arg( 1 ), 0       /* let Kedit handle +/- */
+   end                                 /* else parse the rest  */
+
+   /* all except from '0'..'9', 'A'..'Z', 'a'..'z', SPACE, NUL */
+   TOP = d2c( c2d( 'Z' ) + 1 )         /* all between 'Z', 'a' */
+   DELIM = /******/ xrange( TOP, d2c( c2d( 'a' ) - 1 ))
+   TOP = d2c( c2d( '9' ) + 1 )         /* all between '9', 'A' */
+   DELIM = DELIM || xrange( TOP, d2c( c2d( 'A' ) - 1 ))
+   TOP = d2c( c2d( ' ' ) + 1 )         /* all between ' ', '0' */
+   DELIM = DELIM || xrange( TOP, d2c( c2d( '0' ) - 1 ))
+   TOP = d2c( c2d( ' ' ) - 1 )         /* all between ' ', NUL */
+   DELIM = DELIM || xrange( d2c( 1 ), TOP )
+   TOP = d2c( c2d( 'z' ) + 1 )         /* all between 'z', 255 */
+   DELIM = DELIM || xrange( TOP, d2c( 255 ))
+
+   STATE = 0   /* 0:  |,& are delimiters: start target clause  */
+               /* 1:  |,& start new target clause, else leave  */
+               /* 2:  all are delimiters: last op. was ~ or ^  */
+
+   do until LAST == ARG /* ----------------------------------- */
+      LAST = strip( ARG )              /* save ARG for later   */
+      parse var LAST TOP 2 ARG         /* remove any operand   */
+
+      if STATE = 0 & ( TOP = '~' | TOP = '^' ) then do
+         STATE = 2 ; iterate           /* disable target op.s  */
+      end
+      if STATE = 1 & ( TOP = '|' | TOP = '&' ) then do
+         STATE = 0 ; iterate           /* start target clause  */
+      end
+
+      ARG = LAST                       /* restore current ARG  */
+      if STATE = 1 then iterate        /* can't reduce further */
+      if TOP = ''  then iterate        /* can't reduce further */
+
+      if 0 < pos( TOP, DELIM ) then do /* remove string target */
+         if pos( TOP, ARG, 2 ) = 0 then iterate /* incomplete  */
+         parse var LAST (TOP) . (TOP) ARG ; STATE = 1 ; iterate
+      end
+
+      TOP = verify( LAST || '$', xrange( 'A', 'Z' ))
+      parse var LAST TOP =(TOP) ARG    /* check class targets: */
+
+      STATE = 2                        /* disable target op.s  */
+      if abbrev( 'REGEXP'   , TOP, 1 ) then iterate
+      if abbrev( 'PREFIX'   , TOP, 1 ) then iterate
+      if abbrev( 'SUFFIX'   , TOP, 1 ) then iterate
+      if abbrev( 'WORD'     , TOP, 1 ) then iterate
+
+      STATE = 1                        /* at end, await | or & */
+      if abbrev( 'ALTERED'  , TOP, 3 ) then iterate
+      if abbrev( 'BLANK'    , TOP, 3 ) then iterate
+      if abbrev( 'CHANGED'  , TOP, 3 ) then iterate
+      if abbrev( 'NEW'      , TOP, 3 ) then iterate
+      if abbrev( 'TAGGED'   , TOP, 3 ) then iterate
+
+      if abbrev( 'SELECT'   , TOP, 3 ) then do
+         TOP = abbrev( strip( ARG ), '+' ) + 1
+         SEC = substr( strip( ARG ), TOP )
+         TOP = verify( strip( SEC ) || '$', xrange( '0', '9' ))
+
+         if TOP > 1 then do            /* check second level   */
+            ARG = substr( SEC, TOP )   /* remove first level   */
+            TOP = abbrev( strip( ARG ), '+' ) + 1
+            SEC = substr( strip( ARG ), TOP )
+            TOP = verify( strip( SEC ) || '$', xrange( '0', '9' ))
+            if TOP > 1 then ARG = substr( SEC, TOP )
+            iterate                    /* parsed select target */
+         end
+      end
+
+      ARG = LAST                       /* restore current ARG  */
+   end                  /* ----------------------------------- */
+
+   if STATE = 1 & ARG = ''             /* rest must be a count */
+      then call CHANGE arg( 1 ), 1     /* only target, add '*' */
+      else call CHANGE arg( 1 ), 0     /* got target and count */
+
+CHANGE:  procedure      /* ----------------------------------- */
+   parse arg ARG, ALL
+
+   if ALL then ARG = ARG '*'           /* adds * to change arg */
+   if 0 then do ; say '-> change' ARG ; exit ; end /* for TEST */
+   'nomsg change' ARG                  /* let Kedit change it  */
+   ARG = rc
+   if ALL & rc <= 1  then  'msg' lastmsg.1() '*'
+   else  if rc <= 1  then  'msg' lastmsg.1()   /* no problem  */
+                     else 'emsg' lastmsg.1()   /* else error  */
+   exit ARG

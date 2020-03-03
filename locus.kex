@@ -1,0 +1,37 @@
+'set novalue on'        /* force KEXX and its SIGNAL ON NOVALUE   */
+
+/* Usage:         [MACRO] LOCUS [target]                          */
+/* Purpose:       Position cursor at next target in any currently */
+/*                edited file.  Default target is the focus word. */
+/* See also:      KHELP TARGET, KHELP FOCUSWORD, and QUERY RING   */
+/* Requires:      Kedit 5.0 or Keditw 1.0 (Frank Ellermann, 1999) */
+
+FILEID = fileid.1()
+ACTUAL = line.1()
+if arg() then TARGET = arg(1)
+         else TARGET = delimit( focusword.1() )
+
+do until FILEID = fileid.1()
+   if LOCATE( TARGET ) then exit 0
+   'locate :' || ACTUAL ;  'kedit'
+   ACTUAL = line.1()    ;  'top'
+end
+if LOCATE( TARGET ) then do
+   if ACTUAL = line.1() then say 'Wrapped...'
+   exit 0
+end
+
+FILEID = lastmsg.1()
+if abbrev( FILEID, 'Error 17' )
+   then FILEID = ring.0() 'file(s) in ring - not found:' TARGET
+'locate :' || ACTUAL ;  'emsg' FILEID  ;  exit 1
+
+LOCATE: procedure
+   'extract /WRAP/STREAM/' ;  'wrap off'  ;  'stream off'
+   'nomsg locate' arg( 1 ) ;  HERE = ( rc = 0 )
+   if HERE then do
+      HERE = target.2()    ;  'cl :1'  ;  'nomsg cl' arg(1)
+      if rc <> 0 then 'cl :' || HERE   ;  'cursor column'
+      HERE = 1
+   end
+   'wrap' WRAP.1  ;  'stream' STREAM.1 ;  return HERE

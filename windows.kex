@@ -1,0 +1,65 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] WINDOWS                                 */
+/* Example:       WINDOWS                       set colour scheme */
+/*                'macro' monitor.1()           profile use case  */
+/* Purpose:       'macro' monitor.1()   selects automatically the */
+/*                best colour scheme in the DOS + OS/2 version of */
+/*                Kedit (i.e. MONO.KEX or COLOR.KEX).  For KeditW */
+/*                macro WINDOWS.KEX supports this old catch 22.   */
+/* Design:        white  foreground in info areas, all (!) below, */
+/*                black  foreground in edit areas, all (?) below: */
+/*                gray   BG in cmdline (?) and arrow (!)          */
+/*                gray   BG in prefix (?), shadow (!), tofeof (!) */
+/*                cyan   BG in marked (?) block                   */
+/*                white  BG in normal (?) file area   (= default) */
+/*                green  BG in highlighted (?) target (= default) */
+/*                yellow BG in highlighted (?) tags   (= default) */
+/*                yellow BG in pending (?) prefix area commands   */
+/*                dark gray BG in scale (!), tabs (!), idline (!) */
+/*                dark gray BG in msgline (!)                     */
+/*                black  FG on yellow BG for tooltips (= default) */
+/*                gray   FG in colmark and boundmark  (= default) */
+/*                dark yellow FG in currbox (= visible in prefix) */
+/* Attributes:    12 attributes are not used for MONITOR WINDOWS, */
+/*                otherwise KeditW uses five "C...." attributes:  */
+/*                 2 Curline        (replaced by color currbox)   */
+/*                 4 Cblock         (replaced by color currbox)   */
+/*                13 Ctofeof        (replaced by color currbox)   */
+/*                16 Statarea       (status line color is fixed)  */
+/*                17 Divider        (n/a for Windows)             */
+/*                18 Scrollbar      (n/a for Windows scrollbars)  */
+/*                19 Sliders        (n/a for Windows scrollbars)  */
+/*                20 Mousebar       (n/a for the bottom toolbar)  */
+/*                22 Chighlight     (replaced by color currbox)   */
+/*                24 Cthighlight    (replaced by color currbox)   */
+/*                25 Dialog         (n/a for Windows message box) */
+/*                26 Alert          (n/a for Windows message box) */
+/* See also:      MONITOR.KEX, INITIAL.KEX, COLOR.KEX, MONO.KEX   */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   if version.1() = 'KEDIT'   then  do    /* use a similar scheme */
+      S =   '240 112 176 160 112 143 143 127 112 224 143 127 127'
+      S = S '143 127 143 247 112 112 112 224 112 160 112 128  72'
+      'attributes' S ;  exit rc           /* not 224 246 248 248  */
+   end
+   'monitor windows' ;  if rc <> 0  then  exit rc
+   'color colmark    gray'                /* attributes.30   248  */
+   'color boundmark  gray'                /* attributes.29   248  */
+   'color currbox    dark yellow'         /* attributes.28   246  */
+   'color tooltip    black on yellow'     /* attributes.27   224  */
+   'color arrow      white on gray'       /* attributes.8    143  */
+   'color cmdline    black on gray'       /* attributes.5    128  */
+   'color prefix     black on gray'       /* attributes.9    128  */
+   'color pending    black on yellow'     /* attributes.10   224  */
+   'color tofeof     white on gray'       /* attributes.12   143  */
+   'color shadow     white on gray'       /* attributes.15   143  */
+   'color scale      white on dark gray'  /* attributes.11   127  */
+   'color tabline    white on dark gray'  /* attributes.14   127  */
+   'color idline     white on dark gray'  /* attributes.6    127  */
+   'color msgline    white on dark gray'  /* attributes.7    127  */
+   'color block      black on cyan'       /* attributes.3    176  */
+   'color thighlight black on green'      /* attributes.23   160  */
+   'color highlight  black on yellow'     /* attributes.21   224  */
+   'color filearea   black on white'      /* attributes.1    240  */
+

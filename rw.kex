@@ -1,0 +1,55 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* usage:         [MACRO] RW                                      */
+/* example:       RW                                              */
+/* requires:      Kedit 5.0               (Frank Ellermann, 1999) */
+/* purpose:       allow write access on a modified read-only file */
+/*                by renaming the r/o and locking the edited file */
+/* caveat:        if another program has write access on the r/o  */
+/*                file you should not enforce r/w access with RW  */
+/* algorithm:                                                     */
+/* 1 - rename r/o file UVW.XYZ to UVW.OLD (resp. UVW.TMP) on disk */
+/* 2 - rename edited UVX.XYZ to UVW.OLD (resp. UVW.TMP) in memory */
+/* 3 - edit new r/w file UVW.XYZ with enabled file locking        */
+/* 4 - copy old r/o file to new (locked) r/w file UVW.XYZ on disk */
+/* 5 - save modified file (UVW.OLD in memory) by PUTD ALL on disk */
+/* 6 - load modified file (UVW.XYZ in memory) by GET (5+6 = copy) */
+
+/* probably this is overkill, but I found no straight forward way */
+/* to get rid of Kedit's filestatus.2() = READONLY (DOS ATTRIB -R */
+/* won't help).                                                   */
+
+   if ft.1() = 'OLD' then EXT = 'tmp'  ; else EXT = 'old'   /* 1  */
+   RO = fm.1() || fp.1()
+   if fp.1() <> '\'  then RO  = RO || '\'
+   RW = RO || fn.2() || '.' || ft.2()
+   RO = RO || fn.2() || '.' || EXT
+   'rename "' || RW || '" "' || RO || '"' ; if rc <> 0 then exit rc
+
+   'fileid "' || RO || '"'                                  /* 2  */
+   if rc <> 0 then do                  /* ...undo rename and exit */
+      EXT = rc ; 'rename "' || RO || '" "' RW || '"'     ;  exit EXT
+   end
+
+   'kedit "' || RW || '" (lock new nodefext)'               /* 3  */
+   if rc <> 0 then do                  /* ...undo rename and exit */
+      EXT = rc ;  'rename "' || RO || '" "' RW || '"'
+                  'fileid "' || RW || '"'                ;  exit EXT
+   end
+
+   'nomsg get "' || RO || '"'          /* save OLD RO as RW file  */
+   if rc == 0 then 'SSave' ; if rc = 0 then 'refresh'       /* 4  */
+   if rc <> 0 then do
+      EXT = rc ;  'rename "' || RO || '" "' RW || '"'
+      'qquit'  ;  'kedit  "' || RO || '" (new)'
+      'emsg panic - cannot save file "' || RW || '"'     ;  exit EXT
+   end
+
+   'kedit "' || RO || '" (new)'           ; if rc <> 0 then exit rc
+   'range -* +*'  ;  'all' ;  'putd all'  ; if rc <> 0 then exit rc
+   'qquit'                                                  /* 5  */
+
+   'kedit "' || RW || '" (new nodefext)'  ; if rc <> 0 then exit rc
+   'delete all'   ;  'nomsg get'          ; EXT = rc        /* 6  */
+   'msg delete renamed r/o file "' || RO || '" later'
+   'cmsg SAVE'                                           ;  exit EXT

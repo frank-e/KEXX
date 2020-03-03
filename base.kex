@@ -1,0 +1,39 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] BASE URL                                */
+/* Purpose:       BASE adds or replaces <base href="URL" /> in a  */
+/*                file, changes its type to ".htm", and converts  */
+/*                UTF-8 characters to decimal NCRs (old Nescape)  */
+/* Requires:      Kedit 5.0, X-WIKI.KEX   (Frank Ellermann, 2006) */
+
+   if arg( 1 ) = ''  then  do
+      'emsg specify base URL' ;  exit 1
+   end
+
+   ':0 nomsg /<base/'
+   if rc <> 0  then  do
+      ':0 nomsg /<title/'
+      if rc <> 0  then  do
+         'emsg invalid document: no <title>' ;  exit 1
+      end
+      AC = arbchar.1()  ;  'arbchar OFF'
+      'nomsg c ,<title,<base href="' || arg( 1 ) || '" /><title,'
+      CC = rc           ;  'arbchar' AC
+      if CC <> 0  then  do
+         'emsg rc' CC || ':' lastmsg.1()  ;  exit 1
+      end
+   end
+   else do
+      BASE = curline.3()
+      REST = pos( '<BASE ', translate( BASE ))
+      LEFT = left(   BASE, REST + 5 )
+      REST = substr( BASE, REST + 6 )
+      REST = substr( REST, pos( '>', REST ))
+      BASE = 'href="' || arg( 1 ) || '"'
+      'r' LEFT BASE '/' || REST
+      if rc <> 0  then  do
+         'emsg rc' rc || ':' BASE   ;  exit 1
+      end
+   end
+
+   'macro x-wiki' ;  ':0 forw half' ;  'ft htm' ;  'save'

@@ -1,0 +1,43 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] DOSMOUSE                                */
+/* Purpose:       DOSMOUSE is used by PROFILE.KEX and INITIAL.KML */
+/*                to preserve a DOS KEDIT 5 MOUSETEXT experiment. */
+/*                This should not consume precious DOS ISA space. */
+/* Caveats:       Normally BUTTON2DBLCK and MOUSEBAR_QUIT belong  */
+/*                to the macrospace after a 'DEFine' KEX or KML.  */
+/* See also:      KHELP DEFine                                    */
+/* Requires:      Kedit 5.0               (Frank Ellermann, 2010) */
+
+   if arg( 1 ) = 'button2dblclk' then  do
+      if mouseposmodifiable() then do
+         'mark line anchor'   ;  'set drag line anchor'  ;  exit rc
+      end
+      if scrollbar.1() = 'ON' then do
+         'scrollbar off'      ;  'mousebar off' ;  'statusline on'
+      end
+      else do
+         'scrollbar on'       ;  'mousebar on'  ;  'statusline off'
+      end
+   end   /* ----------------------------------------------------- */
+   else  if arg( 1 ) = 'mousebar_quit' then  do
+      if alt() then do
+         'dialog /Save changes first?/ YESNOCANCEL'
+         if dialog.2 = 'CANCEL' then exit
+         else if dialog.2 = 'YES' then 'nomsg file'
+         else if dialog.2 = 'NO' then 'nomsg qquit'
+      end
+      else 'nomsg quit'
+      if nbfile.1() = 0 then exit
+      if rc <> 0 then 'alert' delimit( lastmsg.1() )
+   end   /* ----------------------------------------------------- */
+   else  if arg( 1 ) = ''  then  do    /* as used in PROFILE.KEX  */
+      N = '         [Help]        [Lock] [Save] [Quit]'
+      'mousetext user [Move] [Copy] [Delete] [Undo] [Redo]' N
+   end   /* ----------------------------------------------------- */
+   else  do
+      parse source . . N
+      'emsg "' || arg( 1 ) || '" not expected in macro' N
+      rc = 4
+   end
+   exit rc

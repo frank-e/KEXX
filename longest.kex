@@ -1,0 +1,20 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] LONGEST                                 */
+/* Purpose:       locate and tag longest line(s) in current file  */
+/* Requires:      Kedit 5.0               (Frank Ellermann, 1999) */
+
+   MC = 0   ;  ML = 0   ;  MM = line.1()
+   do I = 1 until focuseof()
+      'locate :' || I
+      if MC > length.1() then iterate
+      if MC < length.1() then 'tag'
+      if MC < length.1() then ML = I
+      if MC = length.1() then ML = ML I
+      'more tag :' || I ; MC = length.1()
+      if length( ML ) < lscreen.2() then iterate
+      ML = subword( ML, 1, words( ML ) - 1 )
+      ML = left( ML, lscreen.2(), '.' )
+   end
+   'cmsg :' || MM ;  'locate :' word( ML, 1 )
+   say MC 'characters in longest line(s)' ML

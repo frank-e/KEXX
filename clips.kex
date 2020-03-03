@@ -1,0 +1,97 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] CLIPS [target|-]                        */
+/* Example:       CLIPS                         paste (using GET) */
+/*                CLIPS target                  copy  (using PUT) */
+/*                CLIPS PARA                    copy  (paragraph) */
+/*                CLIPS 1                       copy  (this line) */
+/*                CLIPS 2                       copy  (this+next) */
+/*                CLIPS -2                      copy  (this+prev) */
+/*                CLIPS -1                      copy  (this line) */
+/*                CLIPS 0                       copy  (erases it) */
+/*                CLIPS -                       inspect clipboard */
+/* Purpose:       This macro uses the ooREXX script CLIPS.REX for */
+/*                clipboard access with DOS Kedit 5.  The similar */
+/*                OS/2 version requires OS/2 REXX and CLIPBRD.EXE */
+/*                (archived as CLIPS_OS2.KEX in KEXXSAMP.ZIP).    */
+/*                Unlike KeditW 1.0 command CLIPBOARD macro CLIPS */
+/*                pastes lines always starting in column 1.  This */
+/*                is arguably a feature and how command GET works.*/
+/*                Unlike KeditW 1.0 command CLIPBOARD macro CLIPS */
+/*                can copy all kinds of targets, not only blocks. */
+/* CUT:           To get a CLIPBOARD CUT (or command PUTD) effect */
+/*                simply use 'DEL target' after 'CLIPS target'.   */
+/* PUT LINE:      Command PUT has a 'PUT LINE file text' feature  */
+/*                adding a text line to the specified file.  This */
+/*                syntax is awkward with CLIPS.KEX, an additional */
+/*                macro could offer a simple interface, e.g., use */
+/*                   'CLIPS 0' to erase the clipboard followed by */
+/*                   'CLIPS LINE KEDITPUT.TMP text' to write a    */
+/*                single line of text into the clipboard.         */
+/* Caveats:       ASCII NUL does not work as expected, the KeditW */
+/*                command CLIPBOARD even refuses to handle NUL.   */
+/*                Command GET does not fill the last added record */
+/*                for RECFM FIXED.  The 'CLIPS -' clipboard view  */
+/*                highlights the last record for EOLIN NONE if it */
+/*                is shorter than LRECL, but a 'CLIPS' paste into */
+/*                binary EOLIN NONE files ignores this issue.     */
+/* See also:      KHELP GET, KHELP PUT, KHELP TARGETS             */
+/* Requires:      CLIPS.REX, NT ooREXX (Win 95/98/ME not tested), */
+/*                macro STATUS.KEX (for clipboard view settings), */
+/*                Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   parse version KX SRC .              ;  SRC = KX SRC
+   parse source . . KX                 ;  SRC = SRC KX arg( 1 )
+   if arg( 1 ) = ''  then  KX = GET()  ;  else  KX = PUT( arg( 1 ))
+   if KX \== 0 then  'msg' lastmsg.1() '(' || space( SRC ) || ')'
+   if KX <> 0  then  'sos errorbeep'   ;  exit KX
+
+GET:  procedure                     /* 0 lines if empty clipboard */
+   'nomsg put 0'                       ;  if rc > 0 then return rc
+   rc = CLIP( 'GET' )                  ;  if rc > 0 then return rc
+   'nomsg get'                         ;  if rc > 0 then return rc
+   return '+0'                      /* no error, show GET message */
+
+PUT:  procedure
+   if arg( 1 ) = '-' then  return VIEW( 0 )
+   if arg( 1 ) = '+' then  return VIEW( 1 )
+   'nomsg put' arg( 1 )                ;  if rc > 1 then return rc
+   return CLIP( 'PUT' )             /* PUT rc 1 at TOF + EOF okay */
+
+CLIP: procedure                     /* exit if no CLIPS.REX error */
+   'nomsg dosq cmd /k "rexx clips.rex' arg( 1 ) '&& exit"'
+   return rc                        /* caller can show DOSQ error */
+
+VIEW: procedure                     /* view clipboard (only text) */
+   'extract /EOFIN/EOLIN/LRECL/RECFM/TABSIN/TRAILING/TRUNC'
+   'nomsg x KEDITPUT.TMP (new nolock)' ;  if rc > 0 then return rc
+   'nomsg del all'                     ;  'refresh'
+   'tabsin' TABSIN.1 TABSIN.2          ;  'trailing' TRAILING.1
+   'lrecl' LRECL.1                     ;  'trunc' TRUNC.1
+   'eofin' EOFIN.1                     ;  'recfm' RECFM.1
+   'eolin' EOLIN.1                     ;  'shadow on'
+   if arg( 1 ) then  do             /* try binary clipboard view: */
+      'tabsin off'                     ;  'tabsout off'
+      'eolin none'                     ;  'eolout none'
+      'eofin allow'                    ;  'eofout none'
+      'trailing on'                    ;  'recfm varying'
+      'lrecl' lscreen.2() - 6          ;  'prefix on right'
+      'trunc' lrecl.1()
+      'input' copies( 1, lrecl.1()) /* checks KEDIT 5 TRUNC error */
+      if length.1() <> lrecl.1() then  'trunc' lrecl.1() + 1
+      'del'                         /* bypass KEDIT 5 TRUNC error */
+   end
+   rc = GET()                          ;  if rc > 0 then return rc
+   'set alt 0 0'                       ;  'macro status'
+   'locate :' lscreen.1() % 2 - 2  'lineflag nonew nochange all'
+   if eolin.1() = 'NONE'   then  do
+      'highlight altered'              ;  'locate :' size.1()
+      if rc = 0 & length.1() <> LRECL.1
+         then  'lineflag new'       /* highlight too short record */
+         else  'locate :' lscreen.1() % 2 - 2
+   end                              /* Kedit 5 has no cliptext(): */
+   if version.1() = 'KEDIT'         then  return 0
+   if cliptext()  = sign( size.1()) then  return 0
+   'dmsg please configure CLIPS.REX trace manually'
+   'nomsg msg cliptext' cliptext()     ;  return 4
+

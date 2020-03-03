@@ -1,0 +1,36 @@
+* Function: Put numbers sequentially into a box block
+* To run:   Type "MACRO SEQBOX" from the KEDIT command line.
+*           If SET IMPMACRO ON is in effect, just type "SEQBOX".
+*           An optional argument specifies the starting number.
+*           The default is 0.
+* Feature:  If an explicitly given starting number begins with
+*           0 the sequential numbers are left padded with nulls.
+* Requires: KEDIT 5.0 or KEDIT for Windows 1.0
+* Version:  5.0 (May, 1992), feature added by Frank Ellermann
+
+   arg seqnum
+   if left( seqnum, 1 ) == '0' then pad = '0'; else pad = ' '
+   if seqnum = '' then seqnum = 0
+   if \datatype(seqnum, 'n') then call errmsg 'Non-numeric argument'
+   'extract /block/'
+   if block.1 \= 'BOX' then call errmsg 'No box block defined'
+   if block.6 \= fileid.1() then call errmsg 'Block not in current file'
+   if length(seqnum + block.4 - block.2) > block.5 - block.3 + 1 then
+      call errmsg 'Number to wide for block'
+
+   'preserve'
+   'autosave off'
+
+   'cl :'block.3
+   do line = block.2 to block.4
+      ':'line
+      'cr' right(seqnum, block.5 - block.3 + 1, pad)
+      seqnum = seqnum + 1
+   end
+
+   'restore'
+   exit
+
+errmsg:
+  'alert /'arg(1)'/ title /SeqBox/'
+  exit

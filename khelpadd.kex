@@ -1,0 +1,238 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] KHELPADD [name]                         */
+/* Purpose:       KHELPADD adds an entry for the given macro NAME */
+/*                in two KHELP.KEX tables.  The KHELP.KEX path is */
+/*                determined dynamically.                         */
+/*                The last six entries in the first table are not */
+/*                sorted.  Modify 'L blank -7 mark line' for more */
+/*                or less special entries in procedure XKHELP and */
+/*                JFTR also here.                                 */
+/*                If no name is given the KHELP tables are simply */
+/*                sorted, e.g., after manual deletions of macros. */
+/* Caveats:       Macros collected in INITIAL.KML (or other KMLs) */
+/*                are not yet supported.                          */
+/* Option:        If a local XEDIT.HTM file (as configured below) */
+/*                exists the KHELP.KEX info is added to XEDIT.HTM */
+/*                escaping '<', '&', '>'.  KHELPADD expects that  */
+/*                A-X.KML is the first sorted entry in this table */
+/*                ending before a line with the string '</table>'.*/
+/* Requires:      KEXPAND.KEX, KEXPATH.KEX, KHELP.KEX, XEDIT.HTM, */
+/*                Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   if arg( 1 ) = ''                    /* no arg => resort tables */
+      then  parse arg NAME TYPE INFO
+      else  parse value XMACRO( arg( 1 )) with  NAME TYPE INFO
+
+   rc = XKHELP( NAME, TYPE, INFO )  ;  if rc <> 0  then  exit rc
+   'extract /FILEID'                   /* kedit local XEDIT.HTM:  */
+   rc = XXEDIT( NAME, TYPE, INFO, 'D:\inetpub\ftproot\xedit.htm' )
+   if rc <> 0 & rc <> 4 then  exit rc  /* ----------------------- */
+   SAVE = 'Please check and save'   ;  'refresh'
+   if rc = 0      then  SAVE = SAVE FILEID.1 'and'
+   if NAME <> ''  then  SAVE = 'New macro' NAME 'added.' SAVE
+   say SAVE 'this file'             ;  exit 0
+
+XKHELP:     procedure   /* --- insert new macro name in KHELP.KEX */
+   parse arg NAME, TYPE, TEXT       ;  FILE = SEARCH( 'KHELP' )
+   if FILE = ''   then  do
+      'emsg macro KHELP not found'  ;  exit 28
+   end
+   'x "' || FILE || '"'             ;  if rc <> 0  then  exit rc
+   ':0 L blank L blank'             ;  NAME = translate( NAME )
+   LINE = left( '/*' NAME, 15 )
+   if TYPE < 0 then  LINE = LINE '*'
+               else  LINE = LINE ' '
+   LINE = LINE left( TEXT, 47 ) '*/'   /* insert new description  */
+   if NAME <> ''  then  'i' LINE    ;  'mark line reset'
+   'L blank -7 mark line'           ;  'sort block'
+   "tfind /   S =   space( '/"      ;  if rc <> 0  then  exit rc
+   'set point .KHELPADD'            ;  LINE = curline.3()
+   K.0 = ( NAME <> '' )             ;  K.1 = NAME TYPE
+   do while abbrev( LINE, '   S = ' )  /* read  KHELP macro table */
+      parse var LINE "'" T.1 N.1 T.2 N.2 T.3 N.3 "'"
+      do L = 1 to 3
+         T.L = strip( T.L )         ;  M = K.0 + 1
+         N.L = strip( N.L )         ;  K.M = N.L T.L
+         if K.M <> ''   then  K.0 = M
+      end
+      'next'                        ;  LINE = curline.3()
+   end                                 /* ----------------------- */
+   M = K.0
+   do L = 2 to M                       /* sort  KHELP macro table */
+      K.0 = K.L                     ;  T = L ;  J = L - 1
+      do while K.0 << K.J
+         K.T = K.J                  ;  T = J ;  J = J - 1
+      end
+      K.T = K.0
+   end                                 /* ----------------------- */
+   'locate .KHELPADD set point .KHELPADD OFF'
+   do L = 1 to M by 3                  /* write KHELP macro table */
+      LINE = '   S ='
+      if L = 1 then  LINE = LINE "  space( '"
+               else  LINE = LINE "S space( '"
+      do T = L to L + 2
+         if T <= M   then  do
+            LINE = LINE || right( word( K.T, 2 ), 2 )
+            LINE = LINE left( word( K.T, 1 ), 13 )
+         end
+         else  LINE = LINE || left( '', 16 )
+      end
+      'R' LINE || "' )"             ;  'next'
+   end                                 /* ----------------------- */
+   if M // 3 = 1  then 'i'             /* exit  KHELP macro table */
+   'locate -' || ( M % 3 ) - ( M // 3 = 1 ) + 2 - lscreen.1() % 2
+   'highlight altered'              ;  return rc
+
+XXEDIT:     procedure   /* --- insert new macro name in XEDIT.HTM */
+   parse arg NAME, TYPE, TEXT, FILE ;  NAME = translate( NAME )
+   'x "' || FILE || '"'             ;  if rc <> 0  then  return rc
+   if alt() + undo.3() + size.1() = 0  then  do
+      'quit 4'                      ;  return 4
+   end                                 /* missing local XEDIT.HTM */
+
+   /* insert NAME TYPE TEXT entry in format of first A-X.KML LINE */
+   ':0 L /a-x.kml/ point .KHELPADD' ;  LINE = curline.3()
+   parse var LINE L.1 'a-x.kml"      type=' LINE
+   L.2 = xrange( 'a', 'z' )         ;  L.3 = translate( L.2 )
+   L.2 = left( translate( NAME, L.2, L.3 ) || '.kex"', 14 )
+   L.1 = L.1 || L.2 || 'type='      ;  L.3 = '</tt></td><th><tt>'
+   parse var LINE L.2 'A-X.kml</a>     ' (L.3) LINE
+   L.2 = L.2 || left( NAME || '</a>', 16 ) || L.3
+   if TYPE < 0 then  L.2 = L.2 || '&nbsp;*&nbsp;'
+               else  L.2 = L.2 || '             '
+   LINE = substr( LINE, 14 )        ;  L.2 = L.2 || left( LINE, 18 )
+   LINE = substr( LINE, 19 )        ;  TEXT = ESCAPE( TEXT )
+   L.2 = L.2 || left( TEXT, 60 )    ;  LINE = substr( LINE, 61 )
+   L.3 = '</tt></td><th> <img src="20' || right( time.3(), 2 )
+   L.3 = L.3 || '.jpg" alt="20' || right( time.3(), 2 )
+   LINE = substr( LINE, 1 + length( L.3 ))
+   if NAME <> ''  then  'input' L.1 || L.2 || L.3 || LINE
+
+   'L .KHELPADD mark line reset'    ;  LINE = delimit( '</table>' )
+   'L' LINE 'L -1 mark line'        ;  'sort block'
+   'L * -2 reset block'             ;  LINE = curline.3()
+   parse var LINE L.1 'update:' . 'by' LINE
+   'R' L.1 || 'update:' date() time.2() 'by' || LINE
+   'L .KHELPADD L' lscreen.1() % 2 - 2 'set point .KHELPADD OFF'
+   'highlight altered'              ;  return rc
+
+XMACRO:     procedure   /* --- determine macro TYPE and INFO line */
+   NAME = strip( arg( 1 ))          ;  TYPE = TRYKEX( NAME )
+   if TYPE = 0 then  do
+      'emsg macro' NAME 'not found' ;  exit 28
+   end
+
+   'nomsg macro kexpand' NAME
+   if rc = -1  then  do
+      call WARNING lastmsg.1() '- install required KEXPAND.KEX'
+   end
+   else  if rc <= 0  then  TYPE = 0 - TYPE
+   else  do
+      S = 'DEFine Query SOS'
+      do while 0 < rc & S <> ''
+         parse var S X S
+         'nomsg macro kexpand' X NAME
+      end
+      if 0 < rc   then  do
+         parse upper source . . DIALOG.2
+         DIALOG.2 = delimit( DIALOG.2 'macro' NAME 'type' TYPE )
+         S = 'CANCEL to check KHELP:' || d2c( 10 )
+         S = S || 'Is this also a manual entry ?'
+         DIALOG.1 = delimit( S )
+         DIALOG.0 = 'YesNoCancel DEFBUTTON 3'
+         'dialog' DIALOG.1 'title' DIALOG.2 DIALOG.0
+         if       DIALOG.2 = 'YES'  then  rc = 0
+         else  if DIALOG.2 = 'NO'   then  rc = 1
+         else  exit 1
+      end
+      if rc <= 0  then  TYPE = 0 - TYPE
+                  else  TYPE = '+' || TYPE
+   end
+
+   INFO = '....5...10....5...20....5...30....5...40....5..'
+   do until length( INFO ) <= 47
+      parse upper source . . DIALOG.2
+      DIALOG.2 = delimit( DIALOG.2 'macro' NAME 'type' TYPE )
+      S = 'Enter description without' NAME '(47 characters)'
+      DIALOG.1 = delimit( S )
+      DIALOG.0 = delimit( left( INFO, 47 )) 'OkCancel'
+      if version.1() <> 'KEDIT'  then  DIALOG.0 = DIALOG.0 'fixed'
+      'dialog' DIALOG.1 'title' DIALOG.2 'edit' DIALOG.0
+      if DIALOG.2 <> 'OK'  then  exit 1
+      INFO = left( strip( DIALOG.1 ), 47 )
+   end
+   return NAME TYPE INFO
+
+/* -------------------------------------------------------------- */
+/*  procedure adapted from <http://purl.net/xyzzy/kex/khelp.kex>  */
+
+TRYKEX:     procedure   /* --- determine HEADER type of given KEX */
+   parse arg FILE
+   FILE = SEARCH( FILE )            ;  if FILE = ''   then  return 0
+   PATH = fileid.1()
+   'kedit "' || FILE || '" (noprof' ;  if rc <> 0     then  return 0
+   'nomsg locate :1'    ;  TYPE = translate( space( curline.3()))
+   if ring.0() > 1 then 'nomsg quit'   /* silent QUIT found macro */
+   'kedit "' || PATH || '" (nodefext'
+
+   if abbrev( TYPE, "'SET NOVALUE O" ) then  return 1
+   if abbrev( TYPE, "'NOVALUE O" )     then  return 1
+   if abbrev( TYPE, "/*" ) then  return 2              /* REXXify */
+   if abbrev( TYPE, "* " ) then  return 3              /* samples */
+   return 4                            /* KEX HEADER unidentified */
+
+/* -------------------------------------------------------------- */
+/*  procedures copied from <http://purl.net/xyzzy/kex/khelp.kex>  */
+
+SEARCH:     procedure   /* --- search macro in whatever MACROPATH */
+   arg FILE             /* see also SEARCH procedure in TRACE.KEX */
+   if right( FILE, 4 ) <> '.KEX' & right( FILE, 4 ) <> '.KML'
+      then FILE = FILE || '.KEX'
+   if pos( '\', FILE ) > 0 | pos( ':', FILE ) = 2 then do
+      LAST = lastpos( '\', FILE ) + 1  ;  if LAST = 1 then LAST = 3
+      parse var FILE PATH =(LAST) FILE    /* split PATH from id.  */
+      'nomsg macro KEXPATH' delimit( FILE, PATH )
+      if rc = 0   then  return lastmsg.1() || FILE
+      if rc > 0   then  return WARNING( PATH || FILE 'not found' )
+      return WARNING( lastmsg.1() '- install required KEXPATH.KEX' )
+   end
+
+   'nomsg macro KEXPATH' delimit( FILE )
+   if rc = 0   then  return lastmsg.1() || FILE
+   if rc > 0   then  do
+      'nomsg macro KEXPATH'            ;  FILE = FILE 'not found'
+      if rc = 0   then  FILE = FILE 'in MACROPATH'
+                  else  FILE = FILE || ': unknown KEDIT directory'
+      return WARNING( FILE  )
+   end
+   return WARNING( lastmsg.1() '- install required KEXPATH.KEX' )
+
+WARNING:    procedure   /* --- support early exit 1 for bad topic */
+   parse upper source . . ALERT.2
+   ALERT.2 = ALERT.2 'warning: OK to continue anyway'
+   ALERT.1 = centre( arg( 1 ), max( 42, length( arg( 1 ))))
+   ALERT.0 = 'OKCANCEL DEFBUTTON 2'
+   if version.1() <> 'KEDIT'  then  ALERT.0 = ALERT.0 'ICONE'
+   'alert' delimit( ALERT.1 ) 'title' delimit( ALERT.2 ) ALERT.0
+   if ALERT.2 <> 'OK'   then  exit 1   ;  else  return ''
+
+/* -------------------------------------------------------------- */
+/*  procedure adapted from <http://purl.net/xyzzy/cscml.htm>      */
+
+REPLACE: procedure                     /* replace given substring */
+   parse arg SRC, OLD, NEW             ;  DST = ''
+   L = length( OLD )                   ;  POS = pos( OLD, SRC )
+   do while POS > 0
+      DST = DST || left( SRC, POS -1 ) || NEW
+      SRC =      substr( SRC, POS +L ) ;  POS = pos( OLD, SRC )
+   end
+   return DST || SRC
+
+ESCAPE:  procedure                     /* escape some characters: */
+   parse arg SRC
+   SRC = REPLACE( SRC, '&', '&amp;' )  /* ampersand must be first */
+   SRC = REPLACE( SRC, '<', '&lt;'  )
+   SRC = REPLACE( SRC, '>', '&gt;'  )
+   return SRC
+

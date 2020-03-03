@@ -1,0 +1,122 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] REXX [filename|function:]               */
+/* Example:       REXX script             - xedit ?:\*\SCRIPT.cmd */
+/*                REXX                    - copy TRAP: handler    */
+/*                REXX util:              - copy UTIL: procedure  */
+/*                REXX :                  - insert REXX header    */
+/* Purpose:       Edit new or existing OS/2 REXX script, normally */
+/*                a file like ?:\*\filename.CMD, where ?:\*\ is a */
+/*                directory in the PATH with ?:\*\REXXTRAP.CMD.   */
+/*                In new scripts add a dummy REXX header and copy */
+/*                the TRAP: handler from REXXTRAP.CMD.            */
+/*                                                                */
+/*                Without arg. copy TRAP: handler to actual file. */
+/*                If argument ends with colon copy this procedure */
+/*                below the (1st) REXXTRAP.KEX "maintenance mark" */
+/*                (REXX comment line "/* see $rexxtrap.htm$ */")  */
+/*                Of course you cannot copy THIS: procedure to a  */
+/*                script already containing THIS: label.          */
+/* History:       The 2002 version sometimes copied more than one */
+/*                procedure.  Now labels must have the form ????: */
+/*                The 2010 version uses 'NT ooREXX' as intro for  */
+/*                the dummy header instead of 'OS/2 REXX'.  Patch */
+/*                the 'if 0 then' statement in procedure HEAD: to */
+/*                get the old behaviour.                          */
+/* See also:      REXXTRAP.KEX                                    */
+/*                <URL:http://purl.net/xyzzy/kex/rexx.kex>        */
+/*                <URL:http://purl.net/xyzzy/kex/rexxtrap.kex>    */
+/*                <URL:http://purl.net/xyzzy/rexxtrap.htm>        */
+/*                <URL:http://purl.net/xyzzy/src/rexxtrap.cmd>    */
+/* Requires:      REXXTRAP.CMD anywhere in the PATH               */
+/*                Kedit 5.0               (Frank Ellermann, 2003) */
+
+   HOME = PATH( 'REXXTRAP.CMD' )       /* PATH of REXXTRAP.CMD    */
+   TRAP = HOME || 'REXXTRAP.CMD'
+   MARK = '/* see <URL:http://purl.net/xyzzy/rexxtrap.htm>'
+   MARK = MARK || ', (c) F. Ellermann */'
+
+   if arg( 1 ) = ':' then exit HEAD()  /* insert signal header    */
+   if arg( 1 ) = '' then do            /* no argument, copy TRAP: */
+      'locate :* input' MARK        ;  exit COPY( 'TRAP:', TRAP )
+   end
+   if right( strip( arg( 1 )), 1 ) = ':' then do
+      'nomsg locate :0 tfind' delimit( arg( 1 ) || ' ' )
+      if rc = 0 then 'emsg' arg( 1 ) 'already used as label'
+      if rc = 0 then exit 1
+      MARK = arbchar.2()
+      MARK = '/* see' MARK || 'rexxtrap.htm' || MARK '*/'
+      'nomsg locate :0 tfind' delimit( MARK )
+      if rc = 0 then exit COPY( strip( arg( 1 )), TRAP )
+      'emsg' MARK 'not found using arbchar' arbchar.1() arbchar.2()
+      exit 1
+   end
+   if sign( verify( arg( 1 ), ':./\"', 'M' )) then do
+      'emsg specify REXX script filename without path or extension'
+      exit 1
+   end
+
+   'x "' || strip( arg( 1 )) || '.cmd" (nodefext)'
+   if rc <> 0        then exit rc      /* can't edit any new file */
+   if size.1() > 0   then exit 0       /* KEDIT found old script  */
+   if ring.0() > 1   then 'nomsg quit' /* do NOT use CWD for new  */
+   'x "' || HOME || strip( arg( 1 )) || '.cmd" (nodefext)'
+   if rc <> 0        then exit rc      /* can't edit file in HOME */
+   if HEAD() <> 0    then exit 1       /* can't insert a header ? */
+
+   'text' MARK                      ;  call COPY 'TRAP:', TRAP
+   'set alt 0 0'                    ;  'lineflag nonew all'
+   'sos current cu cu cu cr cr cr'  ;  exit 0
+
+HEAD: procedure                        /* insert signal header    */
+   ':0 sos current lineadd firstcol'   /* SOS script header input */
+   if 0  then  'text /* OS/2 REXX' copies( ' ', 52 ) '*/'
+         else  'text /* NT ooREXX' copies( ' ', 52 ) '*/'
+   'sos lineadd lineadd firstcol'   ;  TXT = ' signal on '
+   'text  ' TXT 'novalue  name TRAP ;' TXT 'syntax name TRAP'
+   'sos lineadd firstcol'
+   'text  ' TXT 'failure  name TRAP ;' TXT 'halt   name TRAP'
+   'sos lineadd lineadd lineadd firstcol'
+   return rc
+
+COPY: procedure                        /* copy TRAP proc. to THIS */
+   THIS = fileid.1()                   /* caller checked arg( 2 ) */
+   'x "' || arg(2) || '" (noprof)'  ;  if rc <> 0 then return rc
+   'nomsg locate :0 tfind' delimit( arg(1) || ' ' )
+   if rc <> 0 then do
+      'nomsg quit'                  ;  'x "' || THIS || '" (new)'
+      'emsg label' arg(1) || 'not found in' arg(2)
+      return 1
+   end
+
+   'extract /BLOCK/ARBCHAR/WRAP/STAY/'
+   'locate -1 mark line reset'      ;  'locate +1 wrap off'
+   'arbchar on $ ?'                 ;  'stay on'
+   'nomsg tfind /????: /'           ;  if rc <> 0 then 'locate :*'
+   'locate -1 wrap' WRAP.1          ;  'stay' STAY.1
+   'arbchar' ARBCHAR.1 ARBCHAR.2 ARBCHAR.3
+   if curline.3() = '' then 'up'    ;  'mark line'
+   'x "' || THIS || '" (new)'       ;  if rc <> 0 then return rc
+   'copy block'                     ;  'reset block'
+   if BLOCK.0 > 5 then do              /* may reset user's BLOCK, */
+      'x "' || BLOCK.6 || '" (new)'    /* not tested with KeditW: */
+      'L :' || BLOCK.4  ;  'cl :' || BLOCK.5 ;  'mark' BLOCK.1
+      'L :' || BLOCK.2  ;  'cl :' || BLOCK.3 ;  'mark' BLOCK.1
+   end
+   'x "' || arg(2) || '" (noprof)'  ;  'nomsg quit'
+   'x "' || THIS   || '" (new)'     ;  return 0
+
+PATH: procedure                        /* find arg(1) in the PATH */
+   PATH = path.1()   ;  'set path on'  /* KEDIT searches the PATH */
+   BACK = fileid.1() ;  FIND = strip( translate( arg( 1 )))
+   'nomsg x "' || FIND || '" (noprof nodefext)'
+   if rc = 0 then do                   /* found or new, test size */
+      'set path' PATH                  /* reset user's KEDIT PATH */
+      parse value fileid.1() with PATH (FIND) OKAY
+      OKAY = ( OKAY == '' & size.1() > 0 )
+      if ring.0() > 1 then 'nomsg quit'
+      'nomsg x "' || BACK || '" (new nodefext)'
+      if OKAY then return PATH
+      'emsg' FIND 'not found in PATH or CWD'    ;  exit 1
+   end
+   'emsg cannot edit' FIND ;  'set path' PATH   ;  exit 1

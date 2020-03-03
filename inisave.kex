@@ -1,0 +1,48 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         MACRO INISAVE [ [NO]STATE [[NO]HISTory] ] | xxx */
+/* Example:       MACRO INISAVE STATE              => SET INISAVE */
+/*                MACRO INISAVE STATE HISTory      => SET INISAVE */
+/*                MACRO INISAVE STATE NOHISTory    => SET INISAVE */
+/*                MACRO INISAVE NOSTATE            => SET INISAVE */
+/*                MACRO INISAVE NOSTATE HISTory    => SET INISAVE */
+/*                MACRO INISAVE NOSTATE NOHISTory  => SET INISAVE */
+/*                MACRO INISAVE       => INIUTIL CONVERT SETTINGS */
+/*                MACRO INISAVE xxx   => INIUTIL SAVE SET xxx     */
+/* Option:        SYNONYM INISAVE MACRO INISAVE                   */
+/* Purpose:       INIUTIL CONVERT SETTINGS creates INISET.KEX for */
+/*                saved non-default settings.  MACRO INISAVE with */
+/*                no arguments is a shorthand for this feature.   */
+/*                INIUTIL SAVE SET xxx saves a SET xxx setting in */
+/*                %systemroot%\KEDITW.INI (for savable settings). */
+/*                MACRO INISAVE xxx  for a SET xxx is a shorthand */
+/*                for INIUTIL SAVE SET xxx.  Unsavable settings   */
+/*                are reported as  INIUTIL SAVE SET xxx  error.   */
+/*                Otherwise MACRO INISAVE xxx results in a normal */
+/*                SET INISAVE xxx for an optional INISAVE synonym.*/
+/* See also:      KHELP INISAVE, KHELP INIUTIL, KHELP SYNONYM     */
+/* Requires:      KeditW 1.0              (Frank Ellermann, 2008) */
+
+   if version.1() = 'KEDIT'   then  'emsg INISAVE requires KEDITW'
+   else  if arg( 1 ) = ''     then  'INIUTIL CONVERT SETTINGS'
+   else  if SETERR( arg( 1 )) then  'SET INISAVE' arg( 1 )
+   else                             'INIUTIL SAVE SET' arg( 1 )
+   exit rc + 5 * ( 'KEDIT' = version.1())
+
+/* -------------------------------------------------------------- */
+/* SETERR as found in <URL:http://purl.net/xyzzy/kex/kexpand.kex> */
+
+SETERR:     procedure   /* --- expect SET X error 1 or 3 for rc 5 */
+   'nomsg set' arg( 1 )
+   if rc =  5  then  return abbrev( lastmsg.1(), 'Error 1:' )
+               else  exit UNEXPECTED( rc, 'SET' arg( 1 ))
+
+UNEXPECTED: return UNEXPECT.2( arg( 1 ), arg( 2 ), sigl )
+UNEXPECT.2: procedure   /* --- KEXPAND bug for KeditW 1.5 feature */
+   parse upper source . . ALERT.2      ;  ERR = arg( 1 )
+   ALERT.2 = delimit( ALERT.2 ' line' arg( 3 ) 'unexpected rc' ERR )
+   ALERT.1 = 'command:' arg( 2 ) d2c( 10 ) || 'lastmsg:' lastmsg.1()
+   ALERT.1 = delimit( translate( ALERT.1, d2c( 128 ), d2c( 127 )))
+   FIX = subword( 'fixed', 1, 'KEDIT' <> version.1())
+   'alert' ALERT.1 'title' ALERT.2 FIX ;  exit max( 4, ERR )
+

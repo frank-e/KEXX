@@ -1,0 +1,22 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] TIME [command [arguments]]              */
+/* Example:       TIME dir *.*                                    */
+/* Purpose:       Determine elapsed time using KEXX time( 'E' )   */
+/* Requires:      Kedit 5.0 or Keditw 1.0 (Frank Ellermann, 1999) */
+
+   parse value time( 'E' ) with S.1 '.' M.1
+   if arg() = 1
+      then 'synex' arg( 1 )
+      else parse value '0' with S.1 '.' M.1
+   parse value time( 'E' ) with S.2 '.' M.2
+
+   if M.1 = ''  then M.1 = 0  ; S.1 = S.1 + 1
+   if M.2 = ''  then M.2 = 0  ; S.2 = S.2 + 1
+   if M.2 < M.1 then do       /* Kedit 5.0 has only whole numbers */
+      M.2 = M.2 + 1000000     ; S.2 = S.2 - 1
+   end
+   M.2 = M.2 - M.1            ; S.2 = S.2 - S.1
+
+   say 'elapsed time:' S.2 || '.' || right( M.2, 6, '0' ) 'seconds'
+   exit rc        /* rc set by 'SET NOVALUE ON' or 'SYNEX' arg(1) */

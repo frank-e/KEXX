@@ -1,0 +1,45 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] TREE [root(s)]                          */
+/* Example:       TREE C:\                                        */
+/* History:       based on SAMPLES\TREE.KEX version 5.0, May 1992 */
+/*                supporting id.s with embedded blanks (HPFS) and */
+/*                long id.s truncated by * depending on DIRFORMAT */
+/* Corrections: - DIRAP DIRFileid.1()  enclosed in double quotes  */
+/*              - Do NOT forever DIRAP DIRF.1() containing stars  */
+/*              - AUTOSAVE OFF unnecessary for Kedit 5.0 DIR.DIR  */
+/* Update 2008:   If a directory name actually starts with a dot  */
+/*                it won't work.  The proposed "workaround" in an */
+/*                older version, add a trailing backslash, causes */
+/*                a dead loop under unclear conditions related to */
+/*                long paths with Kedit 5 for DOS and KeditW 1.0. */
+/* Caveats:       DOS Kedit 5.0 and KeditW 1.0 support only up to */
+/*                32 backslashes in a path, deeper subdirectories */
+/*                are silently ignored.                           */
+/* OS/2 feature:  Found truncated directory id.s containing stars */
+/*                are TAGged - the shown TREE is then incomplete. */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 1999) */
+
+   'extract /DEFSORT/SHADOW/'    ;  'set defsort off'
+   'dir' arg( 1 )                ;  if rc <> 0  then  exit BYE( rc )
+   'set shadow off'              /* show progress without shadows */
+
+   do DIR = 1                    /* use relative DIR line numbers */
+      'nomsg all  /<dir>/'       ;  ':0' DIR    /* next DIRectory */
+      if rc <> 0 then leave      ;  'refresh'   /* show progress  */
+      if pos( '*', dirfileid.1()) = 0  then  do /* no truncation: */
+         'set lineflag TAG'      /* tag processed dir. for delete */
+         'nomsg dirappend "' || dirfileid.1() || '"'  /* DIR TREE */
+      end
+      else  'set lineflag NEW'   /* flag truncated dir.s, affects */
+   end                           /* only OS/2 or maybe KeditW 1.5 */
+
+   'nomsg all tagged'            ;  if rc = 0   then  'delete all'
+   'all'                         ;  'nomsg dirsort' DEFSORT.1
+   'set alt 0 0'                 ;  'nomsg tag altered'
+   if rc = 0   then  'emsg TAGged truncated directory id.s skipped'
+   ':0' lscreen.1() % 2 - 2      ;  exit BYE( 0 )
+
+BYE:                             /* reset old SHADOW and DEFSORT: */
+   'set shadow'   SHADOW.1       ;  'set defsort' DEFSORT.1
+   return arg( 1 )

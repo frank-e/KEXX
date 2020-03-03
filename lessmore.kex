@@ -1,0 +1,21 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] LESSMORE command [operand(s)]           */
+/* Examples:      LESSMORE LESS /target/        = normal LESS     */
+/*                LESSMORE MORE TAG /target/    = normal MORE TAG */
+/*                LESSMORE LESS TAG             = LESS TAGged ok. */
+/*                LESSMORE MORE                 = MORE  (error 3) */
+/* Options:       SYNONYM LESS 4 MACRO LESSMORE LESS              */
+/*                SYNONYM MORE 4 MACRO LESSMORE MORE              */
+/* Purpose:       LESSMORE executes a specified command with all  */
+/*                operands, but if the operand string matches TAG */
+/*                it's replaced by TAGGED.  This bypasses error 3 */
+/*                "too few operands" (rc 5) for the commands LESS */
+/*                and MORE.  Define SYNonyms for LESS and MORE as */
+/*                shown above.                                    */
+/* Bugs:          16 lines are comments, 3 lines contain the code */
+/* See also:      KHELP LESS, KHELP MORE, KHELP TARGET, KHELP TAG */
+/* Requires:      Kedit 5.0               (Frank Ellermann, 2002) */
+
+   arg COMMAND OPERAND                 /* address KEDIT arg( 1 )  */
+   if OPERAND == 'TAG'  then  COMMAND 'TAGged'  ;  else arg( 1 )

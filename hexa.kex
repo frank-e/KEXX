@@ -1,0 +1,177 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] HEXA [file [ ( init-options [)] ]]      */
+/* Or:            KEDIT file (PROFile HEXA [init-options[)]]      */
+/* Example:       HEXA kedit.exe       => Kedit binary KEDIT.EXE  */
+/*                HEXA                 => hex. view current file  */
+/* Purpose:       (Ab)use KEDIT as hex. editor.  If HEXA is used  */
+/*                within Kedit, it "copies" some local file/view  */
+/*                settings like colours, ARROW, ARBCHAR, or WRAP. */
+/*                Otherwise HEXA tries to DEFINE INITIAL.KML and  */
+/*                tries to execute MACRO COLOR / MONO / WINDOWS.  */
+/*                INITIAL.KML and COLOR.KEX are only used to get  */
+/*                "normal" file/view settings like colours etc.   */
+/* Update 2008:   HEXA.KEK and HEXE.KEX are now almost identical, */
+/*                the only difference is the handling of window   */
+/*                widths 76 up to 99.                   Overview: */
+/*                width <  52:  HEX? shows  8 hex. bytes per line */
+/*                width <  76:  HEX? shows 16 hex. bytes per line */
+/*                width < 100:  HEXA shows 16 hex. bytes + prefix */
+/*                width < 100:  HEXE shows 24 hex. bytes per line */
+/*                width < 106:  HEX? shows 32 hex. bytes per line */
+/*                  otherwise:  HEX? shows 32 hex. bytes + prefix */
+/*                Where available the prefix area is used to show */
+/*                line numbers.                                   */
+/* See also:      Macro A-F12 in INITIAL.KML toggles normal and   */
+/*                binary views.  Normal view would also reset all */
+/*                binary settings to normal defprof.1() values.   */
+/*                If macro ZOO.KEX is assigned to a key 'zoo .'   */
+/*                reports the binary offset of the focus column.  */
+/*                For the "reload strategy" used by HEXA.KEX see  */
+/*                also BINARY, BROWSE, HEXE, or UNIX.KEX.   This  */
+/*                macro automatically uses PROFDEBUG if "DEFINEd" */
+/*                by TRACE.KEX for debugging.                     */
+/* Position:      The actual position in the file is preserved if */
+/*                possible.  This fails if an intended EOLOUT LF  */
+/*                or CRLF does not reflect the actually used EOL  */
+/*                character(s) for files not yet saved with this  */
+/*                intended EOLOUT.  The EOLIN value does not help */
+/*                in this scenario, EOLIN LF in essence means LF  */
+/*                or CRLF.  File positions depending on EOFIN and */
+/*                EOFOUT also cannot be accurately preserved, but */
+/*                affect only the last line or record.  Likewise  */
+/*                TABSIN, TABSOUT, or TRAILING can confuse binary */
+/*                offsets.  Function length.1() correctly counts  */
+/*                trailing blanks only for TRAILING ON.           */
+/* Caveats:       Do not use Kedit to insert or delete bytes in a */
+/*                binary.  It is possible to replace bytes in a   */
+/*                binary loaded by HEXA if some critical settings */
+/*                are not changed:  EOFOUT, EOLOUT, LRECL, RECFM, */
+/*                TABSOUT, TRAILING.  Please check the file size  */
+/*                of a patched binary, it should be the same.     */
+/* Optional:      INITIAL.KML, COLOR.KEX, MONO.KEX, WINDOWS.KEX,  */
+/*                STATUS.KEX (to report Kedit 5 TRUNC workaround) */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   if profile()      then  exit EDIT() ;  else  PROF = INIT()
+
+   if arg( 1 ) <> '' then  do       /* accept one file + options: */
+      Q = left( strip( arg( 1 )), 1 )
+      if Q = '"' | Q = "'" then  parse arg (Q) FILE (Q) Q '(' R
+                           else  parse arg     FILE     Q '(' R
+      parse var R OPTS ')' R           ;  R = length( strip( Q R ))
+      if R + pos( 'PROF', translate( OPTS )) > 0   then  do
+         'emsg HEXA' arg( 1 ) '?!?'    ;  exit 20
+      end                           /* avoid PROF-option conflict */
+      'kedit "' || strip( FILE ) || '" (PROFile' PROF OPTS || ')'
+      if undo.3() + size.1() + alt() + rc = 0   then  do
+         FILE = fileid.1()             ;  'quit'
+         'emsg HEXA found no' FILE     ;  exit 28
+      end                           /* empty binary is a bad plan */
+      exit rc                       /* anything else done as PROF */
+   end                              /* -------------------------- */
+
+   'extract /FEXT/FILEID'
+   if dir() | alt()  then  do       /* cannot reload changed file */
+      'emsg save' FILEID.1 'first, HEXA has to reload this file'
+      'cmsg save'                      ;  exit 12
+   end
+   if FEXT.1 = 'BAK' then  'fext TMP'  ;  else  'fext BAK'
+   if rc <> 0        then  exit rc     ;  FILEID.0 = fileid.1()
+   Q = eolout.1() <> 'NONE'         /* text EOL at length.1() + 1 */
+   Q = max( 0, -1 + min( column.1(), Q + length.1()))
+   R = max( 0, -1 + min(   line.1(),       size.1()))
+   if eolout.1() <> 'NONE' then  do /** EOLOUT CR 1, LF 1, CRLF 2 */
+      Q = Q + R * ( 2 - ( 'CRLF' <> eolout.1()))
+      if tabsout.1() = 'ON'   then  do
+         'compress -*'                 ;  'locate :' R + 1
+      end                           /* length.1() includes blanks */
+      do until rc <> 0              /* for TRAILING ON, 0 for TOF */
+         'up'                          ;  Q = Q + length.1()
+      end                           /* undo TABSO, edit can fail: */
+      if tabsout.1() = 'ON'   then  do until 1
+         'undo'                        ;  if rc = 0   then  leave
+         'expand' R + 2                ;  'set alt 0 0'
+      end                           /* position in actual line is */
+   end                              /* not accurate if COMPRESSed */
+   else Q = Q + R * lrecl.1()       /* determines a binary offset */
+
+   'kedit "' || FILEID.1 || '" (PROFile' PROF || ')'
+   if rc <> 0  then  do             /* trouble: reset old fileid  */
+      R = rc      ;  'fext' FEXT.2     ;  exit R
+   end
+   'kedit "' || FILEID.0 || '" (NEW)'  ;  'quit'
+   'kedit "' || FILEID.1 || '" (NEW)'  ;  R = lrecl.1()
+   'locate :' || ( 1 + Q % R ) 'clocate :' ( 1 + Q // R )
+   exit 0
+
+EDIT: procedure   /* -------------------------------------------- */
+   if initial()   then  do          /* initialize global settings */
+      'nomsg define initial.kml'       ;  'nomsg macro' monitor.1()
+   end
+   if version.1() = 'KEDIT'   then  'scr 1'
+                              else  'win max'
+   'nomsg editv get HEXE.0'
+   if HEXE.0 = '' then  do          /* save local settings HEXE.n */
+      'reprof on' ;  'wrap on'         ;  'arrow off'
+      'shifts on' ;  'arbchar on'      ;  'backup temp'
+      'number on' ;  'hexdisp on'      ;  'varblank on'
+      call INIT   ;  'editv get HEXE.0'
+   end
+   do N = 1 to HEXE.0               /* load local settings HEXE.n */
+      'editv get HEXE.' || N           ;  'set' HEXE.N
+   end            /* -------------------------------------------- */
+
+   COL = 4        /* should be 8, 16, or 32, but VER accepts only */
+                  /* 20 arg.s, so COL * 4 + 4 <= 20 is the limit. */
+   if       lscreen.2() < 16 * 3 + COL then  LEN =  8    /*  40 ? */
+   else  if lscreen.2() < 24 * 3 + COL then  LEN = 16    /* oops! */
+   else  if lscreen.2() < 32 * 3 + COL then  LEN = 16    /*  80 ? */
+   else                                      LEN = 32    /* 132 ? */
+
+   if LEN * 3 + COL + 6 <= lscreen.2() then  'prefix on right'
+   if version.1() <> 'KEDIT'           then  'boundmark verify zone'
+
+   'hex on'       ;  'beep on'         ;  'autoscroll off'
+   'trailing on'  ;  'recfm vary'   /** use 11 critical settings **/
+   'lrecl' LEN    ;  'trunc' LEN       ;  'zone 1' LEN
+   'eofin allow'  ;  'eolin  none'     ;  'tabsin  off'
+   'eofout none'  ;  'eolout none'     ;  'tabsout off'
+
+   /* RECFM FIXED would add blanks to the last line up to LRECL,  */
+   /* for patching binaries this is no good idea.  Use HEXA only  */
+   /* for viewing and maybe replacing some bytes.  CAVEAT: Do not */
+   /* insert or delete bytes or "lines" (= records = LEN bytes).  */
+
+   SPACE = 2 * LEN         ;  R = ''   ;  S = R ;  V = R
+   do J = 1 to LEN by LEN % COL     /* process record, COL parts  */
+      K = LEN % COL + J - 1
+      do I = J - 1 to K - 1         /* process a part of record:  */
+         R = R    d2x( I // 16 )    /* build text for RESERVED    */
+         S = S || d2x( I // 16 )
+      end
+      R = R ''                      /* build text for the VERIFY  */
+      V = V 'H' || J K SPACE SPACE
+   end                              /* Hex. col.s J to K, + space */
+
+   'reserved' msgline.2() attr.11() R || S
+   'set verify'  V 1 LEN SPACE '*'     ;  if rc <> 0  then  exit rc
+   'nomsg locate :1'                /* avoid 5.0 SL1+2 TRUNC bug: */
+   if LEN = 1 + length.1() then  'trunc' LEN + 1
+   'nomsg locate :0 macro status'   /* restore TOP, check STATUS  */
+   if 0 <= rc  then  'macro status'    ;  return 0
+
+INIT: procedure   /* -------------------------------------------- */
+   'nomsg query attr'      ;  HEXE.1 = lastmsg.1()
+   'nomsg query arbchar'   ;  HEXE.2 = lastmsg.1()
+   'nomsg query arrow'     ;  HEXE.3 = lastmsg.1()
+   'nomsg query backup'    ;  HEXE.4 = lastmsg.1()
+   'nomsg query number'    ;  HEXE.5 = lastmsg.1()
+   'nomsg query undoing'   ;  HEXE.6 = lastmsg.1()
+   'nomsg query varblank'  ;  HEXE.7 = lastmsg.1()
+   'nomsg query wrap'      ;  HEXE.8 = lastmsg.1()
+                              HEXE.0 = 8
+   do N = 0 to HEXE.0      ;  'editv put HEXE.' || N  ;  end
+
+   parse source . . PROF               ;  'nomsg query macro' PROF
+   if rc <> 0  then  return PROF       ;  return PROF 'PROFDEBUG'

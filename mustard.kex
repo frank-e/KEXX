@@ -1,0 +1,18 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] MUSTARD                                 */
+/* Purpose:       MUSTARD tags all (potential) RFC 2119 keywords  */
+/* Caveats:       There is no STRONGLY in RFC 2119.  The keywords */
+/*                MUST, SHALL, and SHOULD can be combined with a  */
+/*                NOT.  The combination NOT RECOMMENDED is also   */
+/*                "allowed", but NOT REQUIRED, NOT OPTIONAL, and  */
+/*                MAY NOT would be dubious.                       */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2006) */
+
+   MUSTARD = '/MUST/ | /SHALL/ | /SHOULD/ | /RECOMMENDED/'
+   MUSTARD = MUSTARD '| /MAY/ | /OPTIONAL/ | /REQUIRED/ | /NOT /'
+
+   'extract /CASE'               ;  'case M R'
+   'tag'                         ;  'tag' MUSTARD
+   RX = rc                       ;  'case' CASE.1 CASE.2
+   if RX = 0 then 'all tagged'   ;  exit RX

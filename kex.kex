@@ -1,0 +1,355 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] KEX [macroname]                         */
+/* Examples:      KEX PROFILE                                     */
+/*                KEX C-PgUp                                      */
+/* Requires:      macros KEXPAND.KEX and KEXPATH.KEX              */
+/*                Kedit 5.0 or Keditw 1.0 (Frank Ellermann, 2008) */
+
+/* Used to edit a macro, e.g. KEX PROFILE.  This makes sense if   */
+/* the MACROPATH is not part of your normal PATH.  For example:   */
+/*     SET PATH=C:\DOS;C:\KEDIT                         (maybe)   */
+/*     SET KEDIT=WIDTH 2048 MACROPATH KHELP             (maybe)   */
+/*     SET KHELP=C:\KEDIT\KEXX;C:\KEDIT\SAMPLES         (maybe)   */
+/*     KEDIT WHATEVER.TXT               (start a Kedit session)   */
+/*     X MANYFILE.KEX                   (does not find MANYFILE)  */
+/*     X C:\KEDIT\SAMPLES\MANYFILE.KEX  (edit old MANYFILE.KEX)   */
+/*     KEX MANYFILE                     (ditto with less typing)  */
+
+/* Another feature of KEX is its interpretation of macro names:   */
+/*     X C:\KEDIT\KEXX\STAR.KEX         (normally no good idea)   */
+/*     KEX STAR                         (STAR is a defined key)   */
+/*     X C:\KEDIT\KEXX\HIGH.KEX         (normally no good idea)   */
+/*     KEX HIGH                         (HIGH is SET HIGHLIGHT)   */
+/*     X C:\KEDIT\KEXX\1234.KEX         (a really dubious idea)   */
+/*     KEX 1234                         (1234 is a LOCATE 1234)   */
+/*     X C:\KEDIT\KEXX\INITIAL.KML      (that is a special case)  */
+/*     KEX                              (most often edited KML)   */
+/*     X C:\KEDIT\KEXX\ANOTHER.KML      (no other special case)   */
+/*     KEX ANOTHER.KML                  (but still less typing)   */
+/*     X "C:\KEDIT\KEXX\BAD NAME.KEX"   (possible on OS/2 HPFS)   */
+/*     KEX "BAD NAME"                   (you get what you want)   */
+/*     X A:TEST.KEX                     (other paths or drives)   */
+/*     KEX A:TEST                       (save 4 key strokes :-)   */
+/*     MOD MACRO !                      (this won't modify s-1)   */
+/*     KEX !                            (edit !.KEX or key s-1)   */
+
+/* - Please update the header template for new macros in the line */
+/*   marked by "MODIFY template HERE".   [New feature added 2002] */
+
+/* - KEX called without arguments edits INITIAL.KML, change this  */
+/*   for your most often edited macro library (maybe MISC.KML or  */
+/*   KEYS.KML ?) in the line marked by "MODIFY initial HERE", but */
+/*   don't add a path:  KEX takes care of your MACROPATH setting. */
+
+/* - If no old macro is found KEX edits a new macro either in the */
+/*   1st directory of an explicitly set MACROPATH, or in the PATH */
+/*   directory where it found KEDIT, or else in the current dir.  */
+
+/* - Kedit looks for macros (as its last resort) in the directory */
+/*   of KEDIT.EXE.  Unfortunately neither KEX nor Kedit 5 can use */
+/*   this information in searching a macro to be edited, unless   */
+/*   the KEDIT.EXE startup directory is found in the PATH.        */
+
+/* - KEDITW 1.0 only:  With MACROPATH ON if KEDITW.EXE is found   */
+/*   the USER subdirectory next to KEDITW is used as default.  An */
+/*   undocumented EXTRACT /STARTUP/ allows to locate the startup  */
+/*   directory even if KEDITW.EXE is not found in the PATH.       */
+
+/* - You can also use KEX to edit any defined macro (like a key), */
+/*   this is done in a scratch library KEX.KML in your MACROPATH  */
+/*   if the macro is not found in INITIAL.KML.  KEX won't replace */
+/*   a currently edited KEX.KML without warning (unlike command   */
+/*   MACROS).  KEX supports the short styles of key names, e.g.,  */
+/*   KEX ! automatically looks for key S-1 and tries also S+1 in  */
+/*   KEDITW, but does not look for SHIFT-F1 or SHIFT+F1.          */
+
+/* - KEX tests the plausibility of new macro names, e.g., KEX ARB */
+/*   gives you the warning that ARB is an (implicit) SET ARBCHAR. */
+/*   Macro ARB.KEX as in SYNONYM ARBCHAR 3 MACRO ARB is possible, */
+/*   but more likely it an unintended collision.                  */
+
+/* - KEX.KEX needs KEXPAND.KEX to find collisions with KeditW 1.0 */
+/*   or Kedit 5.0 commands, implicit SET operands, etc.  KEXPAND  */
+/*   should also find implicit KeditW 1.5 SET operands, but this  */
+/*   has not been tested.  Conflicts with new KeditW 1.5 commands */
+/*   are not identified because a "test" execution for an unknown */
+/*   command could be destructive.  Collisions are only reported  */
+/*   for new files, otherwise you are supposed to know what you   */
+/*   want.                                                        */
+
+/* - For example KEXPAND tests Kedit 5.0 SET options removed from */
+/*   Kedit, e.g., KEX MOUSE shows a warning 'explicit MACRO MOUSE */
+/*   required to bypass old Kedit 5.0 SET MOUSE'.  In the case of */
+/*   KeditW 1.0 this is literally true, even if MOUSE.KEX exists. */
+
+/* - A macro like 007.KEX does not work as SYNONYM 007, but can   */
+/*   be used as MACRO 007 (bypassing an implicit LOCATE 007).  On */
+/*   HPFS completely weird stuff like KEX ...KEX (file ...KEX) is */
+/*   supported for use as MACRO ...KEX (MACRO .. would not work). */
+
+/* - KEX also checks the current synonyms and proposes to replace */
+/*   a given name by a matching synonym.     (Feature added 2010) */
+
+   NAME = strip( arg( 1 ))
+   if length( NAME )   <=  1  then exit KEX( NAME )
+   if  left( NAME, 1 ) <> '"' then exit KEX( NAME )
+   if right( NAME, 1 ) <> '"' then exit KEX( NAME )
+   exit KEX( substr( NAME, 2, length( NAME ) - 2 ))
+
+/* Proposed test(s)                       => expected result(s)   */
+/* KEX a-.   KEX a-\    KEX .    KEX \    => keys a-.  a-\  .  \  */
+/* KEX :     KEX " "    KEX x2c(15)       => keys s-;  space  c-u */
+/* KEX CURL  KEX STAR   KEX END           => keys curl  star  end */
+/* KEX NN    KEX N.N    KEX NN.           => files NN.KEX N.N NN  */
+/* KEX \\    KEX "  "   KEX ..   KEX ".." => invalid fileid.s     */
+/* KEX ME    KEX FE     KEX COL  KEX EOF  => warnings MErge  FExt */
+/* KEX 123   KEX -NEW   KEX NEW  KEX NOP  => warnings 123  -NEW   */
+/* KEX ' '   KEX ..KEX  KEX      KEX KEX  => warnings ' '  ..KEX  */
+/* For the c-u key test enter "KEX " + A-F9 + C-U to get x2c(15). */
+
+KEX:        procedure   /* --- edit defined KEY or external macro */
+   KEYS = 'initial.kml' /* MODIFY initial HERE (Kedit Macro Lib.) */
+
+   LAST = lastpos( '\', arg( 1 ))         /* split explicit PATH, */
+   if 0 < LAST & LAST < length( arg( 1 )) /* \ at end is no PATH: */
+      then  parse arg PATH +(LAST) FILE
+      else  parse arg FILE , PATH         /* drive handled later  */
+   if FILE = ''   then  FILE = KEYS       /* default KEYS library */
+
+   NAME = FILE                            /* split explicit type, */
+   LAST = lastpos( '.', FILE )            /* . at end is no type: */
+   if 0 < LAST & LAST < length( arg( 1 )) then  do
+      if \ abbrev( NAME, '.' )   then  NAME = left( FILE, LAST - 1 )
+   end   /* old OS/2 magic for NAME beginning with dot not tested */
+   if 0 = LAST then  LAST = NAME || '.kex'
+               else  LAST = FILE          /* add the default type */
+   if pos( '\', PATH ) > 0 then  return EDIT( PATH || LAST )
+   if pos( ':', FILE ) = 2 then  return EDIT( LAST )
+
+   /* no drive and no PATH specified => resolve current synonyms: */
+   'extract /SYNONYM */'               ;  if rc <> 0  then  exit rc
+   do N = 1 to SYNONYM.0 until B = 'NO'
+      parse upper var SYNONYM.N A B C
+      if abbrev( A, translate( FILE ), B ) = 0  then  iterate
+      do until wordpos( A, 'COMMAND MACRO NOMSG SET' ) = 0
+         parse var C A C
+      end
+      if A <> translate( FILE )  then  do
+         DIALOG.1 = delimit( 'KEX' A 'for' translate( FILE ))
+         DIALOG.2 = delimit( 'Synonym' SYNONYM.N )
+         'dialog' DIALOG.1 'title' DIALOG.2 'YESNO'
+         if DIALOG.2 = 'YES'  then  do
+            drop SYNONYM. DIALOG.      ;  exit KEX( A )
+         end
+      end
+   end
+   drop SYNONYM. DIALOG.
+
+   /* no drive and no PATH specified => look in CWD and MACROPATH */
+   'nomsg macro KEXPATH'               ;  MACS = directory.1()
+   if rc < 0   then  call QUIT lastmsg.1() '- install KEXPATH.KEX'
+   if rc = 0   then  MACS = MACS || ';' || lastmsg.1()
+   'nomsg macro KEXPATH' delimit( LAST, MACS )
+   if rc = 0   then  return EDIT( lastmsg.1() || LAST )
+
+   /* FILE not found in CWD or MACROPATH => find KEDITW USER PATH */
+   parse var MACS . ';' PATH ';' .        /* first MACROPATH dir. */
+   if version.1() <> 'KEDIT'  then  LAST = 'keditw.exe'
+                              else  LAST = 'kedit.exe'
+   'nomsg macro KEXPATH' delimit( LAST, dosenv( 'PATH' ))
+   if rc = 0   then  LAST = lastmsg.1()   ;  else  LAST = ''
+   if version.1() <> 'KEDIT'  then  do
+      if LAST = ''   then  do until 1     /* cheat, undocumented: */
+         'nomsg extract /STARTUP'         ;  if rc <> 0  then  leave
+         if STARTUP.0 = 0  then  leave    /* make sure this works */
+         LAST = left( STARTUP.1, lastpos( '\', STARTUP.1 ))
+      end
+      if LAST <> ''  then  LAST = LAST || 'USER'
+   end
+   if macropath.1() = 'ON'    then  PATH = LAST    /* LAST / USER */
+   if macropath.1() = 'OFF'   then  PATH = ''      /* actual dir. */
+   if PATH = ''   then  PATH = directory.1()       /* use the CWD */
+   if right( PATH, 1 ) <> '\' then  PATH = PATH || '\'
+
+   /* FILE not found in CWD or MACROPATH => check if NAME is key: */
+   if FILE = NAME then  do                /* could be DEFINEd key */
+      'nomsg macro KEXPATH' delimit( KEYS, MACS )
+      if rc = 0   then  KEYS = lastmsg.1() || KEYS
+                  else  KEYS = ''         /* missing KEYS library */
+      call KEY NAME, PATH, KEYS           /* check DEFINEd macros */
+      FILE = FILE || '.kex'               /* add the default type */
+   end
+
+   return EDIT( PATH || FILE )            /* kedit in MACROPATH   */
+
+KEY:        procedure   /* --- edit a defined macro (else return) */
+   parse arg NAME, PATH, KEYS             /* edit a defined macro */
+   X = NAME                               /* translate key macros */
+   'nomsg query macro' X                  /* check DEFINEd macro: */
+   if rc <> 0  then  do
+      if length( X ) <> 1  then  return   /* possible macro name  */
+      K = c2d( X )
+      if K > 127  then  return            /* key handled by ASCII */
+      if K = 127  then  NAME = 'c-bksp'   /* also known as ^? DEL */
+      if K <  32  then  NAME = 'c-' || d2c( K + 64 )
+      if K =   0  then  NAME = 'c-2'      /* also known as ^@ NUL */
+      if K =  30  then  NAME = 'c-6'      /* also known as ^^ RS  */
+      if K =  31  then  NAME = 'c--'      /* also known as ^_ US  */
+      if K =  32  then  NAME = 'space'    /* supporting a KEX " " */
+      K =               '!@#$%^&*()<>?{|}+_":~'
+      K = translate( X, "1234567890,./[\]=-';`", K )
+      if K <>  X  then  NAME = 's-' || K  /* name of shifted key  */
+      'nomsg query macro' NAME            /* try defined key name */
+      if rc <> 0  then  do                /* Kedit is screwed up: */
+         'query macro' X               ;  exit rc
+      end                                 /* -------------------- */
+   end                                    /* (defined macro NAME) */
+   if pos( X, xrange( 'A', 'Z' )) > 0  then  NAME = 's-' || X
+
+   if KEYS <> ''  then  do                /* look up default KEYS */
+      'kedit "'  || KEYS || '"'        ;  if rc <> 0  then  exit rc
+      'extract /CASE/'                 ;  'case mixed ignore'
+      'nomsg :0 tfind' delimit( ':' || NAME || ' ' )
+      if rc <> 0 & version.1() <> 'KEDIT' then  do until 1
+         X = translate( NAME )            /* MACROS CHANGED style */
+         if abbrev( X, 'S-C-' )  then  X = 'S+C+' || substr( X, 5 )
+         if abbrev( X, 'S+C-' )  then  X = 'S+C+' || substr( X, 5 )
+         if abbrev( X, 'C-S-' )  then  X = 'S+C+' || substr( X, 5 )
+         if abbrev( X, 'C+S-' )  then  X = 'S+C+' || substr( X, 5 )
+         if abbrev( X, 'A-C-' )  then  X = 'A+C+' || substr( X, 5 )
+         if abbrev( X, 'A+C-' )  then  X = 'A+C+' || substr( X, 5 )
+         if abbrev( X, 'C-A-' )  then  X = 'A+C+' || substr( X, 5 )
+         if abbrev( X, 'C+A-' )  then  X = 'A+C+' || substr( X, 5 )
+         if abbrev( X, 'C-'   )  then  X = 'C+'   || substr( X, 3 )
+         if abbrev( X, 'C+A+' )  then  X = 'A+C+' || substr( X, 5 )
+         if abbrev( X, 'C+S+' )  then  X = 'S+C+' || substr( X, 5 )
+         if abbrev( X, 'A-'   )  then  X = 'A+'   || substr( X, 3 )
+         if abbrev( X, 'S-'   )  then  X = 'S+'   || substr( X, 3 )
+         'nomsg :0 tfind' delimit( ':' || X || ' ' )
+         if rc = 0   then  leave          /* non-canonical style: */
+         if abbrev( X, 'A+C+' )  then  X = 'C+A+' || substr( X, 5 )
+         if abbrev( X, 'S+C+' )  then  X = 'C+S+' || substr( X, 5 )
+         'nomsg :0 tfind' delimit( ':' || X || ' ' )
+      end
+      CASE.0 = rc                      ;  'case' CASE.1 CASE.2
+      if CASE.0 = 0  then  do
+         NAME = translate( NAME )      ;  'refresh'
+         say NAME 'is a defined macro (located in' KEYS || '):'
+         say 'edit, save, and define' KEYS 'to modify' NAME
+         exit 0                           /* found key, leave KEX */
+      end
+      if ring.0() > 1   then  'quit'      /* not found, quit KEYS */
+   end
+
+   'macros' NAME                       ;  if rc <> 0  then  exit rc
+   'fileid "' || PATH || 'KEX.KML"'       /* KEX.KML in MACROPATH */
+   if rc = 0   then  'refresh'            /* no refresh if error, */
+   NAME = translate( NAME )               /* may fail if in ring  */
+   say NAME 'is a defined macro (builtin or in defined *.KML):'
+   say 'rename, edit, save, and define KEX.KML to modify' NAME
+   exit rc                                /* found key, leave KEX */
+
+EDIT:       procedure   /* --- use header template for new macros */
+   'kedit "' || arg( 1 ) || '"'        ;  if rc <> 0  then  exit rc
+
+   if size.1() <> 0     then  return 0    /* okay, edit old macro */
+   if fext.1() <> 'KEX' then  return 0    /* okay, edit non-macro */
+   TXT = fname.1()                        /* uppercase macro name */
+
+   'sos lineadd firstcol'                 /* add a default header */
+   "text 'set novalue on'"                /* based on TABS INCR 3 */
+   S = TXT '...' copies( ' ', 34 - length( TXT ))
+   'text   /* force KEXX and its way of SIGNAL ON NOVALUE ' || ' */'
+   'sos lineadd lineadd firstcol'
+   'text /* Usage:         [MACRO]' S                       || ' */'
+   'sos lineadd firstcol'
+   'text /* Example:      ' S             right( ' ',  7 )  || ' */'
+   'sos lineadd firstcol'
+   'text /* Purpose:      ' S             right( ' ',  7 )  || ' */'
+   'sos lineadd firstcol'  ;  parse value date() with . . S
+   S = '(Frank Ellermann,' S || ')'       /* MODIFY template HERE */
+   S = 'Kedit 5.0 or KeditW 1.0' right( S, 23 )
+   'text /* Requires:     ' S                               || ' */'
+   'sos lineadd lineadd firstcol cr cr cr'
+   'set alt 0 0'  ;  'lineflag nonew all' /* allow to simply QUIT */
+
+   S = '/ ! " # $ % ( ) * , < = > ? @ [ \ ] _ ` { } | & .'
+   if       words( TXT ) <> 1             /* name contains blank: */
+      then  S = '"' || TXT || '"'
+   else  if verify( TXT, '.' ) = 0        /* weird dots in ...KEX */
+      then  S = TXT || '.KEX'             /* skip implicit LOC S: */
+   else  if datatype( TXT, 'M' ) = wordpos( TXT, S "'" d2c( 127 ))
+      then  S = TXT                       /* non-alpha macro name */
+      else  S = ''                        /* -------------------- */
+   if S = TXT  then  do                   /* warning for bad name */
+      'nomsg macro KEXPAND MACRO' TXT  ;  X = lastmsg.1()
+      if rc = -20 then  do                /* builtin macro caveat */
+         X = 'DEFine' arg( 1 ) 'required to call' X
+         if QUIT( X )   then  return 1 ;  S = ''
+      end
+   end
+   if S <> ''  then  do                   /* warning for bad name */
+      S = 'explicit MACRO' S 'required to call' arg( 1 )
+      if QUIT( S )   then  return 1       /* if user picks CANCEL */
+   end
+
+   'nomsg macro KEXPAND' TXT           ;  S = lastmsg.1()
+   if       rc = -1  then  call QUIT S '- install macro KEXPAND.KEX'
+   else  if rc =  0  then  do             /* known valid commands */
+      if IMPL( TXT, S, 'implicit "COMMAND' ) then  return 1
+   end                                    /* -------------------- */
+   else  if rc = -2  then  do             /* KeditW 1.0 commands: */
+      if IMPL( TXT, S, 'KeditW 1 "COMMAND' ) then  return 1
+   end                                    /* -------------------- */
+   else  if rc = -4  then  do             /* valid [SET] operand, */
+      'nomsg query' TXT                ;  S = word( S, 2 )
+      if rc = 0 & lastmsg.1() <> 'Set Point' then  do
+         S = substr( word( lastmsg.1(), 1 ), 1 + length( TXT ))
+         S = TXT || S || d2c( 10 ) || 'as in [SET] "' || TXT
+         S = S subword( lastmsg.1(), 2, 9 )
+         if words( lastmsg.1()) > 10   then  S = S '...'
+      end   /* KeditW 'query MOUSETEXT' and 'query SCReen' failed */
+      if IMPL( TXT, S, 'implicit SET' )      then  return 1
+   end                                    /* -------------------- */
+   else  if rc = -6  then  do             /* SET in other version */
+      X = 'KeditW 1.0'                 ;  S = word( S, 2 )
+      if version.1() = 'KEDIT'               then  X = 'Kedit 5.00'
+      if IMPL( TXT, S, X '"SET' )            then  return 1
+   end                                    /* -------------------- */
+   else  if rc = -16 then  do             /* implicit LOCATE for  */
+      S = word( S, 2 )                    /* delimit() characters */
+      if IMPL( TXT, S, 'implicit "LOCATE' )  then  return 1
+   end                                    /* -------------------- */
+   else  if rc = -20 then  do             /* purged builtin MACRO */
+      S = word( S, 2 )                    /* (extremely unlikely) */
+      if IMPL( TXT, S,   'builtin "MACRO' )  then  return 1
+   end                                    /* -------------------- */
+   else  if rc = -22 then  do             /* builtin other KEDIT: */
+      X = 'KeditW 1.0'                 ;  S = word( S, 2 )
+      if version.1() = 'KEDIT'               then  X = 'Kedit 5.00'
+      if IMPL( TXT, S, X 'builtin "MACRO' )  then  return 1
+   end                                    /* -------------------- */
+   else  if abs( rc + 25 ) = ( pos( '(', TXT ) + 2 > length( TXT ))
+      then  nop                           /* ignore KEXX function */
+   else  if rc = +5 & datatype( TXT, 'U' ) = 0  then  nop
+   else  if rc = +3 & ( TXT = 0 | TXT = 1 )     then  nop
+   else  if rc <> 1 & rc <> 2 then  do    /* rc 1 or rc 2 is okay */
+      ALERT.1 = delimit( 'unexpected KEXPAND' S 'rc' rc 'for' TXT )
+      ALERT.2 = delimit( 'KEX assertion failed' )
+      'alert' ALERT.1 'title' ALERT.2     /* KEX or KEXPAND bug ? */
+   end                                    /* -------------------- */
+   return 0                               /* okay, edit new macro */
+
+IMPL:       procedure   /* --- macro conflict with SET or COMMAND */
+   parse arg TXT, COMMAND, IMPLICIT
+   if COMMAND = ''   then  return 0
+   TXT = 'explicit MACRO' TXT 'required to bypass' IMPLICIT COMMAND
+   return QUIT( TXT || '"' )
+
+QUIT:       procedure   /* --- warning, let user quit fresh macro */
+   ALERT.2 = delimit( 'KEX warning' )
+   'alert' delimit( arg( 1 )) 'title' ALERT.2 'OKCANCEL'
+   if ALERT.2 <> 'OK' then 'quit'         /* continue if OK, else */
+   return ( ALERT.2 <> 'OK' )             /* QUIT ambiguous macro */
+

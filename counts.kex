@@ -1,0 +1,19 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] COUNTS string                           */
+/* Purpose:       COUNT delimit( string ) ALL      without block  */
+/*                COUNT delimit( string ) BLOCK    B or L  block  */
+/* Caveats:       COUNT cannot handle stream blocks.  COUNT uses  */
+/*                SET ARBCHAR, CASE, HEX, STAY, and ZONE.  COUNTS */
+/*                ignores the CASE temporarily.  Without block in */
+/*                the actual file COUNTS searches all lines.      */
+/* See also:      KHELP COUNT, KHELP CASE, KHELP ZONE             */
+/* Requires:      Kedit 5.0               (Frank Ellermann, 2004) */
+
+   'extract /CASE/STAY/'
+   'case' CASE.1 CASE.2 'Ignore' ;  'stay on'
+   if block()  then 'count' delimit( arg( 1 )) 'BLOCK'
+               else 'count' delimit( arg( 1 )) 'ALL'
+   EXRC = rc
+   'case' CASE.1 CASE.2 CASE.3   ;  'stay' STAY.1
+   exit EXRC

@@ -1,0 +1,90 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         MACRO CMATCH                                    */
+/* Example:       DEF S-F3 MACRO CMATCH                           */
+/*                SYNONYM CMATCH MACRO CMATCH                     */
+/* Purpose:       Use Kedit's CMATCH command for REXX and XHTML.  */
+/* Background:    Kedit's CMATCH matches pairs of nested braces,  */
+/*                e.g., with the cursor on a closing '}' press    */
+/*                shift-F3 to execute a CMATCH.  This locates the */
+/*                corresponding opening '{' or reports an error   */
+/*                if brackets are not properly nested.  Pressing  */
+/*                shift-F3 again jumps back to '}'.  CMATCH also  */
+/*                handles '('..')', '['..']', and '<'..'>' pairs. */
+/* REXX match:    To get the same effect for 'DO' or 'SELECT' and */
+/*                'END' pairs MACRO CMATCH uses procedure RMATCH. */
+/* BAK, step 1:   RMATCH saves the edited file as BAK-file, KEDIT */
+/*                automatically removes temporary BAK-files later */
+/*                when SET BACKUP TEMP is in effect.              */
+/* LOC, step 2:   RMATCH notes the actual cursor position in the  */
+/*                edited file, loads the identical BAK file, and  */
+/*                moves the cursor to the same line and column.   */
+/*                It then locates the begin of the focus word, in */
+/*                the case of an 'END' the 'E'.                   */
+/* X2C, step 3:   Modifying the loaded BAK file copy cannot cause */
+/*                any problems.  RMATCH changes literal braces to */
+/*                dummy characters, replaces all 'SELECT' or 'DO' */
+/*                by '{', and all 'END' by '}'.                   */
+/*                Command CMATCH can then locate the matching '{' */
+/*                or '}' as in C-files.  It is not necessary to   */
+/*                reset 'CASE M I I' for case insensitive changes */
+/*                later, the setting only affects the temporarily */
+/*                loaded =.BAK file.                              */
+/* MSG, step 4:   RMATCH notes any CMATCH error message and the   */
+/*                new cursor location, quits the temporary file,  */
+/*                goes to the same location in the edited file,   */
+/*                or shows the noted CMATCH error message.        */
+/* XHTML match:   For XHTML <div> ... </div> and similar pairs of */
+/*                nested tags almost the same matching strategy   */
+/*                works.  Instead of the focus word XMATCH uses   */
+/*                SET WORD ALPHA to find the 'd' in '</div>', and */
+/*                for XHTML matching is case sensitive.  It isn't */
+/*                necessary to reset WORD ALPHA later, the change */
+/*                only affects the temporarily loaded =.BAK file. */
+/*                The list of tags matched by XMATCH is a matter  */
+/*                of taste, simply add what you need often.       */
+/* Caveats:       HTML is not XHTML, and XMATCH does not work for */
+/*                case insensitive HTML tags.  Add a 'CASE M I I' */
+/*                to XMATCH if you need case insensitive matches. */
+/* Installation:  Replace 'cmatch' by 'macro cmatch' for S-F3 (or */
+/*                S+F3 in KeditW terminology).  Command CMATCH is */
+/*                in practice only used with a key, and it is not */
+/*                required to create SYNONYM CMATCH MACRO CMATCH. */
+/* See also:      KHELP WORD, KHELP BACKUP, KHELP CMATCH          */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   if sign( wordpos( translate( focusword.1()), 'DO SELECT END' ))
+      then exit RMATCH()
+   if sign( wordpos( focusword.1(), 'div pre ol ul p' ))
+      then exit XMATCH( focusword.1())
+   'command cmatch' ;  exit rc
+
+RMATCH:  procedure
+   ROW = line.1() ;  COL = column.1()        ;  BAK = '=:=\=.bak'
+   'ssave' BAK    ;  'kedit' BAK '(noprof'   ;  if rc <> 0 then return rc
+   'case M I I'   ;  'loc :' ROW 'cl :' COL  ;  'cursor column'
+   'sos startw'                              ;  ONE = ' DO '
+   'nomsg c' delimit( '{', x2c( 1 )) 'all *' ;  TWO = ' END '
+   'nomsg c' delimit( ONE, left( ' {',  length( ONE ))) 'all *'
+   'nomsg c' delimit( '}', x2c( 2 )) 'all *' ;  ONE = ' SELECT '
+   'nomsg c' delimit( ONE, left( ' {',  length( ONE ))) 'all *'
+   'nomsg c' delimit( TWO, left( ' }',  length( TWO ))) 'all *'
+   'nomsg cmatch' ;  MSG = lastmsg.1()       ;  if rc = 0 then MSG = ''
+   ROW = line.1() ;  COL = column.1()
+   'qquit'        ;  'loc :' ROW 'cl :' COL  ;  'cursor column'
+   if MSG <> '' then 'emsg' MSG              ;  return MSG <> ''
+
+XMATCH:  procedure
+   ROW = line.1() ;  COL = column.1()        ;  BAK = '=:=\=.bak'
+   'ssave' BAK    ;  'kedit' BAK '(noprof'   ;  if rc <> 0 then return rc
+   'word alpha'   ;  'loc :' ROW 'cl :' COL  ;  'cursor column'
+   'sos startw'   ;  if 0 then 'case M I I'
+   'nomsg c' delimit( '{', x2c( 1 )) 'all *' ;  ONE = '<'  || arg(1)
+   'nomsg c' delimit( ONE, left( ' {',  length( ONE ))) 'all *'
+   'nomsg c' delimit( '}', x2c( 2 )) 'all *' ;  TWO = '</' || arg(1)
+   'nomsg c' delimit( TWO, left( '  }', length( TWO ))) 'all *'
+   'nomsg cmatch' ;  MSG = lastmsg.1()       ;  if rc = 0 then MSG = ''
+   ROW = line.1() ;  COL = column.1()
+   'qquit'        ;  'loc :' ROW 'cl :' COL  ;  'cursor column'
+   if MSG <> '' then 'emsg' MSG              ;  return MSG <> ''
+

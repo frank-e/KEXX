@@ -1,0 +1,767 @@
+:::
+* Enhanced KEDIT 5.0 key macros, compatible with almost all defaults
+* ---------------------------------------------------------------------
+* Proposed three-stage scheme to load INITIAL.KML only once per
+* Kedit session:
+*  within PROFILE.KEX:  if initial() then 'macro INITIAL'
+*  within INITIAL.KEX:  'define INITIAL.KML'
+* For details see PROFILE.KEX and INITIAL.KEX.  Essentially this
+* scheme allows to keep PROFILE.KEX in memory by something like
+* 'define PROFILE.KEX' in INITIAL.KEX (supporting REPROFile ON).
+* INITIAL.KEX contains all actions not needed for REPROFile ON.
+* ---------------------------------------------------------------------
+* Prerequisites (cross reference of macros):
+* for A-ESC       dosenv('COMSPEC')    default shell (see error 40)
+* for A-2 .. A-6  A-1                  defined here: A-1
+* for A-H         C-F3 .. C-F11        defined here: C-F3 .. C-F11
+* for A-N         NETSCAPE.KEX         uses configured web browser
+* for A-V         A-VIEW.KEX           external helper macro
+* for C-G         LOCUS.KEX, RING.KEX
+* for C-H         RXHELP.KEX, KTAGS.KEX, optional KHELP.KEX
+* for C-D         TRACE.KEX            wrapper for DEBUG
+* for C-E         EURO.KEX             locate next non-ASCII
+* for C-K         LASTKEY.KEX          (Kedit-key decoder)
+* for C-N         C-NUMBER.KEX         external helper macro
+* for C-S         C-SHADOW.KEX         external helper macro
+* for C-U         ascii 21             default macro ASCII
+* for C-W         C-WORD.KEX           external helper macro
+* for C-2         ascii 0              default macro ASCII
+* for C-TAB       ascii 9              default macro ASCII
+* for   DEL       CLIPS.KEX            (unshifted = default)
+* for   INS       CLIPS.KEX            (unshifted = default)
+* for   HOME      C-X                  defined here: C-X
+* for   F1        C-H                  defined here: C-H
+* for A-F1        PROFILE.KEX          in fact DEFPROF.1()
+* for A-F2        ZOO.KEX              determines absolute offset
+* for A-F4          F3                 defined here:   F3
+* for A-F11       A-FXI and CURSORSH.KEX
+* for A-F12       A-FXII, BINARY, HEXA, and HEXE.KEX
+* for S-F3        CMATCH.KEX           adds REXX + XHTML matching
+* for C-F4 - C-F5 C-F3                 defined here: C-F3
+* for C-F3 - C-F9 C-F10                defined here: C-F10
+* for C-F10       C-F11                also used by: C-F3..C-F9
+* for C-F11       STATUS.KEX           also used by: C-F12
+* for C-F12       STATUS.KEX           also used by: C-F11
+* for C-PLUS      A-PLUS               default macro A-PLUS
+* for C-MINUS     A-MINUS              defined here: A-MINUS
+* for C-SLASH     A-SLASH              default macro A-SLASH (nop)
+* for C-STAR      A-STAR               default macro A-STAR (none)
+* for C-CENTER      CENTER             defined here:   CENTER
+* for A-NUMENTER  C-NUMENTER           default macro C-NUMENTER
+* for A-ENTER     C-ENTER              default macro C-ENTER
+* for A-HOME      HREF.KEX             replace focusword by HREF
+* for A-CURL      A-PGDN               defined here: A-PGDN
+* for A-CURR      A-PGDN               defined here: A-PGDN
+* for A-CURU      A-PGDN               defined here: A-PGDN
+* for A-CURD      A-PGDN               defined here: A-PGDN
+* for A-PGUP      A-PGDN               defined here: A-PGDN
+* for BUTTON2DBLCLK  DOSMOUSE.KEX      external helper macro
+* for MOUSEBAR_QUIT  DOSMOUSE.KEX      external helper macro
+* for KEDITW      KEDITW.exe
+* for START       CMD.exe              DOS, OS/2, or NT
+* for WO          LOCUS.KEX            also used by: C-G
+* ---------------------------------------------------------------------
+* macro F1 calls KHELP via C-H with SYNEX KHELP supporting an optional
+* SYNONYM KHELP MACRO KHELP:  macro KHELP.KEX may handle help topics
+* not known by COMMAND KHELP, e.g., KHELP.EXE with its KREF50.HLP file.
+:::
+* Macro :: introduced by ::: in column 1 is used throughout all
+* following key definitions to keep comments apart from actual
+* key macros.  With this trick only the code is kept in memory,
+* comments automagically redefine each other.  KeditW offers a
+* new ::* KML-comment-line-intro for (almost) the same purpose.
+:::
+* --- additional Alt- & Ctrl-keys -------------------------------------
+*A-1 .. A-6: press once to set a point, twice to locate point,
+*  essentially the same as XPOINT.KEX without additional macro
+:A-1
+   if arg() then do
+      'dmsg macro A-1 readv key' ;  'readv key noignoremouse'
+      if rc = 0 then
+         if lastkey.1( 1 ) = lastkey.1( 2 ) then
+            'locate' arg(1)
+         else do
+            'point ' arg(1) ; 'macro' lastkey.1()
+         end
+      else  'point ' arg(1)
+      exit
+   end
+   'macro A-1 .A-1'
+:A-2
+   'macro A-1 .A-2'
+:A-3
+   'macro A-1 .A-3'
+:A-4
+   'macro A-1 .A-4'
+:A-5
+   'macro A-1 .A-5'
+:A-6
+   'macro A-1 .A-6'
+:::
+*A-A: if you use F2 to add lines, you don't need an equivalent A-A.
+*A-Altered, toggles 'highlight AltEred' and 'highlight tagged'
+:A-A
+   if high.1() = 'ALTERED' then 'high TAG' ; else 'high ALT'
+   if high.1() = 'ALTERED' then 'nomsg locate altered' ; 'q high'
+:::
+*C-Center (default), but in *.C add compound statement curly braces
+:C-C
+   if sign( wordpos( ft.1(), 'AWK C CPP CSS H JAVA JS' )) then do
+      if command() then 'cursor column'
+      'sos firstchar addline' ; 'text {'
+      'sos firstchar addline' ; 'text }'
+      'sos firstchar cu addline tab' ; exit
+   end
+   'center'
+:::
+*A-Delete line (default), but cursor line instead of focus line
+:A-D
+   if command() then 'sos qc' ; else 'sos delline'
+:::
+*C-Debug key, simplify debugging of key macros using macro TRACE
+:C-D
+   'macro trace'
+:::
+*C-Euro, locate next non-ASCII PC-Multilingual-850+euro character
+:C-E
+   'macro euro'
+:::
+*A-Fillbox as usual, but don't read fill character if no box is marked
+:A-F
+   if block() & block.1() = 'BOX' then do until lastkey.2() >> ''
+      say 'Enter fill character or press A-F to cancel'
+      'readv key' ;  if lastkey.1() = 'A-F' then exit 1
+   end
+   'fill' lastkey.2()
+:::
+*C-G RING (DIR edited files) or LOCUS (LOCate in edited files)
+:C-G
+   if dir() then 'macro RING' ;  else 'macro LOCUS'
+:::
+*A-Help calls C-F3 till C-F10 showing all keys defined in this KML
+:A-H
+   do N = 3 to 11 ; 'macro C-F' || N . ; if N < 11 then say ; end
+:::
+*C-Help, do the opposite of F1 depending on file type
+:C-H
+   if arg() then do
+      parse arg F1 .
+      if wordpos( ft.1(), 'C H CPP HPP' ) > 0 then parse arg . F1 .
+      if wordpos( ft.1(), 'CMD REX CLS' ) > 0 then parse arg . . F1
+      if wordpos( ft.1(), 'KML KEX' ) > 0 then F1 = F1 focusword.1()
+      'synex' F1
+   end
+   else if dir() = 0 | version.1() = 'KEDIT' then do
+      if wordpos( ft.1(), 'KML KEX' ) = 0
+         then 'macro C-H ktags khelp khelp'
+         else 'macro rxhelp'
+   end
+   else if translate( dirfileid.5()) = 'HLP'
+         then 'WINHELP' dirfileid.1()
+   else 'khelp'
+:::
+*C-Key macro decoder, interesting if you don't use default KEYB US
+:C-K
+   'macro LASTKEY'
+:::
+*A-Netscape URL in focusword
+:A-N
+   'macro netscape :'
+:::
+*C-Number, CouNt string length if focus is within 'string' or "string"
+:C-N
+   'macro C-Number'
+:::
+*C-Old, keep *.OLD copy of current file saving original timestamp
+:C-O
+   T = fm.1() || fp.1() || '\' || fn.2() || '.old'
+   if opsys.1() = 'DOS'
+      then 'dosn copy /-y' fileid.1() T
+      else 'dosq copy "' || fileid.1() || '" "' || T || '"'
+:::
+*A-Prefix toggle
+:A-P
+   if prefix() then 'pref off' ; else 'pref on'
+:::
+*A-QuickHelp: reserved for OS/2 KwikInf (old MS OS/2 QH key)
+*C-QuickHelp: reserved for OS/2 KwikInf (reuse free A-Q key)
+:::
+*C-Shadow: S+1 above, S-1 below, or S (all) within shadow lines
+*C-S uses lprefix S, like its counterpart C-X using lprefix X
+:C-S
+   'macro C-Shadow'
+:::
+*C-T = timestamp
+:C-T
+   'ci' date() time.2()
+:::
+*C-U = ASCII 21 NAK (^U), required for KEYB GR with codepage 437,
+*  where shifted key 3 results in MACRO C-U instead of MACRO S-3.
+:C-U
+   'macro ascii 21'
+:::
+*A-View any block, then jump from end to end of block
+*A-V handles a missing BLOCK like A-F by a dummy FILLbox
+:A-V
+   'macro A-VIEW'
+:::
+*C-Word, toggle upper, title, and lower case for field word
+:C-W
+   'macro C-Word'
+:::
+*A-Xedit or DIR in *.DIR (default), else Xedit focusword
+*A-X DIR corrected: add \ for "empty" dotted name like .XYZ
+*A-X in tags line (= item TAB file TAB location) supported
+:A-X
+   if dir() then do
+      'locate' focustof() - focuseof()
+      if dirfileid.1() == '' then exit 1
+      if wordpos( '<dir>', curline.3()) = 0
+         then 'x   "' || dirfileid.1() || '" (nodefext'
+         else 'dir "' || dirfileid.1() || '\" (new'
+      exit rc
+   end
+   TAB = d2c(9)
+   parse value curline.3() with . (TAB) SRC (TAB) LOC
+   if SRC = '' | LOC = '' then do
+      SRC = focusword.2()  ;  LOC = ''
+   end
+   if SRC = '' then exit 1 ;  'x "' || SRC || '" (nodefext'
+   if rc = 0 & LOC <> '' then 'tfind' delimit( LOC )
+:::
+*C-X  default: DIR .. in *.DIR views (+/-1 line at tof/eof),
+*     else eXclude BLOCK or FOCUS (compatible with LESS) as
+*     an improved variant of C-E in SAMPLES\SHOWSTUF.KML
+:C-X
+   'locate' focustof() - focuseof()
+   if dir() then do
+      if dirfileid.1() = '' | dirfileid.3() = '\'
+         then 'sos errorbeep'
+         else 'dir "'dirfileid.2() || dirfileid.3() || '\.."'
+      exit
+   end
+   if display.2() = 0 then do
+      'extract /SCOPE/' ; 'scope ALL'     ; 'display 0 1'
+      'select +1 ALL'   ; 'scope' SCOPE.1 ; 'display 1 1'
+   end
+   if block()
+      then 'set select' display.2() + 1 'block'
+      else 'lprefix X'
+:::
+*A-Yank box, like A-O, but keep and return to original box
+:A-Y
+   'extract /BLOCK/'
+   'overlaybox' ; if rc <> 0 then exit rc
+   'x "' || BLOCK.6 || '" (nodefext)'
+   'L :' || BLOCK.4 ; 'cl :' || BLOCK.5 ; 'mark' BLOCK.1 'reset'
+   'L :' || BLOCK.2 ; 'cl :' || BLOCK.3 ; 'mark' BLOCK.1
+   'cursor column'
+:::
+*C-2 = ASCII 0 NUL (^@), BIOS default not handled by KEDIT A-F9 C-2
+:C-2
+   'macro ascii 0'
+:::
+*C-6 simulates KEDIT 3.x STACK LINE command (unless in *.DIR)
+:C-6
+   'locate' focustof() - focuseof()
+   if dir() then 'cmsg' dirfileid.1() ; else 'cmsg' curline.3()
+   'sos tabcmd instab tabcmd'
+:::
+*C--  xedit - (prev. file in ring, opposite of PLUS key macro)
+:C--
+   'xedit -' ; say ring.0() 'file(s) in ring'
+:::
+* --- change / add some function keys ---------------------------------
+*F1   help depending on file type using MACRO C-H or the default KHELP
+*     extension      C-H         F1
+*     C H CPP HPP    khelp       ktags
+*     CMD REX CLS    khelp       rxhelp
+*     KML KEX        rxhelp      khelp
+*     otherwise      ktags       khelp
+:F1
+   if arg() then 'khelp' arg(1) ; else 'macro C-H khelp ktags rxhelp'
+:::
+*F3   alt() unlike 'quit' handles changed MACROS.KML as changed
+:F3
+   if alt() > dir()  then  do
+      'sos errorbeep' ; 'cmsg QQUIT' ; 'sos tabcmd' ; exit 1
+   end
+   if ring.0() = 1   then  do
+      parse upper source . . DIALOG.2
+      DIALOG.2 = delimit( 'macro' DIALOG.2 )
+      DIALOG.1 = delimit( 'EXIT' version.1())
+      'nomsg dialog' DIALOG.1 'title' DIALOG.2 'OKCANCEL'
+      if DIALOG.2 <> 'OK'  then  do
+         'dir' ;  'x'   ;  if ring.0() = 1   then  exit 0
+      end
+      else  if version.1() <> 'KEDIT'  then  'win close frame'
+   end
+   'qquit' ; 'refresh'
+:::
+*F5   if cursor line is already current then behave like cursor home
+:F5
+   if current() then 'sos tabcmd'
+   else if command() then 'sos current' ; else 'sos makecurr'
+:::
+*F6   I don't need the default '?', because I prefer C-CurU, so
+*     this F6 is something like a visible F9 '=' (last command)
+:F6
+   'sos save ex qc' ; 'text ?' ; 'sos ex restore'
+:::
+*S-F1 like repeated LOCATE (default), but moves cursor to target
+*     ['nomsg msg' clears lastmsg buffer for later lastmsg.1() ]
+:S-F1
+   'extract /STREAM/LASTOP */'
+   if command() then 'cl :' || target.2()
+   else do
+      'nomsg msg' ; 'stream on'
+      'nomsg C' || LASTOP.6
+      if rc <> 0 then 'locate'
+      else if lastmsg.1() <> '' then say lastmsg.1()
+   end
+   'cursor column' ; 'lastop' LASTOP.3 ; 'stream' STREAM.1
+:::
+*S-F3 like CMATCH (default), but handles also Rexx and some XHTML
+:S-F3
+   'macro cmatch'
+:::
+*S-F7 default: shift  left 1 block, no block: shift  left 1 all
+*S-F8 default: shift right 1 block, no block: shift right 1 all
+:S-F7
+   BOX = 'all' ;  if block() then BOX = 'block' ;  'shift  left 1' BOX
+:S-F8
+   BOX = 'all' ;  if block() then BOX = 'block' ;  'shift right 1' BOX
+:::
+*S-F12 toggle horizontal / vertical / no split screen
+:S-F12
+   if lscreen.2() < pscreen.2()  then  'screen 1'
+   else if multwindow()          then  'screen 2 v'
+                                 else  'screen 2'
+:::
+*A-F1 something like UNIX 'tty sane', use PROFILE to reset defaults
+:A-F1
+   if version.1() = 'KEDIT'   then  do
+      'pscreen 28 80'      ;  'pscreen 25 80'
+   end
+   else 'win max doc'
+   'debugging off 10 +R'   ;  'msgmode on'
+   'cmdline on'            ;  'reset'
+   'range -* *'            ;  'macro' defprof.1()
+:::
+*A-F2 focus column becomes current column for later COV or CR,
+*     report current column, line, and absolute "ZOne Offset"
+:A-F2
+   'macro ZOO .'
+:::
+*A-F4 quit all files, apply F3 on 1st of any changed files
+:A-F4
+   'nomsg cancel' ; 'refresh' ; 'macro F3'
+:::
+*A-F5 toggle scale and tab line (assuming default 'curline M')
+:A-F5
+   if scale.1() = 'ON' | tabline.1() = 'ON' then do
+      'scale off' ; 'tabline off' ; 'q col' ; exit
+   end
+   'scale on M-1' ; 'tabline on M-1'
+:::
+*A-F6 repeat last command on next line, equivalent to 'repeat 1'
+:A-F6
+   '=1'
+:::
+*A-F7 go to prev. paragraph, LOCATE -PARA won't work
+*A-F8 go to next  paragraph, almost like LOCATE PARA
+:A-F7
+   'sos blankup cu'
+:A-F8
+   'sos blankdown cd'
+:::
+*A-F11 (try to) toggle 25/28/43/22 lines
+*      The MODE command depends on the DOS version,
+*      5.00 is supposed to be W2K (Windows NT 5.00).
+*      22 lines is a W2K feature, the cursor ends up
+*      in an "improper position" (Kedit 5 error 38).
+:A-F11
+   'macro A-FXI'
+:::
+*A-F12 toggle hex., binary, and normal defprof.1() views.
+*      REPROF OFF ignored, if defprof.1() works only for
+*      initialization fix it: IF initial() = 0 THEN EXIT
+:A-F12
+   'macro A-FXII'
+:::
+* --- matter of taste -------------------------------------------------
+*Esc  I don't like the default 'reset field' of the Esc-key...
+:Esc
+   'cursor home'
+:::
+*Minus ...and moved Esc-function to keypad Minus
+:Minus
+   'reset field'
+:::
+*Plus  single key to edit next file in ring, like default S-F4
+:Plus
+   'xedit'
+:::
+*Slash single key to delete till EOL, like default C-End
+:Slash
+   'sos delend'
+:::
+*Home nearly as usual, but if already at home propose to SAVE
+:Home
+   if command() & first() then do
+      FIDO = '"' || fileid.1() '"'
+      if words( fileid.1()) = 1  then  FIDO = fileid.1()
+      if      ft.1() = 'KEX'  then 'nomsg purge "' || fn.1() || '"'
+      if  fileid.1() <> efileid.1() | alt.2() > 0 then 'cmsg SAVE'
+      else if ft.1() = 'BAT'  then 'cmsg DOS' fileid.1()
+      else if ft.1() = 'CMD'  then 'cmsg DOS CMD /c' FIDO
+      else if ft.1() = 'DIR'  then 'macro c-x'
+      else if ft.1() = 'REX'  then 'cmsg DOS CMD /c' FIDO
+      else if ft.1() = 'KML'  then 'cmsg DEF' FIDO
+      else if ft.1() = 'HTM'  then 'cmsg macro netscape'
+      else if ft.1() = 'HTML' then 'cmsg macro netscape'
+      else 'cmsg SAVE'
+   end
+   'sos tabcmd doprefix'
+:::
+*A-Delete begin of line
+:A-Del
+   'sos delbegin firstcol'
+:::
+*A-Insert lines from clipboard preparation (inputmode line)
+:A-Ins
+   if command() then 'sos current' ; else 'sos makecurr'
+   if inputmode.1() = 'OFF' then do
+      'inputmode LINE' ; 'cmsg set inputmode off'
+   end
+   'input'
+:::
+*C-Delete = undo last change, better to remember than A-BkSp
+*C-Insert = redo last change, better to remember than C-BkSp
+:C-Del
+   'undo'
+:C-Ins
+   'redo'
+:::
+*Ins (not keypad) with shift key calls macro CLIPS, else default
+*Del (not keypad) with shift key calls CLIPS BLOCK, else default
+:Ins
+   if right( lastkey.4(), 2 ) > 0
+      then  'macro clips'
+      else  'insertmode toggle'
+:Del
+   if right( lastkey.4(), 2 ) > 0 then do
+      BOX = 'all' ;  if block() then BOX = 'block'
+      'macro clips' BOX
+   end
+   else 'sos delchar'
+:::
+*End of line, then flip to begin (from examples in manual), added a
+*    'sos cr' for rare cases when the cursor is in the width column
+:End
+   'sos cr' ; if after() then 'sos firstchar' ; else 'sos endchar'
+:::
+*A-Escape to DOS shell with enough environment space,
+*  should be moved to a DOS only Kedit Macro Library
+:A-Esc
+   'dosn' dosenv( 'COMSPEC' ) '/E:2048'
+:::
+*A-Tabline toggle (for opmode REAL or FULLSCREEN only)
+:A-Tab
+   if tabline.1() = 'ON'
+      then do ; 'tabline off' ; 'scale off m+1' ; end
+      else do ; 'tabline on -2' ; 'scale on -2' ; end
+:::
+*C-Tab input ascii tab, or if tabs set shift " ; " and " /* " to tab
+:C-Tab
+   if \ abbrev( tabs.1(), '1 9 ' ) then do
+      'extract /STAY/ALT'  ;  'stay on'   ;  'compress'
+      T = d2c(9)  ;  ALT.0 = ALT( T '', T ) + ALT( ' /*', T || '/*' )
+      ALT.0 = ALT.0 + ALT( ' ;', T || ';' ) + ALT( '; ', ';' || T )
+      say ALT.0 'C-Tab(s)' ;  'expand'    ;  ALT.0 = sign( ALT.0 )
+      'set alt' ALT.1+ALT.0 ALT.2+ALT.0   ;  'stay' STAY.1
+   end
+   else 'macro ascii 9'    ;  exit  rc
+
+ALT:  procedure
+   'nomsg change' delimit( arg(1), arg(2)) '1 *'
+   if rc <> 0 then return 0   ;  return word( lastmsg.1(), 1 )
+:::
+*A-Home convert focusword.2() to HTML HREF
+:A-Home
+   'macro href'
+:::
+*A-Minus ERASE & QQuit current file, or ERASE & DEL line in *.DIR
+:A-Minus
+   if dir() then do ; FILE = dirfileid.1() ; GO = 'del' ; end
+            else do ; FILE =    fileid.1() ; GO =  'qq' ; end
+   'erase "' || FILE || '"' ; if rc = 0 | rc = 28 then GO
+:::
+* --- define some nops on numeric keypad ------------------------------
+* pressing C-Plus with one hand is possible, A-Plus is difficult... :-Q
+* C-Star and A-Star work only after patching the binary KEDIT 5.0 D3/P3
+:C-Slash
+   'macro A-Slash'
+:C-Star
+   'macro A-Star'
+:C-Minus
+   'macro A-Minus'
+:C-Plus
+   'macro A-Plus'
+:C-Center
+   'macro Center'
+:A-NumEnter
+   'macro C-NumEnter'
+:A-Enter
+   'macro C-Enter'
+:Center
+   'text 5'
+:::
+*A-CurU, A-CurD scroll (both) window(s) UP or DOWN synchronously
+*A-CurR, A-CurL scroll (both) window(s) LEFT 1 or RIGHT 1 column
+*A-PgUp, A-PgDn scroll (both) window(s) BACKWARD or FORWARD HALF
+:A-CurU
+   'macro A-PgDn UP'
+:A-CurD
+   'macro A-PgDn DOWN'
+:A-CurR
+   'macro A-PgDn LEFT  1'
+:A-CurL
+   'macro A-PgDn RIGHT 1'
+:A-PgUp
+   'macro A-PgDn BACKWARD HALF'
+:A-PgDn
+   if arg() then do
+      'sos save tabcmd' ; 'command' arg(1)
+      'sos tabcmdf'     ; if multwindow() then 'command' arg(1)
+      'sos tabcmdb restore'
+      exit
+   end
+   'macro A-PgDn FORWARD HALF'
+:::
+* --- show most key definitions ---------------------------------------
+*C-F3 ... C-F10 show all keys defined in this KML, used by A-H
+*C-F3 ... C-F5  help arranged to use 4 lines if lscreen.2() < 80
+*C-F3 ... C-F7  in DIR.DIR is DIRSORT imitating NORTON COMMANDER
+*C-F8 ... C-F10 in DIR.DIR is DIRSORT PATH, wild char.s, help
+:C-F3
+   if dir() > arg() then do ; 'macro C-F10 Name Ext  Path'  ; exit rc ; end
+   L = 3 + ( lscreen.2() < 80 )  ;  M = 12 % L  ;  F.0 = 'F'
+   F.1 = 'khelp/ktags ' ;  F.5 = 'make actual ' ;  F.9  = '=           '
+   F.2 = 'add line    ' ;  F.6 = 'execute + ? ' ;  F.10 = 'next window '
+   F.3 = 'quit file   ' ;  F.7 = 'first col.  ' ;  F.11 = 'split join  '
+   F.4 = 'tab         ' ;  F.8 = 'dup. line   ' ;  F.12 = 'home (= Esc)'
+   if arg() = 1 & arg(1) <> '.' then do
+      T = centre( d2c( 127 ), 3 )
+      parse arg   F.0 (T) F.1 (T) F.2 (T) F.3 (T) F.4  (T) F.5  (T) R
+      parse var R F.6 (T) F.7 (T) F.8 (T) F.9 (T) F.10 (T) F.11 (T) F.12
+   end
+   do R = 1 to L
+      T = F.0  ;  N = M * R - M + 1
+      do N = N to M * R ;  T = T || left( N, 2 ) left( F.N, 13 )  ;  end
+      say T
+   end
+:C-F4
+   if dir() > arg() then do ; 'macro C-F10 Ext  Name Path'  ; exit rc ; end
+   F.1 = 'find again  ' ;  F.5 = 'upper block ' ;  F.9  = 'half <<=    '
+   F.2 = 'act. column ' ;  F.6 = 'lower block ' ;  F.10 = 'half =>>    '
+   F.3 = 'cmatch      ' ;  F.7 = 'block <<=   ' ;  F.11 = 'nop         '
+   F.4 = 'xedit next  ' ;  F.8 = 'block =>>   ' ;  F.12 = 'toggle split'
+   T = d2c( 127 ) ;   F.1 = F.1 T F.2 T F.3 T F.4  T F.5  T F.6
+   'macro C-F3 S-F' T F.1 T F.7 T F.8 T F.9 T F.10 T F.11 T F.12
+:C-F5
+   if dir() > arg() then do ; 'macro C-F10 Date Path Ext'   ; exit rc ; end
+   F.1 = 'tty sane    ' ;  F.5 = 'toggle scale' ;  F.9  = 'input ascii '
+   F.2 = 'note column ' ;  F.6 = '=1 (repeat) ' ;  F.10 = 'refresh     '
+   F.3 = 'nop         ' ;  F.7 = 'para. up    ' ;  F.11 = '25/28 lines '
+   F.4 = 'CANCEL      ' ;  F.8 = 'para. down  ' ;  F.12 = 'binary view '
+   T = d2c( 127 ) ;   F.1 = F.1 T F.2 T F.3 T F.4  T F.5  T F.6
+   'macro C-F3 A-F' T F.1 T F.7 T F.8 T F.9 T F.10 T F.11 T F.12
+:C-F6
+   if dir() > arg() then do ; 'macro C-F10 Size Path Ext'   ; exit rc ; end
+   say 'C=F1  undo        C-Del  undo      C=PgDn  Bottom    C=PgUp Top     '
+   say 'C=F2  redo        C-Ins  redo      C=CurD  ?+        C=CurU ?-      '
+   say 'C-F3, C-F4, ... , C-F10  key help  C=CurL  word <<=  C=CurR word =>>'
+   say 'C-F11 big status  C=End  delend    C=Enter doprefix  C=Home goto 1:1'
+   say 'C-F12 ministatus  C-Plus =A-Plus   C-Minus =A-Minus  C=BkSp redo    '
+:C-F7
+   if dir() > arg() then do ; 'macro C-F10' defsort.1()     ; exit rc ; end
+   say 'C=A Adjust        C-G Ring/Locate  C-O keep *.Old    C-T Timestamp  '
+   say 'C=C Center        C-H ktags        C=P Paragraph     C-W Case Word  '
+   say 'C-D Debug key     C-K Key decoder  C=Q nop (KwikInf) C-X .. or eXcl.'
+   say 'C-E Check Euro    C=L Left adjust  C=R Right adjust  C-6 stack line '
+   say 'C=F Flow          C-N CouNt "..."  C-S Show Shadow   C-- xedit -    '
+:::
+* known A-B Box mark      A-F Fill box     A-M Move block    already defined:
+* known A-C Copy block    A-G del. block   A-O Overlaybox    26 keys A-A..A-Z
+* known A-D Delete line   A-L Line mark    A-U Unmark
+:C-F8
+   if dir() > arg() then do ; 'macro C-F10 Path Name Ext'   ; exit rc ; end
+   say 'A-A Altered       A=K Keep copy    A=S Split align   A-Y Yank box   '
+   say 'A-E nop           A-N Netscape     A=T nop           A=Z mark stream'
+   say 'A-H Help keys     A-P Pref on/off  A=V View block    A-= Dup. line  '
+   say 'A-I nop           A=Q nop          A=W del. Word     A-1 point .A-1 '
+   say 'A=J Join align    A=R Recover      A-X Xedit dir.    A-2..6 like A-1'
+:C-F9
+   if dir() > arg() then do
+      'extract /ARBCHAR'   ; 'point .C-F' ; 'all'  ; 'arbchar OFF'
+      'nomsg less /*/|/?/' ; if rc <> 0 then say 'no wild characters'
+      'nomsg less /</'     ; 'nomsg move all *'    ; 'nomsg more /</'
+      'nomsg less /*/|/?/' ; 'nomsg move all *'    ; 'all'
+      'arbchar' ARBCHAR.1  ; '.C-F point .C-F OFF' ; exit rc
+   end
+   say 'A-CurL both <<=   A-CurR both =>>    Slash delend     Center "5"    '
+   say 'A-PgUp both PgUp  A-PgDn both PgDn   Minus reset     A-Minus erase  '
+   say 'A-CurU both Up    A-CurD both Down   Plus  xedit     A=Plus  +/-ALL '
+   say 'A-Home HREF       A-Esc  DOS shell A=BkSp  undo      A-Ins   inputm.'
+   say 'A=End  nop        A-Tab  +/-scale  A-Enter =C-Enter  A-Del   delbeg '
+:C-F10
+   if dir() & arg( 1 ) <> '.' then do
+      'point .C-F'
+      if arg() = 0 then 'macro C-F11' .
+      else if arg( 1 ) <> 'OFF' then 'dirsort' arg( 1 ) ; else 'q defsort'
+      'locate .C-F point .C-F off'  ; exit rc
+   end
+   say 'C-Star   =A-Star   C-2   NUL  A-NumEnter =C-NumEnter  A-Star nop    '
+   say 'C-Slash  =A-Slash  C-U   NAK     A-Enter    =C-Enter  S-Star nop    '
+   say 'C-Center =Center   C-Tab  HT  available:     C-B,I,J,M,V,Y,Z nop    '
+:::
+*C-F11 full status, ring, block, synonyms, mini status
+*C-F12 mini status
+:C-F11
+   if arg( 1 ) = . then do
+      say 'C-F10 DirSort  C-F3 ... Name     C-F4 ... Type  C-F5 ... Date'
+      say 'C-F6 ... Size  C-F7 ... default  C-F8 ... Path  C-F9 ... wild'
+      exit 0
+   end
+   'command status' ; 'refresh' ; 'query ring'
+   if length( directory.1()) <= 32
+      then say left( directory.1(), 32 ) '= current directory'
+      else say directory.1() ' = current directory' ; say
+   if block() then do ; 'query block' ; say ; end
+   if synonym.0( '*' ) > 0
+      then say 'Synonym      Trunc        (Linend) Command'
+   'query synonym *'
+   'refresh' ; 'macro status'
+:C-F12
+   'refresh' ; 'macro status'
+:::
+* --- mouse stuff -----------------------------------------------------
+* MOUSEBAR_QUIT and MOUSEBAR_LOCK adopted from SAMPLES\MYMACROS.KML,
+* double click button 2 in command line to toggle scroll- and mousebar
+* Major parts moved to DOSMOUSE.KEX (to minimize the DOS ISA usage)
+:BUTTON2DBLCLK
+   if version.1() = 'KEDIT'
+      then  'macro dosmouse button2dblclk'
+      else  'macro BUTTONXDBLCLK'
+:MOUSEBAR_QUIT
+   'macro dosmouse mousebar_quit'
+:MOUSEBAR_LOCK
+   if filestatus.1() = 'NONE' then 'lock' ; else 'unlock'
+:::
+* --- miscellaneous shorthands ----------------------------------------
+:::
+*DAY display date + weekday, any arg.: input sortable timestamp
+:DAY
+   parse value date('s') date('w') time.2() with Y 5 M 7 D 9 W X
+   X = space( Y M D, 1, '-' ) X
+   if arg(1) = '' then  say W || ',' X ;  else  'i' X
+:::
+*DD dosn debug for 16-bit fans...
+:DD
+   'dosn debug'
+:::
+*DOSXedit redirected DOS or OS/2 command output.  NT (Windows) not
+*     yet supported, but, e.g., DOSX CMD /C SET /? or similar works
+:DOSX
+   TMP = dosenv( 'TMP' ) || '\DOSXedit.tmp'
+   'kedit "' || TMP || '" (new'  ;  if rc <> 0 then exit rc
+   'del all'   ;  'refresh'      ;  'nomsg erase "' || TMP || '"'
+   if opsys.1() = 'OS/2'
+      then 'dosq' arg(1) '> "' || TMP || '" 2>&1'
+      else 'dosq' arg(1) '>' TMP
+   'nomsg get "' || TMP || '"'   ;  if rc  = 0 then ':0 forw half'
+   if rc = 0 then 'set alt 0 0 ' ;  if rc <> 0 then 'qquit'
+:::
+*KEDITW for Kedit 5: start KeditW for the actually edited file
+*       for KeditW: edit given file with NOINI NOPROF NODEFEXT
+:KEDITW
+   if version.1() = 'KEDIT'
+      then 'dosn cmd /k start keditw' fileid.1() '&& exit'
+   else if arg()
+      then 'kedit' arg( 1 ) '(NODEFEXT NOINI NOPROF)'
+   else 'emsg' version.1() version.2() version.3() version.4()
+:::
+*LASTMSG dialogue shows long message truncated by QUERY LASTMSG
+*LASTMSG with any argument puts the message in the command line
+:LASTMSG
+   if arg() then 'cmsg' lastmsg.1()
+   'dialog' delimit( lastmsg.1()) 'title /LASTMSG/'
+:::
+*NAME renames currently edited (in memory) file also on disk
+:NAME
+   N = fileid.1() ; 'fn' arg(1)
+   if rc = 0 then 'ren "' || N || '" "' || fileid.1() || '"'
+   if rc = 0 then 'cmsg ssave'
+:::
+*SAY forces REXX with /**/ if available for floating point arithmetic
+*    and other REXX features, for a funny effect try SAY SOURCELINE(1)
+*SAY result in RESERved 1st msgline, SAY with no arg. frees this line
+*    RESERve allows 'MSGLINE ON 2 5 OVERLAY' without loosing SAY line
+:SAY
+   R = '"'  ;  if rexx.0() > 0 then R ='/**/' R ;  S = 'OFF"'
+   if arg(1) > '' then S = subword( color.1( 'msgline' ), 2 ) '" ||'
+   'imm' R || 'RESERve' msgline.2() S '(' arg(1) '"")'
+:::
+*START shorthands for OS/2 and KeditW.  For DOS assume 'NTCmdPrompt'
+:START
+   X = 'dosq cmd /c start'
+   if opsys.1() = 'OS/2'      then  X = 'dosq start /C /F'
+   if version.1() <> 'KEDIT'  then  X = 'winexec nowait'
+   if arg( 1 ) <> '' then  X arg( 1 )  ;  else  X 'cmd'
+:::
+*UNTITLED is a shorthand for KeditW 1.0 'x (untitled'.  For Kedit 5
+*UNTITLED is emulated by name AUX, type 0 .. 999, and option NOLOCK.
+:UNTITLED
+   if version.1() <> 'KEDIT'  then  do
+      'x (UNTITLED'  ;  exit rc
+   end
+   'extract /RING'   ;  M = 0 ;  R = 1
+   do until R > RING.0
+      Q = translate( reverse( word( RING.R, 1 )))
+      P = pos( '.', Q ) ;  S = substr( Q, P + 1 )
+      if P * abbrev( S, 'XUA\' ) > 0   then  do
+         P = reverse( left( Q, P - 1 ))
+         if M = P then  do
+            M = P + 1   ;  R = 0
+         end
+      end               ;  R = R + 1
+   end
+   'x AUX.' || M '(NOLOCK NEW'   ;  exit rc
+:::
+*WOrd, german "wo" means "where"
+:WO
+   'macro locus word' delimit( arg(1))
+:::
+*XID shorthand for XEDIT command pattern =:=\=.=
+*XID P\N.T -> x "P\N.T" ,  XID N.T -> x "=:=\N.T"
+*XID P\N   -> x "P\N.=" ,  XID N   -> x "=:=\N.="
+*XID P\-   -> x "P\-.=" ,  XID -   -> x "=:=\-.="
+*XID P\.T  -> x "P\=.T" ,  XID .T  -> x "=:=\=.T"
+*XID P\.   -> x "P\=."  ,  XID .   -> x "=:=\=."
+*XID P\    -> x "P\=.=' ,  XID     -> mod fileid
+*XID ..    -> dir "=:=' ,  XID D:X not supported
+:XID
+   DIR = strip( arg( 1 ))        ;  POS = lastpos( '\', DIR )
+   if DIR = '' | DIR = '..'   then  do
+      if DIR = '' then  'mod fileid'
+                  else  'dir "' || fileid.1() || '\.."'
+      exit rc
+   end
+   XID = substr( DIR, POS + 1 )  ;  DIR = left( DIR, POS )
+   POS = lastpos( '.', XID )     ;  if DIR = '' then  DIR = '=:=\'
+   if POS = 0  then  EXT = '.='  ;  else  EXT = substr( XID, POS )
+   if POS > 0  then  XID = left( XID, POS - 1 )
+   if XID = '' then  XID = '='   ;  'x "' || DIR||XID||EXT || '"'
+:::
+'dmsg :: INITIAL.KML (c) 1993, 2010 by Frank Ellermann'

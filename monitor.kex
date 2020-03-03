@@ -1,0 +1,62 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] MONITOR [color|mono|windows]            */
+/* Example:       SYN MONitor 3 macro MONITOR                     */
+/*                MONitor color                                   */
+/* Purpose:       [set] MONitor [color|mono|windows] resets Kedit */
+/*                defaults for the COLOR settings associated with */
+/*                the given monitor type.  To get any non-default */
+/*                colours an additional macro has to be used.     */
+/*                With a synonym for MONitor this macro bypasses  */
+/*                the implicit SET MONitor and issues an explicit */
+/*                SET MONitor.  If that worked macro monitor.1(), */
+/*                that is one of COLOR, MONO, or WINDOWS, can set */
+/*                non-default colours.                            */
+/*                The KeditW syntax colours defined by SET ECOLOR */
+/*                are typically not set in a Kedit 5 COLOR.KEX or */
+/*                MONO.KEX.  Because SET COLORING is set per file */
+/*                it should be handled when new files are loaded. */
+/*                Macro MONITOR displays an info and proposes to  */
+/*                adjust SET COLORING only for the actual file if */
+/*                necessary.                                      */
+/*                Macro MONITOR called without argument (re)sets  */
+/*                macro monitor.1() and adjusts SET COLORING for  */
+/*                the actual file if necessary.                   */
+/* Caveats:       You get maximally six different colour schemes: */
+/*                  macro MONitor COLOR   => MACRO COLOR   scheme */
+/*                  macro MONitor MONO    => MACRO MONO    scheme */
+/*                  macro MONitor WINDOWS => MACRO WINDOWS scheme */
+/*                command MONitor COLOR   => Kedit COLOR defaults */
+/*                command MONitor MONO    => Kedit MONO  defaults */
+/*                command MONitor WINDOWS => KeditW 1.x  defaults */
+/*                Kedit 5 does not support MONitor WINDOWS, using */
+/*                it anyway results in an error.                  */
+/* See also:      KHELP MONITOR, KHELP COLORING (only for KeditW) */
+/* Requires:      COLOR.KEX + MONO.KEX + WINDOWS.KEX (for KeditW) */
+/*                Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   if arg( 1 ) <> '' then  do          /* no arg: SET monitor.1() */
+      'set monitor' arg( 1 )  ;  if rc <> 0  then  exit rc
+   end
+   'macro' monitor.1()        ;  if rc <> 0  then  exit rc
+   if version.1() = 'KEDIT'                  then  exit rc
+
+   if monitor.1() = 'WINDOWS' then  do /* KeditW MONitor WINDOWS: */
+      TXT = 'SET COLORING ON to see the syntax ECOLOR'
+      if coloring.1() = 'OFF' then  do
+         if arg( 1 ) = ''     then  do /* no arg: SET COLORING ON */
+            'set coloring on' ;  say TXT        ;  exit rc
+         end                           /* arg => propose COLORING */
+         'emsg' TXT  ;  'cmsg SET COLORING ON'  ;  exit rc
+      end                              /* ----------------------- */
+   end
+   else  do                            /* KeditW MONitor unusual: */
+      TXT = 'SET COLORING OFF to disable syntax ECOLOR'
+      if coloring.1() = 'ON'  then  do
+         if arg( 1 ) = ''     then  do /* no arg. => COLORING OFF */
+            'set coloring off';  say TXT        ;  exit rc
+         end                           /* arg => propose COLORING */
+         'emsg' TXT  ;  'cmsg SET COLORING OFF' ;  exit rc
+      end                              /* ----------------------- */
+   end                                 /* info about SET COLORING */
+   say 'monitor' monitor.1() || ', use' TXT     ;  exit rc

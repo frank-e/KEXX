@@ -1,0 +1,31 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         MACRO HEX [on|off]                              */
+/* Option:        SYNONYM HEX MACRO HEX                           */
+/* Purpose:       HEX is a shorthand for SET HEX and expects OFF  */
+/*                or ON as argument.  MACRO HEX executes SET HEX  */
+/*                for any argument.                               */
+/*                Use MACRO HEX without arguments to show a list  */
+/*                of the 94 visible ASCII characters 33..126 in a */
+/*                DIALOG popup.                                   */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2010) */
+
+   if arg( 1 ) <> '' then  do          /* SET HEX if any argument */
+      'set hex' arg( 1 )               ;  exit rc
+   end
+
+   L = 'HEX'                           /* build the DIALOG prompt */
+   do N = 0 to 15                      /* hex. column header line */
+      L = L d2x( N )
+   end
+   do N = 32 to 127 by 16              /* max 511, 252=7*(4+2*16) */
+      L = L || d2c( 10 ) || d2x( N ) || ':'
+      do M = N to N + 15
+         L = L d2c( M )
+      end
+   end                                 /* KEDIT 5 cannot show 127 */
+   L = delimit( left( L, -1 + length( L )))
+   N = 'visible US-ASCII characters'   ;  M = ''
+   if version.1() <> 'KEDIT'  then  M = 'fixedfont'
+
+   'dialog' L 'title' delimit( N ) M   ;  exit rc

@@ -1,0 +1,55 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         MACRO FMODE [ A..Z[:] | [F[E|M|N|P|T] [x]] ]    */
+/* Example:       MACRO FMODE C                 => FMode C        */
+/*                MACRO FMODE                   => MODify FMode   */
+/*                MACRO FMODE FE                => MODify FExt    */
+/*                MACRO FMODE FM                => MODify FMode   */
+/*                MACRO FMODE FN                => MODify FName   */
+/*                MACRO FMODE FP                => MODify FPath   */
+/*                MACRO FMODE FT                => MODify FType   */
+/*                MACRO FMODE FE x              => FExt   x       */
+/*                MACRO FMODE FM x              => FMode  x       */
+/*                MACRO FMODE FN x              => FName  x       */
+/*                MACRO FMODE FP x              => FPath  x       */
+/*                MACRO FMODE FT x              => FType  x       */
+/* Purpose:       Macro FMODE without argument runs MODify FMode. */
+/*                Macro FMODE executes MODify F[E|M|N|P|T|ILEId]  */
+/*                if the only argument is FE, FM, FN, FP, or FT.  */
+/*                For a first argument F[E|M|N|P|T] macro FMODE   */
+/*                executes the corresponding command FExt, FMode, */
+/*                FName, FPath, or FType.  For other arguments    */
+/*                (excl. *) macro FMODE runs SET FMODE.           */
+/* Synonyms:      SET FMODE *  would be an error.  MACRO FMODE *  */
+/*                defines synonyms for FExt, FMode, FName, FPath, */
+/*                and FType before showing all synonyms.          */
+/* Caveats:       FI is an abbreviation for FInd, not for FILEid, */
+/*                and therefore out of scope for macro FMODE.     */
+/*                In PROFILEs use 'NOMSG MACRO FMODE *' to define */
+/*                synonyms quietly suppressing 'Query SYNonym *'. */
+/*                Only 'MACRO FMODE *' defines synonyms.  After a */
+/*                'SYNonym FMode 2 macro FMODE FM'  any 'FMODE *' */
+/*                is intentionally still an invalid 'SET FMODE *'.*/
+/* See also:      KHELP FMode, KHELP SYNONYM, KHELP FILEid.       */
+/*                INITIAL.KML macro XID supports 'MODify FILEId'  */
+/*                and various DIR + Xedit =:=\=.= abbreviations.  */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   FM = translate( word( arg( 1 ), 1 ))   ;  rc = 0
+   if FM = ''  then  FM = 'FM'
+   if sign( wordpos( FM,  'FE FM FN FP FT' ))   then  do
+      if words( arg( 1 )) <= 1
+         then  'MOD' FM
+         else  'SET' FM subword( arg( 1 ), 2 )
+   end
+   else  if FM = '*' then  do
+      if rc = 0   then  'SYNonym FExt  2 macro FMode FE'
+      if rc = 0   then  'SYNonym FMode 2 macro FMode FM'
+      if rc = 0   then  'SYNonym FName 2 macro FMode FN'
+      if rc = 0   then  'SYNonym FPath 2 macro FMode FP'
+      if rc = 0   then  'SYNonym FType 2 macro FMode FT'
+      if rc = 0   then  'q syn *'
+   end
+   else  'SET FMODE' arg( 1 )
+   exit rc
+

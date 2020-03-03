@@ -1,0 +1,265 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] KEYMAP                                  */
+/* Purpose:       KEYMAP locates and displays the keymap table    */
+/*                in the running Kedit 5.0 or KeditW 1.0 binary.  */
+/*                For Kedit 5.0 a keymap record consists of four  */
+/*                entries (unmodified, shift, control, alt).      */
+/*                For KeditW 1.0 a keymap record consists of six  */
+/*                entries (unmodified, S-, C-, S-C-, A-, A-C-).   */
+/*                All entries consist of a flag (see below), the  */
+/*                scan code (key number), an ASCII character or   */
+/*                hex. 00, and the offset to a builtin key macro. */
+/* Offsets:       The DOS Kedit 5.0 keymap uses three bytes for   */
+/*                offsets, OS/2 Kedit 5.0 and Windows KeditW 1.0  */
+/*                use four bytes for offsets.                     */
+/*                For ASCII characters used "as is" and for keys  */
+/*                without builtin macro the offset is 0.  KeditW  */
+/*                offsets correspond to minimal startup macros    */
+/*                instead of the BUILTIN.KML default macros.      */
+/* Flags:         S-DEL, STAR, MINUS, and PLUS have a flag 10 for */
+/*                unclear reasons.  KeditW 1.0 uses flag 04 with  */
+/*                all S-C-keys and flag 02 with all A-C-keys.     */
+/* Macro ASCII:   The end of the keymap is indicated by an entry  */
+/*                00FFFF (flag 00, scan code FF, char. hex. FF)   */
+/*                with the offset of the builtin macro ASCII.     */
+/*                KEYMAP does not display this dummy last record. */
+/*                Macro ASCII processes keys (scan code + char.)  */
+/*                not matched in the keymap, especially umlauted  */
+/*                and accented characters for non-US keyboards.   */
+/* STAR keys:     The KEDIT(W) keymap contains a record for STAR, */
+/*                but the entries for S-STAR, C-STAR, and A-STAR  */
+/*                are not populated.  The missing entries can be  */
+/*                patched in the Kedit binary:                    */
+/*                7200 S-STAR matches Ctrl-PrtScr (print screen)  */
+/*                9600 C-STAR matches Ctrl-STAR (keypad C-STAR)   */
+/*                3700 A-STAR matches  Alt-STAR (keypad A-STAR)   */
+/* Known issues:  Native DOS and OS/2 keyboard device drivers     */
+/*                report Ctrl-PrtScr as key 7200.  At least one   */
+/*                configuration of Windows NT (German W2K) does   */
+/*                not report Ctrl-PrtScr as key 7200.  C-STAR and */
+/*                A-STAR work as expected (keys 9600 and 3700) in */
+/*                various Kedit 5 versions (DOS, OS/2, OS/2 MDOS, */
+/*                Windows NT VDM) and KeditW 1.0.                 */
+/* Requires:      Macro HEXE.KEX to edit the Kedit(W).exe binary, */
+/*                Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2009) */
+
+   BIN = 'KEDIT.EXE'                   ;  ENT = 4
+   if 'KEDIT' <> version.1()  then  do
+      BIN = 'KEDITW.EXE'               ;  ENT = ENT + 2
+   end                              /* KeditW 1.0 has A-C- + S-C- */
+
+   'nomsg x "' || BIN || '" (NEW)'     ;  if rc <> 0  then  exit rc
+   'quit'                              ;  if rc <> 0  then  exit rc
+   'macro hexe' BIN                    ;  if rc <> 0  then  exit rc
+   if size.1() = 0   then  do
+      'quit'                        /* not KEDIT, quit empty file */
+      'emsg binary' BIN 'not found'    ;  exit 4
+   end
+
+   REC = lrecl.1()                     ;  BUF = ''
+   L.1 = 0  ;  C.1 = 0  ;  W.1 = '000231'x
+   L.2 = 0  ;  C.2 = 0  ;  W.2 = '000221'x
+   L.3 = 0  ;  C.3 = 0  ;  W.3 = '10372A'x
+   L.4 = 0  ;  C.4 = 0  ;  W.4 = '00FFFF'x
+
+   do L = 1 to size.1()
+      'locate :' L
+      if L // 24 = 0 then  'refresh'
+      BUF = right( BUF, REC ) || curline.3()
+
+      if L.2 = 0  then  do
+         if L.1 = 0  then  do
+            COL = pos( W.1, BUF )
+            if 0 < COL & COL <= REC then  do
+               C.1 = COL               ;  L.1 = L - 1
+            end                     /* found new key 1 candidate  */
+         end
+         if L.1 > 0  then  do       /* match new key ! candidate  */
+            COL = pos( W.2, BUF )
+            if 0 < COL & COL <= REC then  do
+               C.2 = COL               ;  L.2 = L - 1
+
+               LEN = C.2 - C.1 + REC * ( L.2 - L.1 )
+               if LEN <> 6 & LEN <> 7  then  do
+                  L.1 = 0              ;  L.2 = 0
+               end                  /* unexpected key 1 and ! gap */
+            end                     /* LEN 7 for OS/2 and Windows */
+         end                        /* LEN 6 for DOS Kedit 5      */
+      end
+      else  do
+         COL = pos( W.3, BUF )      /* match new key * candidate  */
+         if 0 < COL & COL <= REC then  do
+            C.3 = COL                  ;  L.3 = L - 1
+         end
+         COL = pos( W.4, BUF )      /* match end of keymap table  */
+         if 0 < COL & COL <= REC then  do
+            C.4 = COL                  ;  L.4 = L - 1
+            leave
+         end
+      end
+   end
+
+   if L.1 = 0 | L.2 = 0 | L.3 = 0 | L.4 = 0  then  do
+      'quit'                        /* KeditW 1.5 might not work  */
+      'emsg no keymap found in' BIN    ;  exit 4
+   end
+
+   MAP = KEYMAP( BIN, ENT * LEN, L.1, C.1 )
+
+   BUF = ''                         /* patch missing STAR keys... */
+   'locate:' L.3                       ;  'clocate :' C.3
+
+   do until ENT * LEN <= length( BUF ) - C.3 + 1
+      BUF = BUF || curline.3()         ;  'next'
+   end
+
+   PAT = left( BUF, C.3 + LEN - 1 ) /* copy first entry for STAR  */
+   PAT = PAT || XTC( left( 0072, 2 * LEN, 0 ))
+   PAT = PAT || XTC( left( 0096, 2 * LEN, 0 ))
+   if ENT = 6  then  PAT = PAT || XTC( left( 0496, 2 * LEN, 0 ))
+   PAT = PAT || XTC( left( 0037, 2 * LEN, 0 ))
+   if ENT = 6  then  PAT = PAT || XTC( left( 0237, 2 * LEN, 0 ))
+   PAT = PAT || substr( BUF, 1 + length( PAT ))
+
+   if PAT <> BUF  then  do          /* propose to patch binary... */
+      say 'old' CTX( substr( BUF, C.3, ENT * LEN ))
+      say 'new' CTX( substr( PAT, C.3, ENT * LEN ))
+      'locate :' L.3                   ;  'high alt'
+      do until PAT == ''
+         'replace' left( PAT, REC )
+         PAT = substr( PAT, REC + 1 )  ;  'next'
+      end
+      say 'STAR keys patched, save' BIN 'if you have a backup copy'
+   end
+   else  do
+      'quit'                           ;  'x "' || MAP || '"'
+      say ENT - 1 'STAR keys in' BIN 'are already patched'
+   end
+   exit
+
+XTC:  procedure                     /* emulate x2c() in Kedit 5.0 */
+   parse arg SRC                       ;  DST = ''
+   do until SRC == ''
+      DST = DST || x2c( left( SRC, 2 ))
+      SRC = substr( SRC, 3 )
+   end
+   return DST
+
+CTX:  procedure                     /* emulate c2x() in Kedit 5.0 */
+   parse arg SRC                       ;  DST = ''
+   do until SRC == ''
+      DST = DST || c2x( left( SRC, 1 ))
+      SRC = substr( SRC, 2 )
+   end
+   return DST
+
+KEYMAP:     procedure   /* --- create dummy KML with a key table: */
+   parse arg BIN, L, P.1, P.2          ;  parse upper source . . SRC
+   'x "' || SRC || '.kml" (new)'       ;  if rc <> 0  then  exit rc
+   'nomsg del all'                     ;  'refresh'
+
+   'i * Dummy' BIN 'keymap file, legend:'
+   'i *        XX C .FF  is key XX char. C with flag FF'
+   'i *        XXYY ...  is key XX char. 01 <= YY <= 20'
+   'i *        XX00 ...  is some non-character key XX00'
+   'i *        .... !..  key with special builtin macro'
+   'i *        .... .    flag 00 (shown as two spaces)'
+   'i *        .... .02  A-C-key:  Alt-key with Ctrl  (KeditW)'
+   'i *        .... .04  S-C-key: Ctrl-key with Shift (KeditW)'
+   'i *        .... .10  keypad DEL STAR MINUS PLUS  (unclear)'
+   'i *'
+   E = '* Name   Key flag, Shift-  ,'  ; EOI = size.1()
+   if L // 7 <> 0 | L % 7 = 4
+      then  'i' E 'Ctrl-   , Alt-    ,'
+      else  'i' E 'Ctrl-   , S-C-    , Alt-    , A-C-    ,'
+
+   'x "' || BIN || '"'                 ;  'locate :' P.1
+   BUF = substr( curline.3(), P.2 )
+   'x "' || SRC || '.kml"'
+
+   do until left( BUF, 3 ) = '00FFFF'x
+      if length( BUF ) < L   then  do
+         'x "' || BIN || '"'
+         do while length( BUF ) < L
+            'next'                     ;  BUF = BUF || curline.3()
+         end
+         'x "' || SRC || '.kml"'
+      end
+
+      E = left( BUF, L )               ;  BUF = substr( BUF, L + 1 )
+      C = c2d( substr( E, 3, 1 ))
+
+      if ( 32 <= C & C < 65 ) | ( 90 < C & C < 127 )  then  do
+         M = left( translate( d2c( C )), 6 )
+         C = c2d( substr( E, 2, 1 ))
+         if C > 53   then  do
+            if       M = ' '  then  M = 'SPACE '
+            else  if M = '*'  then  M = 'STAR  '
+            else  if M = '-'  then  M = 'MINUS '
+            else  if M = '+'  then  M = 'PLUS  '
+            else  if M = '/'  then  M = 'SLASH '
+            else                    M = '??????'
+         end
+      end
+      else  if C <> 0   then  do
+         M = c2d( substr( E, 2, 1 ))
+         if       C =  27  then  M = 'ESC   '
+         else  if C =   9  then  M = 'TAB   '
+         else  if C =   8  then  M = 'BKSP  '
+         else  if C = 255  then  M = 'ASCII '
+         else  if C <> 13  then  M = '??????'
+         else  if M  > 53  then  M = 'N.ENT.'   /* NUMENTER */
+         else                    M = 'ENTER '
+      end
+      else  do
+         C = c2d( substr( E, 2, 1 ))
+         if 59 <= C & C <= 68 then  do
+            M = left( 'F' || C - 58, 6 )
+         end
+         else  if C =  71  then  M = 'HOME  '
+         else  if C =  72  then  M = 'CURU  '
+         else  if C =  73  then  M = 'PGUP  '
+         else  if C =  74  then  M = '?minus'   /* not 4A2D MINUS */
+         else  if C =  75  then  M = 'CURL  '
+         else  if C =  76  then  M = 'CENTER'
+         else  if C =  77  then  M = 'CURR  '
+         else  if C =  78  then  M = '?plus '   /* not 4E2B PLUS  */
+         else  if C =  79  then  M = 'END   '
+         else  if C =  80  then  M = 'CURD  '
+         else  if C =  81  then  M = 'PGDN  '
+         else  if C =  82  then  M = 'INS   '
+         else  if C =  83  then  M = 'DEL   '
+         else  if C = 133  then  M = 'F11   '
+         else  if C = 134  then  M = 'F12   '
+         else                    M = '??????'
+      end
+
+      if L = 24   then  I = 6          ;  else  I = 7
+      if L = 24   then  J = 2          ;  else  J = 3
+      do N = 1 to L by I                  /* increment I = 6 or 7 */
+         if c2d( substr( E, N + I - 1, 1 )) <> 0   then  do
+            E = CTX( substr( E, N + 1, 2 ))
+            E = E || ': unexpected macro offset for key' E
+            'emsg' SRC E               ;  exit 4
+         end
+         if CTX( substr( E, N + 1, 2 )) <> 0 then  do
+            M = M CTX( substr( E, N + 1, 1 ))
+            C = c2d( substr( E, N + 2, 1 ))
+            if 32 < C & C < 127
+               then  M = M d2c( C )
+               else  M = M || right( d2x( C ), 2, 0 )
+         end
+         else  M = M '    '               /* ignored combinations */
+         if CTX( substr( E, N + 3, J )) <> 0 then  M = M '!'
+                                             else  M = M ' '
+         C = CTX( substr( E, N, 1 ))   ;  if C = '00' then  C = '  '
+         M = M || C || ','                /* '00'x flag not shown */
+      end
+
+      'i *' M
+   end
+   ':0' EOI lscreen.1() % 2            ;  'set alt 0 0'
+   SRC = fileid.1()                    ;  'x "' || BIN || '"'
+   return SRC
+

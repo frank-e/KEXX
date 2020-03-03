@@ -1,0 +1,127 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] XX [drive:][path\][name][.ext]          */
+/* Examples:      XX C:\PROF           (Xedit any PROF*.* on C: ) */
+/*                XX C:\KEDIT\PROF     (any C:\KEDIT\*\PROF*.*  ) */
+/*                XX C:PROF            (any actual C:.\*\PROF*.*) */
+/*                XX ..                (same effect as XX ..\*.*) */
+/* Special:       XX ?:\KEDIT\PROF     (Xedit ?:\KEDIT\*\PROF*.*) */
+/* Purpose:       Xedit file with filename completion, shows more */
+/*                than one matching file in a DIR.DIR listing.    */
+/* XX.BAT sample: @KEDIT.EXE dir (PROFile XX) %1 %2 %3 %4 %5 %6   */
+/* XX.CMD sample: /**/ '@KEDIT.EXE dir (PROFile XX)' arg( 1 )     */
+/* History:       Based on XX.XEDIT and XX.EXEC for VM/CMS (1989) */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 1999) */
+
+   parse arg FILE                      /* called as macro XX FILE */
+   if profile() then do                /* x dir (PROFile XX) FILE */
+      parse arg ')' FILE            ;  'macro' defprof.1()
+   end                                 /* calling default profile */
+   FILE = translate( strip( FILE ))
+
+   if left( FILE, 1 ) = '"' & right( FILE, 1 ) = '"'
+      then  FILE = substr( FILE, 2, max( 0, length( FILE ) - 2 ))
+   if FILE = '.' | FILE = '..' then FILE = FILE || '\'
+
+   N = lastpos( '\', FILE )            /* split PATH at last '\'  */
+   PATH = left( FILE, N )           ;  FILE = substr( FILE, N + 1 )
+   if PATH = '' & pos( ':', FILE ) = 2 then do
+      PATH = left( FILE, 2 ) || '.' ;  FILE = substr( FILE, 3 )
+   end
+
+   PATH = translate( PATH )         ;  if PATH = '' then PATH = '.\'
+   if PATH =  '.\' then PATH = directory.1()
+   if PATH = '..\' then PATH = directory.1() || '\..'
+   if right( PATH, 1 ) <> '\' then PATH = PATH || '\'
+
+   N = lastpos( '.', FILE )         ;  TYPE = ''
+   if N > 0 then do                    /* split extension at dot: */
+      TYPE = substr( FILE, N + 1 )  ;  FILE = left(   FILE, N - 1 )
+   end
+
+   if pos( right( FILE, 1 ), '?*' ) = 0 then FILE = FILE || '*'
+   if pos( right( TYPE, 1 ), '?*' ) = 0 then TYPE = TYPE || '*'
+   FILE = FILE || '.'  || TYPE      ;  TYPE =  '"' || PATH || '"'
+
+   if left( PATH, 2 ) == '?:' then do N = c2d( 'A' ) to c2d( 'Z' )
+      if N = c2d( 'A' ) then TYPE = '' /* invalidate quoted "?:\" */
+      if SKIP( N ) then iterate        /* skips "drive not ready" */
+      TYPE = TYPE '"' || d2c( N ) || substr( PATH, 2 ) || '"'
+   end
+
+   'dir' TYPE                       ;  if rc <> 0 then exit rc
+   'extract /DEFSORT/UNDOING/'      ;  'defsort off' ; 'undoing off'
+
+   do N = 1                            /* build subdirectory tree */
+      'nomsg less /<dir>/ & ~/*/'   ;  'del all'
+      'all' ; 'nomsg locate :' || N ;  if rc <> 0 then leave
+      'refresh'   ;  'nomsg dirappend "' || dirfileid.1() || '\"'
+   end
+   TYPE = size.1()                     /* progress indicator TYPE */
+   do N = 1 to TYPE                    /* dir. append all matches */
+      'locate :' || N 'refresh'     ;  'set alt' TYPE TYPE - N
+      'nomsg dirappend "' || dirfileid.1() || '\' || FILE '"'
+   end
+
+   if left( PATH, 2 ) == '?:' then do N = c2d( 'A' ) to c2d( 'Z' )
+      if SKIP( N ) then iterate        /* skips "drive not ready" */
+      TYPE = d2c( N ) || substr( PATH, 2 )
+      'nomsg   dirappend "' || TYPE || FILE || '"'
+   end
+   else 'nomsg dirappend "' || PATH || FILE || '"'
+
+   'nomsg all /<dir>/'              ;  if rc = 0 then 'del all'
+   'all' ; 'set undoing' UNDOING.1  ;  ':1 set defsort' DEFSORT.1
+   TYPE = 'files matching' FILE 'in or below' NICE( PATH )
+
+   if focuseof() then do               /* 1st case: found no file */
+      if ring.0() > 1 then 'quit'
+      'emsg no' TYPE                ;  exit 28
+   end
+   if size.1() > 1 then do             /* 2nd case: many matches  */
+      'nomsg dirsort name ext path'    /* NOMSG if OFF or failure */
+      say size.1() TYPE             ;  ':0' lscreen.1() % 2 - 2
+      'set alt 0 0'                 ;  exit rc
+   end
+
+   N = dirfileid.1()                   /* 3rd case: exact match   */
+   'xedit "' || N || '" (nodefext)' ;  if rc <> 0 then exit rc
+   'xedit dir.dir (new)'            ;  if ring.0() > 1 then 'quit'
+   'xedit "' || N || '" (nodefext)' ;  exit rc
+
+SKIP: procedure                        /* try impossible file X:: */
+   'nomsg dirappend' d2c( arg( 1 )) || '::'
+   return rc <> 28                     /* 28 -> 0: drive is ready */
+
+NICE: procedure                        /* improve msg readability */
+   parse arg PATH
+
+   DRIVE = left( directory.1(), 1 )    /* if current drive needed */
+   if pos( ':', PATH ) = 2             /* no, use specified drive */
+      then DRIVE = left( PATH, 1 )     /* can't improve ?: drives */
+      else PATH = DRIVE || ':' || PATH /* yes, add current drive  */
+
+   do while pos( '\.\', PATH ) > 0
+      parse var PATH TOP '\.\' PATH ;  PATH = TOP || '\' || PATH
+   end
+   do while pos( '\..\', PATH ) > 0
+      parse var PATH TOP '\..\' PATH
+      if pos( '\', TOP ) > 0
+         then PATH = left( TOP, lastpos( '\', TOP )) || PATH
+         else PATH = left( TOP, 2 ) || PATH
+   end
+
+   if substr( PATH, 2, 2 ) == ':\'                 then return PATH
+   if pos( DRIVE, xrange( 'A', 'Z' ) || '.=' ) = 0 then return PATH
+   if pos( DRIVE, xrange( 'A', 'Z' )) > 0
+      then TOP = directory.1( DRIVE )  /* current directory on X: */
+      else TOP = directory.1()         /* Kedit drive aka =: / .: */
+   if length( TOP ) = 3 then TOP = left( TOP, 2 )
+   if substr( PATH, 2, 3 ) == ':.\'    /* replace . in path X:.\  */
+      then return TOP || substr( PATH, 4 )
+   if substr( PATH, 2, 2 ) <> ':.'     /* add dir. path for X:*\  */
+      then return TOP || '\' || substr( PATH, 3 )
+   TOP = left( TOP, lastpos( '\', TOP ))
+   if substr( PATH, 2, 4 ) == ':..\'   /* replace .. in any X:..\ */
+      then return TOP || substr( PATH, 6 )
+      else return PATH                 /* else do not touch X:.*\ */

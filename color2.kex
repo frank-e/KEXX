@@ -1,0 +1,62 @@
+'set novalue on'           /* For all details see COLOR.KEX */
+'MONITOR color'            /* MONITOR resets Kedit defaults */
+
+if version.1() <> 'KEDIT'  then  do
+   S =   ' 48 128  32 160 128  31  79  63  63 128  31  63  31'
+   S = S ' 31  63  31  31 129 129 129  49 129 176 176  31  79'
+   'set coloring off'   ;  'set attributes' S 224 246 248 248
+   exit rc                 /* ...syntax COLORING won't work */
+end
+
+'BLINK   off'              /* allow INTENS globally */
+'BORDER  white'            /* corresponds to BGLINE */
+
+FGEDIT = 'black'           /* foreground input area */
+FGTAGS = 'blue'            /* foreground input tags */
+FGINFO = 'bold white'      /* foreground other area */
+
+BGLINE = 'on white'        /* background input line */
+BGEDIT = 'on cyan'         /* background input area */
+BGINFO = 'on blue'         /* background info areas */
+INTENS = 'blinking'        /* background bold */
+
+STATUS = FGINFO BGINFO     /* status area */
+HELPER = FGINFO BGEDIT     /* misc. infos */
+FOCUS  = FGEDIT BGLINE     /* input focus */
+FAREA  = FGEDIT BGEDIT     /* edited file */
+MOUSE  = FGTAGS BGLINE     /* mouse areas */
+ALERT  = FGINFO 'on red'   /* messages */
+BLOCK  = FGEDIT 'on green' /* marked input area */
+
+'COLOR Filearea'  FAREA
+'COLOR Cmdline'   FOCUS
+'COLOR Pending'   FOCUS
+'COLOR Curline'   FOCUS             /* Cur */
+'COLOR Block'     BLOCK             /* Box */
+
+'COLOR Cblock'       INTENS BLOCK   /* C+B */
+'COLOR Highlight'    FGTAGS BGEDIT  /* Tag */
+'COLOR Chighlight'   FGTAGS BGLINE  /* C+T */
+'COLOR Thighlight'   INTENS FAREA   /* Loc */
+'COLOR Cthighlight'  INTENS FAREA   /* C+L */
+
+'COLOR Idline'    STATUS
+'COLOR Scale'     STATUS
+'COLOR Ctofeof'   STATUS            /* C+E */
+'COLOR Tabline'   STATUS
+'COLOR Statarea'  STATUS
+'COLOR Divider'   STATUS
+'COLOR Dialog'    STATUS
+
+'COLOR Arrow'     HELPER
+'COLOR Prefix'    HELPER
+'COLOR Tofeof'    HELPER            /* Eof */
+'COLOR Shadow'    HELPER
+
+'COLOR Mousebar'  MOUSE
+'COLOR Scrollbar' MOUSE
+'COLOR Slider'    MOUSE
+
+'COLOR Msgline'   ALERT
+'COLOR Alert'     ALERT
+

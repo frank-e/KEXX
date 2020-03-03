@@ -1,0 +1,28 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] TALL target                             */
+/* Example:       TALL /interest/                                 */
+/* Purpose:       TALL is supposed to work like ALL showing two   */
+/*                additional context lines before and after all   */
+/*                lines matching the specified target.  Matching  */
+/*                lines are tagged.                               */
+/* See also:      KHELP ALL, KHELP TAG, KHELP LINEFLAG            */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2010) */
+
+   MORE = 2                            ;  'all'
+   LINE = line.1()                     ;  'tag' arg( 1 )
+   if rc <> 0  then  exit rc
+   'extract /WRAP/STAY'                ;  'locate :0 stay off'
+   'wrap off'                          ;  'nomsg locate tagged'
+   do while rc = 0                        /* more above target(s) */
+      do MORE              ;  'up'     ;  'lineflag tag'    ;  end
+      'next' MORE                      ;  'nomsg locate tagged'
+   end
+   'nomsg locate -tagged'
+   do while rc = 0                        /* more below target(s) */
+      do MORE              ;  'next'   ;  'lineflag tag'    ;  end
+      'up' MORE + 1 + MORE             ;  'nomsg locate -tagged'
+   end
+   'locate :' || LINE                  ;  'lineflag tag'
+   'nomsg all tagged'                  ;  'tag' arg( 1 )
+   'wrap' WRAP.1                       ;  'stay' STAY.1

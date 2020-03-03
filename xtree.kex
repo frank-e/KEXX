@@ -1,0 +1,48 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] XTREE [root]                            */
+/* Example:       XTREE G:\OS2                                    */
+/* Requires:      Kedit 5.0               (Frank Ellermann, 1999) */
+
+/* Purpose:       Show subdirectory-tree of given root directory  */
+/*                tagging empty directories.  Tested on HPFS with */
+/*                embedded blanks in directory names, but results */
+/*                for long names depend on the actual DIRFORMAT.  */
+
+/* Details:       Directory id.s are appended to their path as in */
+/*                dirf.3() '\' dirf.4() '.' dirf.5() and replaced */
+/*                by '.' in their original name and type fields.  */
+
+/* Columns:       VERIFY is changed to show a complete path as in */
+/*                dirf.2() ':' dirf.3() '\' dirf.4() '.' dirf.5() */
+/*                Time fields are skipped to save visible columns */
+/*                for longer paths.                               */
+
+/*                Size fields '<dir>      ' are truncated to '<': */
+/*                without resetting VERIFY macro A-X still works, */
+/*                and ordinary files won't have a size field '<'. */
+
+   'extract /DEFSORT/'              ; 'defsort off'
+   LEN = dirform.1() + dirform.2()  ; DIR = '.' /* default root . */
+   if arg() > 0 then DIR = arg( 1 ) ; 'dir' DIR /* root directory */
+   if rc <> 0 then exit RESET( rc )             /* bad argument ? */
+
+   do DIR = 1                                   /* count DIR by 1 */
+      'nomsg less /<dir>/' ; if rc == 0   then 'del all' ; 'all'
+      'nomsg :' || DIR     ; if rc <> 0   then leave     ; 'refresh'
+      if right( dirfileid.4(), 1 ) == '*' then iterate   /* trunc */
+      if right( dirfileid.5(), 1 ) == '*' then iterate   /* trunc */
+      REL = dirfileid.4()                       /* RELative path: */
+      if right( dirfileid.3(), 1 ) <> '\' then REL = '\' || REL
+      if dirfileid.5() > '' then REL = REL || '.' || dirfileid.5()
+      'ca' REL ; 'cl :4'   ; 'cov .' || copies( '_', LEN )
+      'nomsg dirappend "' || dirfileid.1() || '"'
+      if rc <> 0 then 'more tag :' || line.1()  /* TAG empty dir. */
+   end
+
+   'dirsort Path Name Ext' ; 'set alt 0 0'   ; 'lineflag nonew all'
+   'verify' 4 LEN+6 LEN+16 LEN+25 1 2 LEN+35    /* skip size/time */
+   ':0 forward half'       ; exit RESET( 0 )
+
+RESET:
+   'defsort' DEFSORT.1     ; return arg( 1 )

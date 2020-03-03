@@ -1,0 +1,98 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         MACRO WINHELP [file [topic]]                    */
+/* Example:       SYN WINHELP MACRO WINHELP                       */
+/*                WINHELP C:\BIN\KEDITW.HLP CHECK                 */
+/* Purpose:       KeditW has a WINHELP command to open Win *.HLP  */
+/*                files at an optionally given topic.  There are  */
+/*                lots of *.HLP files on my box, but some in very */
+/*                obscure directories, and not all are Win *.HLP  */
+/*                files.                                          */
+/*                KeditW command WINHELP requires an argument; as */
+/*                always this cries for a SYNonym to overload the */
+/*                command with a macro doing something useful if  */
+/*                no argument is given.                           */
+/*                For WINHELP "something useful" is to list *.HLP */
+/*                files on all drives limited to WINHELP files.   */
+/*                Anything not clearly identified is kept "as is" */
+/*                in the resulting list.                          */
+/* Caveats:       DOS Kedit 5.0 and KeditW 1.0 support only up to */
+/*                32 backslashes in a path, deeper subdirectories */
+/*                are silently ignored.                           */
+/* See also:      CDEFG.KEX, TREE.KEX, INITIAL.KEX, INITIAL.KML,  */
+/*                <URL:http://purl.net/xyzzy/kex/index.html>, and */
+/*                <URL:http://purl.net/xyzzy/xedit.htm>           */
+/* Requires:      KeditW 1.0 (Kedit 5 can still list *.HLP files) */
+/*                                        (Frank Ellermann, 2008) */
+
+   nop                           /* header end mark for KHELP.KEX */
+
+/* There should be a help key starting command WINHELP in DIR.DIR */
+/* listings for *.HLP files, but it is not the job of this macro  */
+/* to define any "WINHELP key".  Excerpt from an INITIAL.KML file */
+/* doing this:                                                    */
+/*    *C-Help, do the opposite of F1 depending on file type       */
+/*    :C-H                                                        */
+/*       if arg() then do                                         */
+/*          /* actions if called with an argument [....] */       */
+/*       end                                                      */
+/*       else if dir() = 0 | version.1() = 'KEDIT' then do        */
+/*          /* actions if not KeditW or not in a DIR.DIR */       */
+/*       end                                                      */
+/*       else if translate( dirfileid.5()) = 'HLP'                */
+/*          then  'WINHELP' dirfileid.1()                         */
+/*          else  'khelp'                                         */
+
+   if arg() & version.1() <> 'KEDIT'   then  do
+      'command winhelp' arg( 1 ) ;  exit rc
+   end
+
+   'extract /DEFSORT/SHADOW/'    ;  'set defsort off'
+   'dir c:\'                     ;  if rc <> 0  then  exit BYE( rc )
+   'set shadow off'              /* show progress without shadows */
+   do DIR = 3 to 25              /* ignore errors for D: up to Z: */
+      'nomsg dirappend' d2c( DIR + c2d( 'A' )) || ':\'
+   end                           /* adds SUBST, CDROM, everything */
+
+   HLP = '~/<dir>/ & ~/.HLP/ & ~/.HLp/ & ~/.HlP/ & ~/.Hlp/'
+   HLP = HLP      '& ~/.hLP/ & ~/.hLp/ & ~/.hlP/ & ~/.hlp/'
+   do DIR = 1                    /* use relative DIR line numbers */
+      'nomsg all  /<dir>/'       ;  ':0' DIR    /* next DIRectory */
+      if rc <> 0  then  leave    ;  'refresh'   /* show progress  */
+      if pos( '*', dirfileid.1()) = 0  then  do /* no truncation: */
+         'set lineflag TAG'      /* tag processed dir. for delete */
+         'nomsg dirappend "' || dirfileid.1() || '"'  /* DIR TREE */
+         'nomsg all' HLP         ;  if rc = 0   then  'delete all'
+      end
+      else  'set lineflag NEW'   /* flag truncated dir.s, affects */
+   end                           /* only OS/2 or maybe KeditW 1.5 */
+
+   'nomsg all tagged'            ;  if rc = 0   then  'delete all'
+   DIR = fileid.1()              ;  B. = 0
+   do HLP = 1
+      'nomsg all ~/<dir>/'       ;  ':0' HLP    /* try next *.HLP */
+      if rc <> 0  then  leave    ;  'refresh'   /* show progress  */
+      if pos( '*', dirfileid.1()) = 0  then  do
+         'nomsg x "' || dirfileid.1() || '" (NOPROF)'
+         if rc = 0   then  do
+            ':1'                 /* check "?_" for Windows *.HLP  */
+            B.. = 1 - abbrev( curline.3(), '?_' )
+            'nomsg quit'         ;  'x' DIR
+            if B..   then  'set lineflag CHA NEW'
+            B.1 = B.1 + B..      ;  iterate
+         end                     /* B.1 counts non-WINHELP files, */
+      end                        /* B.2 counts all unclear files: */
+      'set lineflag NEW'         ;  B.2 = B.2 + 1
+   end
+
+   'nomsg dirsort' DEFSORT.1     ;  'set alt 0 0'
+   'nomsg tag altered'           ;  'reset undo'
+   'nomsg all changed'           ;  if rc = 0   then  'delete all'
+   'all'                         ;  ':0' lscreen.1() % 2 -2
+   B.1 = B.2 'unclear *.hlp tagged,' B.1 'non-WINHELP files removed'
+   say B.1 '(use UNDO to see all)'
+   'nomsg tag altered'           ;  exit BYE( 0 )
+
+BYE:                             /* reset old SHADOW and DEFSORT: */
+   'set shadow'   SHADOW.1       ;  'set defsort' DEFSORT.1
+   return arg( 1 )

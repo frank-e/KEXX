@@ -1,0 +1,30 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         MACRO WMSG [command [arguments]]                */
+/* Example:       WMSG locate /nowhere/                           */
+/* Purpose:       Macro WMSG emulates KeditW 1.0 command WMSG for */
+/*                other versions of Kedit.                        */
+/* Operation:     If the given command returns an error the error */
+/*                message is shown in a DIALOG box instead of on  */
+/*                the MSGLINE, adding a SOS BEEP (not ERRORBEEP). */
+/*                For unknown commands (rc -1) KeditW WMSG shows  */
+/*                an ordinary EMSG, also emulated here.  An empty */
+/*                command does nothing.                           */
+/*                This macro intentionally adds its name to the   */
+/*                DIAOLG box title, the KeditW command only shows */
+/*                "KEDIT" as title.                               */
+/* Caveats:       Do not use MSGMODE OFF in your macros, NOMSG is */
+/*                always better.  This macro is an exception, it  */
+/*                has to handle nested WMSG WMSG OOPS situations. */
+/* See also:      KHELP SET BEEP, KHELP SET MSGMODE, KHELP NOMSG, */
+/*                KHELP SOS BEEP, KHELP SOS ERRORBEEP, KHELP EMSG */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   if arg( 1 ) = ''  then  exit 0   ;  M = msgmode.1()
+   'msgmode OFF'  ;  arg( 1 )       ;  R = rc
+   'msgmode' M    ;  if R = 0 | M = 'OFF' then  exit R
+   parse source . . M               ;  M = delimit( 'KEDIT' M )
+   if R <> -1  then  'sos beep'           /* ignores SET BEEP OFF */
+   if R <> -1  then  'dialog' delimit( lastmsg.1()) 'title' M
+               else  'emsg' lastmsg.1()   /* accepts SET BEEP OFF */
+   exit R

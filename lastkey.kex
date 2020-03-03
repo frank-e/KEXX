@@ -1,0 +1,129 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] LASTKEY [*]                             */
+/* Option:        DEFine C-K 'macro LASTKEY'                      */
+/* Purpose:       LASTKEY is a Kedit "key decoder", it displays   */
+/*                lastkey.1() up to lastkey.3() corresponding to  */
+/*                READV.1 up to READV.3 for a command READV KEY.  */
+/*                To exit this "key decoder" press any key twice. */
+/* lastkey.1():   Kedit name of a key, or macro ASCII nnn for any */
+/*                key unknown on KEYB US, 0 <= nnn <= 255.        */
+/* lastkey.2():   The character, or empty for function keys etc.  */
+/* lastkey.3():   Scan code or "key number", 0 for keypad input.  */
+/*                The three KEYBoard Enhanced keys NUMENTER (key  */
+/*                108), C-NUMENTER (also 108), and SLASH (key 95) */
+/*                are ambiguously reported as key 224.  This is   */
+/*                actually a keyboard device "feature" not fixed  */
+/*                by Kedit.  C-SLASH, A-SLASH, and A-NUMENTER get */
+/*                unique numbers.                                 */
+/*                KeditW 1.0 reports "key" 56 for ALT-keypad nnn  */
+/*                or 0nnn input, the first unused key number for  */
+/*                KEYBoard Standard (83/84) or ENHanced (101/102).*/
+/* lastkey.4():   Not normally shown, use macro LASTKEY with any  */
+/*                non-empty argument to see the lastkey.4() shift */
+/*                status.  For KeditW 1.0 byte 7 and 8 are always */
+/*                identical indicating any shift key.  Kedit 5.0  */
+/*                distinguishes right and left shift key.         */
+/* lastkey.5():   Not shown, supported only by Kedit 5.0 only for */
+/*                SET KEYBOARD ENHANCED or undocumented ENHFORCE. */
+/* Features:      LASTKEY shows one-liner macros associated with  */
+/*                a key if they fit in a message line.  Otherwise */
+/*                LASTKEY reports '(modifiable macro)' for keys   */
+/*                where 'MODify MACRO key' commands would work.   */
+/*                LASTKEY reports '(multi-line macro)' for long   */
+/*                macros where 'MODify MACRO key' would not work. */
+/*                LASTKEY reports '(unmodifiable key)' for keys   */
+/*                not associated with a specific macro, i.e. keys */
+/*                unknown on KEYB US and handled by macro ASCII.  */
+/*                KeditW 1.0 Alt-keypad nnn and A-C- double scan  */
+/*                oddities are reported as good as possible.      */
+/* KEYB GR:       On my box OEMKEY.KML manages keys relevant for  */
+/*                a German KEYB GR, e.g., Alt-M results in Micro  */
+/*                like AltGr-M.  OEMKEY.KML is designed for code- */
+/*                pages 437+850+858 and Kedit 5.0.  If used with  */
+/*                KeditW 1.0 old "OEM" KEYB GR definitions are on */
+/*                the fly translated to new "ANSI" definitions.   */
+/*                LASTKEY supports the same magic when displaying */
+/*                one-liner macros with a literal "macro OEMKEY " */
+/*                string in their definition.                     */
+/* Alt-keypad:    Apparently KeditW 1.0 or a used system function */
+/*                get about 62 "OEM" Alt-keypad nnn codes wrong.  */
+/*                The "ANSI" Alt-keypad 0nnn codes are okay, but  */
+/*                KeditW does not indicate which method was used. */
+/*                Check out what happens on your box, I've tested */
+/*                "OEM" codepage 850 + "ANSI" 1252 (windows-1252) */
+/*                with KEYB GR and KEYB US layouts.               */
+/* AltGr keys:    On some keyboards right-Alt + key (AltGr + key) */
+/*                has the same effect as left-Alt + Ctrl + key.   */
+/*                KeditW 1.0 interprets some A-C-key combinations */
+/*                or equivalent AltGr-key combinations *twice* on */
+/*                non-US keyboards.  To show this possible effect */
+/*                macro LASTKEY reports the previous and the last */
+/*                if both were A-C key combinations.              */
+/* History:       This macro was formerly known as KEYCODES.KEX.  */
+/* See also:      KHELP LASTKEY, KHELP READV, KHELP MODIFY,       */
+/*                KHELP MACROS, KHELP DEFINE, OEMKEY.KML          */
+/*                Only for KeditW 1.0: KHELP OEMTOANSI, WINK.KEX  */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   B.    = ''           /* show KeditW 1.0 Alt-keypad nnn bogeys: */
+   B.43  = ' or bogus 187 188 191 192 195 197 200 201 206 217 218'
+   B.45  = ' or bogus 194 196 202 203 205'
+   B.61  = ' or bogus 242'
+   B.63  = ' or bogus 1..14 16..19 22..31'
+   B.95  = ' or bogus 220'
+   B.105 = ' or bogus 213'
+   B.164 = ' or bogus 15'
+   B.166 = ' or bogus 127 176...180 185 186 204 219 254'
+   B.167 = ' or bogus 21'
+   B.175 = ' or bogus 223'
+   B.182 = ' or bogus 20'
+
+   W = ( 'KEDIT' <> version.1())       /* for W assume KeditW 1.0 */
+   Z = 'will show A-C-? double scan errors on non-US keyboards'
+   K = 'press any key to decode'
+   N = lastkey.1() lastkey.3() right( lastkey.4(), 4 )
+   'extract /MSGLINE/CMDLINE' ;  'msgline on' 2 - W '5'
+
+   do until O = N                      /* until old O = N new key */
+      say K ;  'readv key' ;  K = left( lastkey.1(), 10 + 2 * W )
+      O = N ;  N = lastkey.1() lastkey.3() right( lastkey.4(), 4 )
+      Y = ( 1100 = right( O, 4 ) & 1100 = right( N, 4 ))
+      if lastkey.2() == ''             /* 10 + 2 for A-C-NUMENTER */
+         then  K = K '   '             /* no text (character) key */
+         else  K = K "'" || lastkey.2() || "'"
+      K = K right( lastkey.3(), 3 )    /* key number (can be 224) */
+      if arg( 1 ) <> '' then  K = K lastkey.4()
+
+      if abbrev( lastkey.1(), 'ASCII ' )  then  do
+         if W & lastkey.3() = 56 then  do
+            L = word( lastkey.1(), 2 ) /* alt-keypad: 0nnn or nnn */
+            K = K '[Alt 0' || L 'or' c2d( ansitooem( d2c( L )))
+            K = K || B.L || ']'        /* alt-keypad nnn oddities */
+         end                           /* alt-keypad 0nnn is okay */
+         else  K = K '(unmodifiable key)'
+      end                              /* non-US key or Kedit 5.0 */
+      else  do                         /* ----------------------- */
+         'sos save'  ;  'nomsg modify macro' lastkey.1()
+         R = rc      ;  'cmsg' CMDLINE.3  ;  'sos restore'
+         if R = 0 then  do             /* if MODIFY is supported: */
+            'nomsg query macro' lastkey.1()
+            L = strip( lastmsg.1())    /* get one line definition */
+            if W  then do              /* fix OEM 'macro OEMKEY ' */
+               if sign( pos( 'macro OEMKEY ', L )) > oemfont()
+                  then  L = oemtoansi( L )
+            end                        /*  - 6 for "last: " below */
+            if length( K L ) < lscreen.2() - 6 * Y
+               then  K = K || ':' L    /* definition short enough */
+               else  K = K '(modifiable macro)'
+         end                           /* definition is too long  */
+         else  K = K '(multi-line macro)'
+      end                              /* ----------------------- */
+
+      if Y  then  say 'last:' Z        /* A-C-last + A-C-this can */
+      if Y  then  say 'this:' K        /* be a double scan error, */
+            else  say K                /* else show only this key */
+      Z = K ;  K = 'press this key again to exit decoder'
+   end
+   'msgline' MSGLINE.1 MSGLINE.2 MSGLINE.3 MSGLINE.4
+

@@ -1,0 +1,767 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] XPM [*]                                 */
+/* Purpose:       Convert an XPM2 image with two char.s per pixel */
+/*                into one char. per pixel using the B64 alphabet */
+/*                A..Za..z0..9+/ (26+26+10+2) to index (up to) 64 */
+/*                colours.                                        */
+/*                XPM3 is supported if the quoted strings do not  */
+/*                contain backslashes and start in column 1.  The */
+/*                first XPM3-string is split from the end of the  */
+/*                opening line if necessary.                      */
+/*                All XFree86 rgb.txt colour names are converted  */
+/*                to #rrggbb values.  Unused colours are removed; */
+/*                this also eliminates redefinitions of an index. */
+/*                A colour given as #rrggbb or NONE can still be  */
+/*                associated with more than one index.            */
+/*                For up to 64 colours '.' is associated with the */
+/*                "background" colour.  This background is either */
+/*                the first used NONE (if any) for transparency,  */
+/*                or the most frequently used colour identified   */
+/*                by its palette index.                           */
+/* 256 colours:   Normal text editors can be used to modify small */
+/*                XPM images using one char. per pixel (typically */
+/*                at most 64 colours).  If pixels are represented */
+/*                by two char.s (typically 65..256 colours) these */
+/*                strings can be unsuited for text editors, e.g., */
+/*                replacing all 'bc' by 'xy' changes two adjacent */
+/*                pixels 'ab' and 'cd' into 'ax' and 'yd'.  Pick  */
+/*                non-overlapping sets of right and left char.s   */
+/*                to avoid this problem.  Reserving '\' and '"'   */
+/*                for XPM3 leaves 92 = 46+46 visible ASCII char.s */
+/*                to index max. 2116 = 46*46 colours.             */
+/*                The macro supports up to 256 = 64*4 colours for */
+/*                64 left char.s (A..Za..z0..9+/) and one of :|!' */
+/*                as right char.  The "background" is associated  */
+/*                with a dot as left char.  The transformation of */
+/*                overlapping input codes into this form is slow  */
+/*                for big images, but good enough for XPM icons.  */
+/* Conversion:    Use  XPM *  to convert XPM3 to XPM2 format, or  */
+/*                vice versa.                                     */
+/*                Version 1.97 of XnView expects that XPM2 files  */
+/*                start with a "! XPM" or "! XPM2" line, and that */
+/*                XPM3 files begin with "XPM" in a C-comment.  In */
+/*                both cases XnView insists on one space before   */
+/*                the "XPM"-string (uppercase).  The macro allows */
+/*                mixed case variants with zero or more spaces in */
+/*                "! XPM2".  For XPM3 the C-comment is not used.  */
+/*                Conversions use a style compatible with XnView. */
+/* Caveats:       The C-syntax of XPM3-images is ignored; notably */
+/*                comments containing quoted strings starting in  */
+/*                column 1 will not work.  Escape sequences (with */
+/*                a backslash) also will not work.                */
+/*                If the current line does not indicate XPM2 the  */
+/*                presence of a '{' in the file is interpreted as */
+/*                XPM3.  Otherwise a preceding or following !XPM2 */
+/*                line is interpreted as XPM2.  Where this logic  */
+/*                does not find the intended XPM-image adjust the */
+/*                current line before.                            */
+/* To do:         -  Is there a monochrome XPM 'm' colour model ? */
+/*                -  Check 'SgiBeet' #8E388E and the other 38 SGI */
+/*                   colour values determined with XnView 1.97.6. */
+/*                -  XnView 'SgiDarkgray' and 'SgiLightgray' do   */
+/*                   not match any of the 26 'SgiGray'+NN values. */
+/*                   However, 'SgiVeryDarkgray', 'SgiMediumGray', */
+/*                   'SgiBrightgray', and 'SgiVeryLightgray' are  */
+/*                   aliases of existing 'SgiGray'+NN colours, is */
+/*                   that as it should be ?                       */
+/*                -  Report XnView 1.97 issues:                   */
+/*                   1: The value for the first defined colour is */
+/*                      swapped with another colour, e.g., for 36 */
+/*                      (unique) colour values the first value is */
+/*                      used for the 20th colour, while the 20th  */
+/*                      value is used for the first colour.       */
+/*                      There ought to be a formula to determine  */
+/*                      what is going wrong.  The first value can */
+/*                      also replace two other values, e.g., with */
+/*                      23 unique colours the first value is used */
+/*                      for the 12th and 13th colour, while the   */
+/*                      13th value is used for the first colour.  */
+/*                   2: Add missing 'slategrey1' .. 'slategrey4'  */
+/*                      and 'darkslategrey1' .. 'darkslategrey4'  */
+/*                   3: Accept zero or more spaces in "! XPM" and */
+/*                      "! XPM2".  For some shells this indicates */
+/*                      to process the file with program XPM; the */
+/*                      number of spaces is not significant.  For */
+/*                      XPM2 output one space is of course fine.  */
+/*                   4: XnView already supports XPM images with   */
+/*                      four characters per pixel.  Therefore it  */
+/*                      should also support up to 65536 colours.  */
+/*                      Example, splitting the B64 char.s in four */
+/*                      sets of 16 characters allows 16*16*16*16  */
+/*                      non-overlapping colour definitions.  The  */
+/*                      57*57 pixels in Apple-touch icons can use */
+/*                      more than 256 colours, and the XPM format */
+/*                      allows to edit these icons.               */
+/*                - XnView 1.97 issue obviously fixed in 1.97.6:  */
+/*                   -- add missing X11 colour name 'tan' #D2B48C */
+/*                      and replace 'sgi gray4' by 'sgi gray 4'.  */
+/* URL:           http://purl.net/xyzzy/kex/xpm.kex               */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2010) */
+
+   'extract /DISPLAY/'           ;  PIXEL = select.2() + 1
+   if scope.1() <> 'DISPLAY' | zone.1() <> 1 | zone.2() <> width.1()
+      then  exit ERR( 'macro requires SCOPE DISPLAY and ZONE 1 *' )
+   if PIXEL < 256                      /* select level for pixels */
+      then  'display' DISPLAY.1 PIXEL  /* display selected pixels */
+      else  exit ERR( 'max. line select level 255 aready in use' )
+
+   RESET = line.1() + focustof()       /* actual line (1 for top) */
+   XPM3  = TOP( RESET )          ;  S = STR( XPM3 )
+   parse var S W H C M S         ;  S = ( S = '' )
+   S = S & datatype( W, 'w' ) & 0 <= W /* width (= pixel columns) */
+   S = S & datatype( H, 'w' ) & 0 <= H /* height  (= pixel lines) */
+   S = S & datatype( C, 'w' ) & 2 <= C /* colours (= index lines) */
+   S = S & datatype( M, 'w' ) & 1 <= M /* index char.s per pixel  */
+   if S = 0 then  exit ERR( 'expected Width Height Colours Chars' )
+
+   LZ = ''                       ;  RZ = ''
+   do L = 1 to C                       /* test colour definitions */
+      S = STR( XPM3 )            ;  V = translate( word( S, 2 ))
+      if V = 'M'  then  exit ERR( 'monochrome not implemented' )
+      U = ( V = 'C' )            ;  V = word( S, 1 )
+      U = U & ( 3 <= words( S )) ;  U = U & length( V ) = M
+      if U = 0 then  exit ERR()  ;  call RGB subword( S, 3 )
+      LZ = LZ || left( V, 1 )    ;  RZ = RZ || right( V, 1 )
+   end
+   do N = 1 to H                       /* check length for pixels */
+      S = STR( XPM3 )            ;  U = ( W * M = length( S ))
+      if U = 0 then  exit ERR( 'expected' W * M 'char.s' )
+      if M = 2 then  do until S = ''   /* check pixels for M = 2  */
+         parse var S U 2 V 3 S
+         if verify( U, LZ ) + verify( V, RZ ) > 0
+            then  exit ERR( 'undefined colour' U || V )
+      end
+      if M = 1 then  do                /* check pixels for M = 1  */
+         V = verify( S, LZ )
+         if V > 0
+            then  exit ERR( 'undefined colour' substr( S, V, 1 ))
+      end
+      'select' PIXEL                   /* select all pixel lines  */
+   end
+
+   /* ----------------------------------------------------------- */
+   /* Reduce M = 2 if colour strings start with the same char.    */
+   /* XnView uses this style for 64 colours with a collision; the */
+   /* start char. is also used as end char.  Collisions would not */
+   /* permit a QUICK handling of pixels for M = 2, but the XnView */
+   /* style can be fixed here.                                    */
+
+   if M = 2 & 0 = verify( LZ, left( LZ, 1 )) then  do
+      M = 1                      ;  'extract /ALT/'
+      S = STR( TOP( RESET ))           /* go back to four numbers */
+      U = subword( S, 1, 3 ) M   ;  call SWAP S, U
+      do L = 1 to C
+         S = STR( XPM3 )         ;  call SWAP S, substr( S, 2 )
+      end
+      do N = 1 to H
+         S = STR( XPM3 )         ;  U = ''
+         do L = 2 to 2 * W by 2
+            U = U || substr( S, L, 1 )
+         end
+         parse value curline.3() with L (S) V
+         'replace' L || U || V         /* maybe too long for SWAP */
+      end
+      ALT.1 = ALT.1 + 1          ;  'reset undo'
+      ALT.2 = ALT.2 + 1          ;  'set alt' ALT.1 ALT.2
+   end
+
+   /* ----------------------------------------------------------- */
+   /* replace X11 colour names, collect INDEX of C colour strings */
+
+   S = STR( TOP( RESET ))              /* go back to four numbers */
+   do L = 1 to C                       /* replace name by #rrggbb */
+      S = STR( XPM3 )            ;  U = RGB( subword( S, 3 ))
+      P.L = subword( S, 1, 2 ) U ;  call SWAP S, P.L
+   end
+   INDEX = word( P.1, 1 )              /* long string after RGB() */
+   do L = 2 to C                       /* to minimize DOS ISA use */
+      INDEX = INDEX word( P.L, 1 )
+   end
+
+   /* ----------------------------------------------------------- */
+   /* check and count used colours, very slow for large images... */
+
+   'locate :0 display' PIXEL           /* operate on pixel lines  */
+   if M = 2 then  QUICK = ( 0 = verify( LZ, RZ, 'M' ))
+            else  QUICK = ( M = 1 )
+   LZ = 1 + XPM3                 ;  RZ = W * M + 1 + XPM3
+   X. = 0                        ;  B = 0
+
+   if QUICK then  do                   /* quick count of colours  */
+      'zone' LZ ( RZ + M - 1 )   ;  U = 0
+      do L = 1 to C
+         say 'checking colour' L ;  'refresh'
+         P = word( INDEX, L )    ;  P = delimit( P )
+         'nomsg count' P 'all'   ;  P = word( lastmsg.1(), 1 )
+         if P = 'No' then  P = 0
+         X.L = P                 ;  U = U + P
+      end
+      if U <> W * H  then  exit ERR( 'macro logic failure' )
+   end
+   else  do N = 1 to H                 /* count colours per pixel */
+      S = STR( XPM3 )                  /* get next line of pixels */
+      do until S = ''                  /* use M char.s per pixel: */
+         P = left( S, M )        ;  S = substr( S, M + 1 )
+         L = wordpos( P, INDEX ) ;  X.L = X.L + 1
+         if L = 0 then  do
+            'select'  DISPLAY.2 'all'  /* undo all 'select' PIXEL */
+            'display' DISPLAY.1 DISPLAY.2
+            exit ERR( 'undefined colour' P )
+         end
+      end
+   end
+   do L = 1 to C                       /* determine background B  */
+      if sign( X.L ) then  do
+         X.0 = X.0 + 1
+         if B < 0 then  iterate        /* B < 0 for 1st used NONE */
+         if B = 0 then  B = L          /* B > 0 most used colour: */
+         if X.L > X.B   then  B = L
+         if word( P.L, 3 ) = 'NONE' then  B = 0 - L
+      end
+   end
+   'display' DISPLAY.1 PIXEL     ;  'zone 1 *'
+
+   /* ----------------------------------------------------------- */
+   /* remove unused colours, collect SUBST corresponding to INDEX */
+
+   S = STR( TOP( RESET ))              /* go back to four numbers */
+   if X.0 < C | X.0 <= 256 then  do
+      Q = M                      ;  if X.0 <= 256  then  Q = 2
+      if X.0 <= 64   then  Q = 1 ;  call SWAP S, W H X.0 Q
+      V = 'abcdefghijklmnopqrstuvwxyz' /* simply use B64 alphabet */
+      V = translate( V ) || V || '0123456789+/'
+      if 64 < X.0 then  V = V || copies( V, 3 )
+      SUBST = ''                 ;  N = 0
+      do L = 1 to C                    /* remove unused colours   */
+         S = STR( XPM3 )         ;  N = N + 1
+         if X.L = 0  then  do
+            if line.1() = RESET  then  RESET = RESET - 1
+            'del'                ;  INDEX = delword( INDEX, N, 1 )
+            'up'                 ;  N = N - 1
+            iterate
+         end
+         if X.0 <= 256  then  do       /* use new colour char.s:  */
+            U = '.'                    /* use dot for background  */
+            if L <> abs( B )  then  parse var V U 2 V
+            if 64 < X.0                /* use two char.s if M = 2 */
+               then  U = U || substr( ":|!'", ( L + 63 ) % 64, 1 )
+
+            SUBST = SUBST U      ;  call SWAP S, U subword( S, 2 )
+         end
+      end
+   end
+   if 256 < X.0   then  SUBST = INDEX  /* pixels are not modified */
+
+   /* ----------------------------------------------------------- */
+   /* replace pixels by new colour strings, reset DISPLAY tricks  */
+
+   'locate :0 display' PIXEL           /* operate on pixel lines  */
+   if SUBST <> INDEX then  do
+      if QUICK then  do
+         'zone' LZ ( RZ + M - 1 )      /* operate in pixel zone   */
+         do L = 1 to X.0               /* update pixels by colour */
+            say 'encode colour' L
+            'refresh'
+            call SWAP word( INDEX, L ), ENC( L, Q ), 'all *'
+         end
+         do L = 1 to X.0               /* replace Q control codes */
+            say 'update colour' L
+            'refresh'
+            call SWAP ENC( L, Q ), word( SUBST, L ), 'all *'
+         end
+         'zone 1 *'
+      end
+      else  do N = 1 to H              /* update pixels by lines  */
+         S = STR( XPM3 )         ;  U = ''
+         do L = 1 to W * M by M        /* use M char.s per pixel  */
+            P = substr( S, L, M )
+            U = U || word( SUBST, wordpos( P, INDEX ))
+         end
+         parse value curline.3() with L (S) V
+         'replace' L || U || V         /* maybe too long for SWAP */
+      end
+   end
+   'select' DISPLAY.2 'all'      ;  'display' DISPLAY.1 DISPLAY.2
+
+   /* ----------------------------------------------------------- */
+   /* optionally convert XPM3 to XPM2 (or vice versa) and exit    */
+
+   if arg( 1 ) = '*' then  do          /* XPM format conversions: */
+      S = TOP( RESET )                 /* find start of XPM input */
+      if XPM3  then  'replace ! XPM2'
+               else  'replace /* XPM */ static char *image[] = {'
+      RESET = line.1()                 /* focus on first XPM line */
+
+      do N = 1 to 1 + X.0 + H
+         'replace' FIX( XPM3 )
+      end
+      if XPM3  then  do                /* handle last XPM3 string */
+         'nomsg recover 1'       ;  U = curline.3()
+         'del'                   ;  parse var U '"' . '"' U
+         if pos( '}', U ) = 0 then  do /* missing terminating '}' */
+            'next'               ;  U = curline.3()
+            if pos( '}', U ) = 0
+               then  'emsg warning: closing XPM3 "}" not found'
+               else  'del'             /* delete terminating '}'  */
+         end
+      end
+      else  do                         /* insert terminating '};' */
+         U = curline.3()         ;  L = length( U ) - 1
+         'replace' left( U, L ) '};'   /* while at it strip comma */
+      end
+      'locate :' || RESET
+      L = C - X.0                ;  U = L 'unused colours removed,'
+      if L = 0 then  U = ''      ;  U = U 'image converted to XPM'
+      say strip( U || ( 3 - XPM3 ))
+   end
+   else  do
+      'locate :' || RESET
+      L = C - X.0                ;  U = L 'unused colours removed,'
+      if L = 0 then  U = ''      ;  U = U 'XPM' || ( 2 + XPM3 )
+      say strip( U 'input trimmed' )
+   end
+   exit 0
+
+TOP:  procedure      /* 0: XPM2, 1: XPM3, or exit for XPM3 errors */
+   'locate :' arg( 1 ) 'cl :1'   ;  if TOP2()   then  return 0
+   'extract /STREAM/STAY/WRAP/'  ;  'stream on'
+   'stay on'                     ;  'wrap off'
+   'nomsg cl' delimit( '{' )           /* locate next opening '{' */
+   if rc <> 0  then  'nomsg cl -' delimit( '{' )
+   if rc =  0  then  return TOP3( 1, STREAM.1, STAY.1, WRAP.1 )
+   'nomsg tfind - /!/'                 /* locate !-line backward  */
+   if rc <> 0  then  'nomsg tfind /!/' /* locate !-line forward   */
+   if rc =  0  then  rc = 1 - TOP2()   /* rc = 0 for !XPM2 lines  */
+   if rc =  0  then  return TOP3( 0, STREAM.1, STAY.1, WRAP.1 )
+
+   exit TOP3( 0, STREAM.1, STAY.1, WRAP.1 ) + ERR()
+
+TOP2: procedure      /* match "!XPM2", "! xpm", etc.              */
+   parse upper value curline.3() with T 2 U .
+   return T = '!' & ( U = 'XPM2' | U = 'XPM' )
+
+TOP3: procedure      /* let first XPM3 string start in column one */
+   parse arg XPM3, STREAM.1, STAY.1, WRAP.1
+   if XPM3  then  do
+      'stream off'               ;  'nomsg cl' delimit( '"' )
+      if rc = 0   then  'split'        /* align first XPM3 string */
+      do L = -1 to +1 by 2             /* try to find XPM-comment */
+         if abbrev( curline.3(), '/* XPM' )  then  leave
+         'locate' L                    /* -1: not found, check UP */
+      end                              /* +1: not found, go back  */
+   end
+   'stay' STAY.1                 ;  'stream' STREAM.1
+   'wrap' WRAP.1                 ;  return XPM3
+
+STR:  procedure      /* next XPM2 or XPM3 string value (or error) */
+   arg XPM3                      ;  NEXT = 1
+   if XPM3  then  NEXT = delimit( '"' )
+   'nomsg tfind' NEXT            ;  STR = curline.3()
+   if XPM3  then  do                    /* remove XPM3 delimiters */
+      if pos( '"', STR, 2 ) > 0  then  parse var STR 2 STR '"'
+                                 else  rc = max( 1, rc )
+   end
+   if rc <> 0  then  exit ERR( 'missing XPM2 line or XPM3 string' )
+   'refresh'                     ;  return STR
+
+SWAP: procedure      /* replace 1st SRC by DST on the actual line */
+   parse arg SRC, DST, OPT       ;  if SRC == DST  then  return 0
+   'extract /ARBCHAR/CASE/STAY/' ;  'arbchar off'
+   'case mixed respect respect'  ;  'stay on'
+   'nomsg change' delimit( SRC, DST ) OPT
+   R = rc                        ;  'arbchar' ARBCHAR.1
+   'case' CASE.1 CASE.2 CASE.3   ;  'stay' STAY.1
+   if R = 0 then  return 0       ;  else  exit ERR( lastmsg.1())
+
+FIX:  procedure      /* convert XPM3 string to XPM2 line, or v.v. */
+   'next'                        ;  S = curline.3()
+   if arg( 1 ) = 0   then  return '"' || S || '",'
+   parse var S T 2 S '"'
+   do while T <> '"'                   /* delete XPM3 comments... */
+      'del'                      ;  S = curline.3()
+      parse var S T 2 S '"'            /* ...unquote XPM3 strings */
+   end
+   return S                            /* return XPM2 format line */
+
+ENC:  procedure      /* use control codes for 1..64 (or 1..256 )  */
+   arg L, M
+   if M = 1 then  if 33 <= L  then  return d2c( L + 95 )
+                              else  return d2c( L - 1 )
+   X = x2c( 207FA0FF )                 /* protect US-ASCII VCHAR  */
+   if M = 2 then  do M = 1 to 4
+      if L <= 64  then  return substr( X, M, 1 ) || ENC( L, 1 )
+      L = L - 64
+   end
+   exit ERR( 'macro logic failure' )
+
+ERR:  return ERR2( arg( 1 ), sigl )    /* add calling line number */
+ERR2: procedure      /* report error for an unexpected XPM format */
+   parse arg MSG, SRC            ;  SRC = '(macro line' SRC || ')'
+   if MSG <> ''   then  'emsg XPM input error:' MSG  SRC
+                  else  'emsg unexpected XPM format' SRC
+   return 1
+
+SGI:  procedure      /* check and trim 138 -> 39 SGI colour names */
+   arg NAME                            /* any GREY already mapped */
+   C.             = ''                 /* if no match return ''   */
+   C.SALMON       = '#C67171'          /* sgi salmon              */
+   C.CHARTREUSE   = '#71C671'          /* sgi chartreuse          */
+   C.SLATEBLUE    = '#7171C6'          /* sgi slate blue          */
+   C.TEAL         = '#388E8E'          /* sgi teal                */
+   C.BEET         = '#8E388E'          /* sgi beet            (?) */
+   C.OLIVEDRAB    = '#8E8E38'          /* sgi olive drab          */
+   C.LIGHTBLUE    = '#7D9EC0'          /* sgi light blue      (?) */
+   C.GRAY0        = '#000000'          /* sgi gray 0              */
+   C.GRAY4        = '#0A0A0A'          /* sgi gray 4              */
+   C.GRAY8        = '#141414'          /* sgi gray 8              */
+   C.GRAY12       = '#1E1E1E'          /* sgi gray 12             */
+   C.GRAY16       = '#282828'          /* sgi gray 16             */
+   C.VERYDARKGRAY = '#282828'          /* sgi very dark gray  (?) */
+   C.GRAY20       = '#333333'          /* sgi gray 20             */
+   C.GRAY24       = '#3D3D3D'          /* sgi gray 24             */
+   C.GRAY28       = '#474747'          /* sgi gray 28             */
+   C.GRAY32       = '#515151'          /* sgi gray 32             */
+   C.DARKGRAY     = '#555555'          /* sgi dark gray           */
+   C.GRAY36       = '#5B5B5B'          /* sgi gray 36             */
+   C.GRAY40       = '#666666'          /* sgi gray 40             */
+   C.GRAY44       = '#707070'          /* sgi gray 44             */
+   C.GRAY48       = '#7A7A7A'          /* sgi gray 48             */
+   C.GRAY52       = '#848484'          /* sgi gray 52             */
+   C.MEDIUMGRAY   = '#848484'          /* sgi medium gray     (?) */
+   C.GRAY56       = '#8E8E8E'          /* sgi gray 56             */
+   C.GRAY60       = '#999999'          /* sgi gray 60             */
+   C.GRAY64       = '#A3A3A3'          /* sgi gray 64             */
+   C.BRIGHTGRAY   = '#A3A3A3'          /* sgi bright gray     (?) */
+   C.LIGHTGRAY    = '#AAAAAA'          /* sgi light gray          */
+   C.GRAY68       = '#ADADAD'          /* sgi gray 68             */
+   C.GRAY72       = '#B7B7B7'          /* sgi gray 72             */
+   C.GRAY76       = '#C1C1C1'          /* sgi gray 76             */
+   C.GRAY80       = '#CCCCCC'          /* sgi gray 80             */
+   C.GRAY84       = '#D6D6D6'          /* sgi gray 84             */
+   C.VERYLIGHTGRAY= '#D6D6D6'          /* sgi very light gray (?) */
+   C.GRAY88       = '#E0E0E0'          /* sgi gray 88             */
+   C.GRAY92       = '#EAEAEA'          /* sgi gray 92             */
+   C.GRAY96       = '#F4F4F4'          /* sgi gray 96             */
+   C.GRAY100      = '#FFFFFF'          /* sgi gray 100            */
+   if abbrev( NAME, 'SGI' ) = 0  then  return ''
+   N = words( NAME )                   /* N words including 'SGI' */
+   NAME = strip( substr( NAME, 4 ))    /* strip tested SGI prefix */
+   if N <= 2   then  return C.NAME     /* return trimmed sgi name */
+   if 4 <= N   then  do                /* 5 words will not match: */
+      if word( NAME, 1 ) <> 'VERY'  then  return ''
+      if word( NAME, 3 ) <> 'GRAY'  then  return ''
+      NAME = space( NAME, 0 )    ;  return C.NAME
+   end                                 /* 4 words SGI VERY ? GRAY */
+   if wordpos( 'GRAY', NAME ) > 0   then  do
+      NAME = space( NAME, 0 )    ;  return C.NAME
+   end                                 /* SGI GRAY ? / SGI ? GRAY */
+   N = word( NAME, 2 )           ;  NAME = space( NAME, 0 )
+   if wordpos( N, 'BLUE DRAB' ) > 0 then  return C.NAME
+   return ''                           /* SGI ? BLUE / SGI ? DRAB */
+
+RGB:  procedure      /* translate any X11 colour names to #rrggbb */
+   arg NAME                      ;  N = pos( 'GREY', NAME )
+   if N > 0 then  NAME = overlay( 'GRAY', NAME, N )
+   if abbrev( NAME, 'SGI' )   then  do
+      P = SGI( NAME )            ;  if P <> ''  then  return P
+      exit ERR( 'invalid or unknown SGI colour:' arg( 1 ))
+   end                                 /* ----------------------- */
+   if abbrev( NAME, '#' )  then  do    /* check six rrggbb digits */
+      P = substr( NAME, 2 )      ;  L = length( P )
+      P = verify( P, '0123456789ABCDEF' )
+      if P = 0 & L = 6  then  return NAME
+                        else  exit ERR( 'bad RGB value:' arg( 1 ))
+   end                                 /* ----------------------- */
+   N = words( NAME )                   /* support multiword names */
+   if N = 3 then  do                   /* check first word of 18  */
+      P = word( NAME, 1 )              /* X11 names with 3 words: */
+      P = wordpos( P, 'DARK', 'DEEP', 'LIGHT', 'MEDIUM', 'PALE' )
+      N = N - ( P <> 0 )               /* treat N = 3 as invalid  */
+   end                                 /* digit in N > 1 not ok.: */
+   if N > 1 & verify( NAME, '0123456789', 'M' ) > 0  then  N = 999
+   if N > 2 then  exit ERR( 'invalid X11 colour name:' arg( 1 ))
+   NAME = space( NAME, 0 )             /* match concatenated NAME */
+   C.                = ''              /* ----------------------- */
+   C.NONE            = 'NONE'    ;  C.ALICEBLUE       = '#F0F8FF' ;
+   C.ANTIQUEWHITE    = '#FAEBD7' ;  C.ANTIQUEWHITE1   = '#FFEFDB' ;
+   C.ANTIQUEWHITE2   = '#EEDFCC' ;  C.ANTIQUEWHITE3   = '#CDC0B0' ;
+   C.ANTIQUEWHITE4   = '#8B8378' ;  C.AQUAMARINE      = '#7FFFD4' ;
+   C.AQUAMARINE1     = '#7FFFD4' ;  C.AQUAMARINE2     = '#76EEC6' ;
+   C.AQUAMARINE3     = '#66CDAA' ;  C.AQUAMARINE4     = '#458B74' ;
+   C.AZURE           = '#F0FFFF' ;  C.AZURE1          = '#F0FFFF' ;
+   C.AZURE2          = '#E0EEEE' ;  C.AZURE3          = '#C1CDCD' ;
+   C.AZURE4          = '#838B8B' ;  C.BEIGE           = '#F5F5DC' ;
+   C.BISQUE          = '#FFE4C4' ;  C.BISQUE1         = '#FFE4C4' ;
+   C.BISQUE2         = '#EED5B7' ;  C.BISQUE3         = '#CDB79E' ;
+   C.BISQUE4         = '#8B7D6B' ;  C.BLANCHEDALMOND  = '#FFEBCD' ;
+   C.BLUE            = '#0000FF' ;  C.BLUE1           = '#0000FF' ;
+   C.BLUE2           = '#0000EE' ;  C.BLUE3           = '#0000CD' ;
+   C.BLUE4           = '#00008B' ;  C.BLUEVIOLET      = '#8A2BE2' ;
+   C.BROWN           = '#A52A2A' ;  C.BROWN1          = '#FF4040' ;
+   C.BROWN2          = '#EE3B3B' ;  C.BROWN3          = '#CD3333' ;
+   C.BROWN4          = '#8B2323' ;  C.BURLYWOOD       = '#DEB887' ;
+   C.BURLYWOOD1      = '#FFD39B' ;  C.BURLYWOOD2      = '#EEC591' ;
+   C.BURLYWOOD3      = '#CDAA7D' ;  C.BURLYWOOD4      = '#8B7355' ;
+   C.CADETBLUE       = '#5F9EA0' ;  C.CADETBLUE1      = '#98F5FF' ;
+   C.CADETBLUE2      = '#8EE5EE' ;  C.CADETBLUE3      = '#7AC5CD' ;
+   C.CADETBLUE4      = '#53868B' ;  C.CHARTREUSE      = '#7FFF00' ;
+   C.CHARTREUSE1     = '#7FFF00' ;  C.CHARTREUSE2     = '#76EE00' ;
+   C.CHARTREUSE3     = '#66CD00' ;  C.CHARTREUSE4     = '#458B00' ;
+   C.CHOCOLATE       = '#D2691E' ;  C.CHOCOLATE1      = '#FF7F24' ;
+   C.CHOCOLATE2      = '#EE7621' ;  C.CHOCOLATE3      = '#CD661D' ;
+   C.CHOCOLATE4      = '#8B4513' ;  C.CORAL           = '#FF7F50' ;
+   C.CORAL1          = '#FF7256' ;  C.CORAL2          = '#EE6A50' ;
+   C.CORAL3          = '#CD5B45' ;  C.CORAL4          = '#8B3E2F' ;
+   C.CORNFLOWERBLUE  = '#6495ED' ;  C.CORNSILK        = '#FFF8DC' ;
+   C.CORNSILK1       = '#FFF8DC' ;  C.CORNSILK2       = '#EEE8CD' ;
+   C.CORNSILK3       = '#CDC8B1' ;  C.CORNSILK4       = '#8B8878' ;
+   C.CYAN            = '#00FFFF' ;  C.CYAN1           = '#00FFFF' ;
+   C.CYAN2           = '#00EEEE' ;  C.CYAN3           = '#00CDCD' ;
+   C.CYAN4           = '#008B8B' ;  C.DARKBLUE        = '#00008B' ;
+   C.DARKCYAN        = '#008B8B' ;  C.DARKGOLDENROD   = '#B8860B' ;
+   C.DARKGOLDENROD1  = '#FFB90F' ;  C.DARKGOLDENROD2  = '#EEAD0E' ;
+   C.DARKGOLDENROD3  = '#CD950C' ;  C.DARKGOLDENROD4  = '#8B6508' ;
+   C.DARKGREEN       = '#006400' ;  C.DARKKHAKI       = '#BDB76B' ;
+   C.DARKMAGENTA     = '#8B008B' ;  C.DARKOLIVEGREEN  = '#556B2F' ;
+   C.DARKOLIVEGREEN1 = '#CAFF70' ;  C.DARKOLIVEGREEN2 = '#BCEE68' ;
+   C.DARKOLIVEGREEN3 = '#A2CD5A' ;  C.DARKOLIVEGREEN4 = '#6E8B3D' ;
+   C.DARKORANGE      = '#FF8C00' ;  C.DARKORANGE1     = '#FF7F00' ;
+   C.DARKORANGE2     = '#EE7600' ;  C.DARKORANGE3     = '#CD6600' ;
+   C.DARKORANGE4     = '#8B4500' ;  C.DARKORCHID      = '#9932CC' ;
+   C.DARKORCHID1     = '#BF3EFF' ;  C.DARKORCHID2     = '#B23AEE' ;
+   C.DARKORCHID3     = '#9A32CD' ;  C.DARKORCHID4     = '#68228B' ;
+   C.DARKRED         = '#8B0000' ;  C.DARKSALMON      = '#E9967A' ;
+   C.DARKSEAGREEN    = '#8FBC8F' ;  C.DARKSEAGREEN1   = '#C1FFC1' ;
+   C.DARKSEAGREEN2   = '#B4EEB4' ;  C.DARKSEAGREEN3   = '#9BCD9B' ;
+   C.DARKSEAGREEN4   = '#698B69' ;  C.DARKSLATEBLUE   = '#483D8B' ;
+   C.DARKTURQUOISE   = '#00CED1' ;  C.DARKVIOLET      = '#9400D3' ;
+   if C.NAME = '' then  C. = ''  ;  else  return C.NAME
+   C.DEEPPINK        = '#FF1493' ;  C.DEEPPINK1       = '#FF1493' ;
+   C.DEEPPINK2       = '#EE1289' ;  C.DEEPPINK3       = '#CD1076' ;
+   C.DEEPPINK4       = '#8B0A50' ;  C.DEEPSKYBLUE     = '#00BFFF' ;
+   C.DEEPSKYBLUE1    = '#00BFFF' ;  C.DEEPSKYBLUE2    = '#00B2EE' ;
+   C.DEEPSKYBLUE3    = '#009ACD' ;  C.DEEPSKYBLUE4    = '#00688B' ;
+   C.DODGERBLUE      = '#1E90FF' ;  C.DODGERBLUE1     = '#1E90FF' ;
+   C.DODGERBLUE2     = '#1C86EE' ;  C.DODGERBLUE3     = '#1874CD' ;
+   C.DODGERBLUE4     = '#104E8B' ;  C.FIREBRICK       = '#B22222' ;
+   C.FIREBRICK1      = '#FF3030' ;  C.FIREBRICK2      = '#EE2C2C' ;
+   C.FIREBRICK3      = '#CD2626' ;  C.FIREBRICK4      = '#8B1A1A' ;
+   C.FLORALWHITE     = '#FFFAF0' ;  C.FORESTGREEN     = '#228B22' ;
+   C.GAINSBORO       = '#DCDCDC' ;  C.GHOSTWHITE      = '#F8F8FF' ;
+   C.GOLD            = '#FFD700' ;  C.GOLD1           = '#FFD700' ;
+   C.GOLD2           = '#EEC900' ;  C.GOLD3           = '#CDAD00' ;
+   C.GOLD4           = '#8B7500' ;  C.GOLDENROD       = '#DAA520' ;
+   C.GOLDENROD1      = '#FFC125' ;  C.GOLDENROD2      = '#EEB422' ;
+   C.GOLDENROD3      = '#CD9B1D' ;  C.GOLDENROD4      = '#8B6914' ;
+   C.GREEN           = '#00FF00' ;  C.GREEN1          = '#00FF00' ;
+   C.GREEN2          = '#00EE00' ;  C.GREEN3          = '#00CD00' ;
+   C.GREEN4          = '#008B00' ;  C.GREENYELLOW     = '#ADFF2F' ;
+   C.HONEYDEW        = '#F0FFF0' ;  C.HONEYDEW1       = '#F0FFF0' ;
+   C.HONEYDEW2       = '#E0EEE0' ;  C.HONEYDEW3       = '#C1CDC1' ;
+   C.HONEYDEW4       = '#838B83' ;  C.HOTPINK         = '#FF69B4' ;
+   C.HOTPINK1        = '#FF6EB4' ;  C.HOTPINK2        = '#EE6AA7' ;
+   C.HOTPINK3        = '#CD6090' ;  C.HOTPINK4        = '#8B3A62' ;
+   C.INDIANRED       = '#CD5C5C' ;  C.INDIANRED1      = '#FF6A6A' ;
+   C.INDIANRED2      = '#EE6363' ;  C.INDIANRED3      = '#CD5555' ;
+   C.INDIANRED4      = '#8B3A3A' ;  C.IVORY           = '#FFFFF0' ;
+   C.IVORY1          = '#FFFFF0' ;  C.IVORY2          = '#EEEEE0' ;
+   C.IVORY3          = '#CDCDC1' ;  C.IVORY4          = '#8B8B83' ;
+   C.KHAKI           = '#F0E68C' ;  C.KHAKI1          = '#FFF68F' ;
+   C.KHAKI2          = '#EEE685' ;  C.KHAKI3          = '#CDC673' ;
+   C.KHAKI4          = '#8B864E' ;  C.LAVENDER        = '#E6E6FA' ;
+   C.LAVENDERBLUSH   = '#FFF0F5' ;  C.LAVENDERBLUSH1  = '#FFF0F5' ;
+   C.LAVENDERBLUSH2  = '#EEE0E5' ;  C.LAVENDERBLUSH3  = '#CDC1C5' ;
+   C.LAVENDERBLUSH4  = '#8B8386' ;  C.LAWNGREEN       = '#7CFC00' ;
+   C.LEMONCHIFFON    = '#FFFACD' ;  C.LEMONCHIFFON1   = '#FFFACD' ;
+   C.LEMONCHIFFON2   = '#EEE9BF' ;  C.LEMONCHIFFON3   = '#CDC9A5' ;
+   C.LEMONCHIFFON4   = '#8B8970' ;  C.LIGHTBLUE       = '#ADD8E6' ;
+   C.LIGHTBLUE1      = '#BFEFFF' ;  C.LIGHTBLUE2      = '#B2DFEE' ;
+   C.LIGHTBLUE3      = '#9AC0CD' ;  C.LIGHTBLUE4      = '#68838B' ;
+   C.LIGHTCORAL      = '#F08080' ;  C.LIGHTCYAN       = '#E0FFFF' ;
+   C.LIGHTCYAN1      = '#E0FFFF' ;  C.LIGHTCYAN2      = '#D1EEEE' ;
+   C.LIGHTCYAN3      = '#B4CDCD' ;  C.LIGHTCYAN4      = '#7A8B8B' ;
+   C.LIGHTGOLDENROD  = '#EEDD82' ;  C.LIGHTGOLDENROD1 = '#FFEC8B' ;
+   C.LIGHTGOLDENROD2 = '#EEDC82' ;  C.LIGHTGOLDENROD3 = '#CDBE70' ;
+   C.LIGHTGOLDENROD4 = '#8B814C' ;  C.LIGHTGREEN      = '#90EE90' ;
+   C.LIGHTPINK       = '#FFB6C1' ;  C.LIGHTPINK1      = '#FFAEB9' ;
+   C.LIGHTPINK2      = '#EEA2AD' ;  C.LIGHTPINK3      = '#CD8C95' ;
+   C.LIGHTPINK4      = '#8B5F65' ;  C.LIGHTSALMON     = '#FFA07A' ;
+   C.LIGHTSALMON1    = '#FFA07A' ;  C.LIGHTSALMON2    = '#EE9572' ;
+   C.LIGHTSALMON3    = '#CD8162' ;  C.LIGHTSALMON4    = '#8B5742' ;
+   C.LIGHTSEAGREEN   = '#20B2AA' ;  C.LIGHTSKYBLUE    = '#87CEFA' ;
+   C.LIGHTSKYBLUE1   = '#B0E2FF' ;  C.LIGHTSKYBLUE2   = '#A4D3EE' ;
+   C.LIGHTSKYBLUE3   = '#8DB6CD' ;  C.LIGHTSKYBLUE4   = '#607B8B' ;
+   C.LIGHTSLATEBLUE  = '#8470FF' ;  C.LIGHTSTEELBLUE  = '#B0C4DE' ;
+   C.LIGHTSTEELBLUE1 = '#CAE1FF' ;  C.LIGHTSTEELBLUE2 = '#BCD2EE' ;
+   C.LIGHTSTEELBLUE3 = '#A2B5CD' ;  C.LIGHTSTEELBLUE4 = '#6E7B8B' ;
+   C.LIGHTYELLOW     = '#FFFFE0' ;  C.LIGHTYELLOW1    = '#FFFFE0' ;
+   C.LIGHTYELLOW2    = '#EEEED1' ;  C.LIGHTYELLOW3    = '#CDCDB4' ;
+   C.LIGHTYELLOW4    = '#8B8B7A' ;  C.LIMEGREEN       = '#32CD32' ;
+   C.LINEN           = '#FAF0E6' ;  C.MAGENTA         = '#FF00FF' ;
+   C.MAGENTA1        = '#FF00FF' ;  C.MAGENTA2        = '#EE00EE' ;
+   C.MAGENTA3        = '#CD00CD' ;  C.MAGENTA4        = '#8B008B' ;
+   C.MAROON          = '#B03060' ;  C.MAROON1         = '#FF34B3' ;
+   C.MAROON2         = '#EE30A7' ;  C.MAROON3         = '#CD2990' ;
+   C.MAROON4         = '#8B1C62' ;  C.MEDIUMBLUE      = '#0000CD' ;
+   C.MEDIUMORCHID    = '#BA55D3' ;  C.MEDIUMORCHID1   = '#E066FF' ;
+   C.MEDIUMORCHID2   = '#D15FEE' ;  C.MEDIUMORCHID3   = '#B452CD' ;
+   C.MEDIUMORCHID4   = '#7A378B' ;  C.MEDIUMPURPLE    = '#9370DB' ;
+   C.MEDIUMPURPLE1   = '#AB82FF' ;  C.MEDIUMPURPLE2   = '#9F79EE' ;
+   C.MEDIUMPURPLE3   = '#8968CD' ;  C.MEDIUMPURPLE4   = '#5D478B' ;
+   C.MEDIUMSEAGREEN  = '#3CB371' ;  C.MEDIUMSLATEBLUE = '#7B68EE' ;
+   C.MEDIUMTURQUOISE = '#48D1CC' ;  C.MEDIUMVIOLETRED = '#C71585' ;
+   if C.NAME = '' then  C. = ''  ;  else  return C.NAME
+   C.MIDNIGHTBLUE    = '#191970' ;  C.MINTCREAM       = '#F5FFFA' ;
+   C.MISTYROSE       = '#FFE4E1' ;  C.MISTYROSE1      = '#FFE4E1' ;
+   C.MISTYROSE2      = '#EED5D2' ;  C.MISTYROSE3      = '#CDB7B5' ;
+   C.MISTYROSE4      = '#8B7D7B' ;  C.MOCCASIN        = '#FFE4B5' ;
+   C.NAVAJOWHITE     = '#FFDEAD' ;  C.NAVAJOWHITE1    = '#FFDEAD' ;
+   C.NAVAJOWHITE2    = '#EECFA1' ;  C.NAVAJOWHITE3    = '#CDB38B' ;
+   C.NAVAJOWHITE4    = '#8B795E' ;  C.NAVY            = '#000080' ;
+   C.NAVYBLUE        = '#000080' ;  C.OLDLACE         = '#FDF5E6' ;
+   C.OLIVEDRAB       = '#6B8E23' ;  C.OLIVEDRAB1      = '#C0FF3E' ;
+   C.OLIVEDRAB2      = '#B3EE3A' ;  C.OLIVEDRAB3      = '#9ACD32' ;
+   C.OLIVEDRAB4      = '#698B22' ;  C.ORANGE          = '#FFA500' ;
+   C.ORANGE1         = '#FFA500' ;  C.ORANGE2         = '#EE9A00' ;
+   C.ORANGE3         = '#CD8500' ;  C.ORANGE4         = '#8B5A00' ;
+   C.ORANGERED       = '#FF4500' ;  C.ORANGERED1      = '#FF4500' ;
+   C.ORANGERED2      = '#EE4000' ;  C.ORANGERED3      = '#CD3700' ;
+   C.ORANGERED4      = '#8B2500' ;  C.ORCHID          = '#DA70D6' ;
+   C.ORCHID1         = '#FF83FA' ;  C.ORCHID2         = '#EE7AE9' ;
+   C.ORCHID3         = '#CD69C9' ;  C.ORCHID4         = '#8B4789' ;
+   C.PALEGOLDENROD   = '#EEE8AA' ;  C.PALEGREEN       = '#98FB98' ;
+   C.PALEGREEN1      = '#9AFF9A' ;  C.PALEGREEN2      = '#90EE90' ;
+   C.PALEGREEN3      = '#7CCD7C' ;  C.PALEGREEN4      = '#548B54' ;
+   C.PALETURQUOISE   = '#AFEEEE' ;  C.PALETURQUOISE1  = '#BBFFFF' ;
+   C.PALETURQUOISE2  = '#AEEEEE' ;  C.PALETURQUOISE3  = '#96CDCD' ;
+   C.PALETURQUOISE4  = '#668B8B' ;  C.PALEVIOLETRED   = '#DB7093' ;
+   C.PALEVIOLETRED1  = '#FF82AB' ;  C.PALEVIOLETRED2  = '#EE799F' ;
+   C.PALEVIOLETRED3  = '#CD6889' ;  C.PALEVIOLETRED4  = '#8B475D' ;
+   C.PAPAYAWHIP      = '#FFEFD5' ;  C.PEACHPUFF       = '#FFDAB9' ;
+   C.PEACHPUFF1      = '#FFDAB9' ;  C.PEACHPUFF2      = '#EECBAD' ;
+   C.PEACHPUFF3      = '#CDAF95' ;  C.PEACHPUFF4      = '#8B7765' ;
+   C.PERU            = '#CD853F' ;  C.PINK            = '#FFC0CB' ;
+   C.PINK1           = '#FFB5C5' ;  C.PINK2           = '#EEA9B8' ;
+   C.PINK3           = '#CD919E' ;  C.PINK4           = '#8B636C' ;
+   C.PLUM            = '#DDA0DD' ;  C.PLUM1           = '#FFBBFF' ;
+   C.PLUM2           = '#EEAEEE' ;  C.PLUM3           = '#CD96CD' ;
+   C.PLUM4           = '#8B668B' ;  C.POWDERBLUE      = '#B0E0E6' ;
+   C.PURPLE          = '#A020F0' ;  C.PURPLE1         = '#9B30FF' ;
+   C.PURPLE2         = '#912CEE' ;  C.PURPLE3         = '#7D26CD' ;
+   C.PURPLE4         = '#551A8B' ;  C.RED             = '#FF0000' ;
+   C.RED1            = '#FF0000' ;  C.RED2            = '#EE0000' ;
+   C.RED3            = '#CD0000' ;  C.RED4            = '#8B0000' ;
+   C.ROSYBROWN       = '#BC8F8F' ;  C.ROSYBROWN1      = '#FFC1C1' ;
+   C.ROSYBROWN2      = '#EEB4B4' ;  C.ROSYBROWN3      = '#CD9B9B' ;
+   C.ROSYBROWN4      = '#8B6969' ;  C.ROYALBLUE       = '#4169E1' ;
+   C.ROYALBLUE1      = '#4876FF' ;  C.ROYALBLUE2      = '#436EEE' ;
+   C.ROYALBLUE3      = '#3A5FCD' ;  C.ROYALBLUE4      = '#27408B' ;
+   C.SADDLEBROWN     = '#8B4513' ;  C.SALMON          = '#FA8072' ;
+   C.SALMON1         = '#FF8C69' ;  C.SALMON2         = '#EE8262' ;
+   C.SALMON3         = '#CD7054' ;  C.SALMON4         = '#8B4C39' ;
+   C.SANDYBROWN      = '#F4A460' ;  C.SEAGREEN        = '#2E8B57' ;
+   C.SEAGREEN1       = '#54FF9F' ;  C.SEAGREEN2       = '#4EEE94' ;
+   C.SEAGREEN3       = '#43CD80' ;  C.SEAGREEN4       = '#2E8B57' ;
+   C.SEASHELL        = '#FFF5EE' ;  C.SEASHELL1       = '#FFF5EE' ;
+   C.SEASHELL2       = '#EEE5DE' ;  C.SEASHELL3       = '#CDC5BF' ;
+   C.SEASHELL4       = '#8B8682' ;  C.SIENNA          = '#A0522D' ;
+   C.SIENNA1         = '#FF8247' ;  C.SIENNA2         = '#EE7942' ;
+   C.SIENNA3         = '#CD6839' ;  C.SIENNA4         = '#8B4726' ;
+   C.SKYBLUE         = '#87CEEB' ;  C.SKYBLUE1        = '#87CEFF' ;
+   C.SKYBLUE2        = '#7EC0EE' ;  C.SKYBLUE3        = '#6CA6CD' ;
+   C.SKYBLUE4        = '#4A708B' ;  C.SLATEBLUE       = '#6A5ACD' ;
+   C.SLATEBLUE1      = '#836FFF' ;  C.SLATEBLUE2      = '#7A67EE' ;
+   C.SLATEBLUE3      = '#6959CD' ;  C.SLATEBLUE4      = '#473C8B' ;
+   C.SNOW            = '#FFFAFA' ;  C.SNOW1           = '#FFFAFA' ;
+   C.SNOW2           = '#EEE9E9' ;  C.SNOW3           = '#CDC9C9' ;
+   C.SNOW4           = '#8B8989' ;  C.SPRINGGREEN     = '#00FF7F' ;
+   C.SPRINGGREEN1    = '#00FF7F' ;  C.SPRINGGREEN2    = '#00EE76' ;
+   C.SPRINGGREEN3    = '#00CD66' ;  C.SPRINGGREEN4    = '#008B45' ;
+   C.STEELBLUE       = '#4682B4' ;  C.STEELBLUE1      = '#63B8FF' ;
+   C.STEELBLUE2      = '#5CACEE' ;  C.STEELBLUE3      = '#4F94CD' ;
+   C.STEELBLUE4      = '#36648B' ;  C.TAN             = '#D2B48C' ;
+   C.TAN1            = '#FFA54F' ;  C.TAN2            = '#EE9A49' ;
+   C.TAN3            = '#CD853F' ;  C.TAN4            = '#8B5A2B' ;
+   C.THISTLE         = '#D8BFD8' ;  C.THISTLE1        = '#FFE1FF' ;
+   C.THISTLE2        = '#EED2EE' ;  C.THISTLE3        = '#CDB5CD' ;
+   C.THISTLE4        = '#8B7B8B' ;  C.TOMATO          = '#FF6347' ;
+   C.TOMATO1         = '#FF6347' ;  C.TOMATO2         = '#EE5C42' ;
+   C.TOMATO3         = '#CD4F39' ;  C.TOMATO4         = '#8B3626' ;
+   C.TURQUOISE       = '#40E0D0' ;  C.TURQUOISE1      = '#00F5FF' ;
+   C.TURQUOISE2      = '#00E5EE' ;  C.TURQUOISE3      = '#00C5CD' ;
+   C.TURQUOISE4      = '#00868B' ;  C.VIOLET          = '#EE82EE' ;
+   C.VIOLETRED       = '#D02090' ;  C.VIOLETRED1      = '#FF3E96' ;
+   C.VIOLETRED2      = '#EE3A8C' ;  C.VIOLETRED3      = '#CD3278' ;
+   C.VIOLETRED4      = '#8B2252' ;  C.WHEAT           = '#F5DEB3' ;
+   C.WHEAT1          = '#FFE7BA' ;  C.WHEAT2          = '#EED8AE' ;
+   C.WHEAT3          = '#CDBA96' ;  C.WHEAT4          = '#8B7E66' ;
+   C.WHITESMOKE      = '#F5F5F5' ;  C.YELLOW          = '#FFFF00' ;
+   C.YELLOW1         = '#FFFF00' ;  C.YELLOW2         = '#EEEE00' ;
+   C.YELLOW3         = '#CDCD00' ;  C.YELLOW4         = '#8B8B00' ;
+   C.YELLOWGREEN     = '#9ACD32' ;
+   C.LIGHTGOLDENRODYELLOW  = '#FAFAD2'
+   C.MEDIUMAQUAMARINE      = '#66CDAA'
+   C.MEDIUMSPRINGGREEN     = '#00FA9A'
+   if C.NAME = '' then  C. = ''  ;  else  return C.NAME
+   C.BLACK           = '#000000' ;  C.GRAY0           = '#000000' ;
+   C.GRAY1           = '#030303' ;  C.GRAY2           = '#050505' ;
+   C.GRAY3           = '#080808' ;  C.GRAY4           = '#0A0A0A' ;
+   C.GRAY5           = '#0D0D0D' ;  C.GRAY6           = '#0F0F0F' ;
+   C.GRAY7           = '#121212' ;  C.GRAY8           = '#141414' ;
+   C.GRAY9           = '#171717' ;  C.GRAY10          = '#1A1A1A' ;
+   C.GRAY11          = '#1C1C1C' ;  C.GRAY12          = '#1F1F1F' ;
+   C.GRAY13          = '#212121' ;  C.GRAY14          = '#242424' ;
+   C.GRAY15          = '#262626' ;  C.GRAY16          = '#292929' ;
+   C.GRAY17          = '#2B2B2B' ;  C.GRAY18          = '#2E2E2E' ;
+   C.GRAY19          = '#303030' ;  C.GRAY20          = '#333333' ;
+   C.GRAY21          = '#363636' ;  C.GRAY22          = '#383838' ;
+   C.GRAY23          = '#3B3B3B' ;  C.GRAY24          = '#3D3D3D' ;
+   C.GRAY25          = '#404040' ;  C.GRAY26          = '#424242' ;
+   C.GRAY27          = '#454545' ;  C.GRAY28          = '#474747' ;
+   C.GRAY29          = '#4A4A4A' ;  C.GRAY30          = '#4D4D4D' ;
+   C.GRAY31          = '#4F4F4F' ;  C.GRAY32          = '#525252' ;
+   C.GRAY33          = '#545454' ;  C.GRAY34          = '#575757' ;
+   C.GRAY35          = '#595959' ;  C.GRAY36          = '#5C5C5C' ;
+   C.GRAY37          = '#5E5E5E' ;  C.GRAY38          = '#616161' ;
+   C.GRAY39          = '#636363' ;  C.GRAY40          = '#666666' ;
+   C.GRAY41          = '#696969' ;  C.GRAY42          = '#6B6B6B' ;
+   C.GRAY43          = '#6E6E6E' ;  C.GRAY44          = '#707070' ;
+   C.GRAY45          = '#737373' ;  C.GRAY46          = '#757575' ;
+   C.GRAY47          = '#787878' ;  C.GRAY48          = '#7A7A7A' ;
+   C.GRAY49          = '#7D7D7D' ;  C.GRAY50          = '#7F7F7F' ;
+   C.GRAY51          = '#828282' ;  C.GRAY52          = '#858585' ;
+   C.GRAY53          = '#878787' ;  C.GRAY54          = '#8A8A8A' ;
+   C.GRAY55          = '#8C8C8C' ;  C.GRAY56          = '#8F8F8F' ;
+   C.GRAY57          = '#919191' ;  C.GRAY58          = '#949494' ;
+   C.GRAY59          = '#969696' ;  C.GRAY60          = '#999999' ;
+   C.GRAY61          = '#9C9C9C' ;  C.GRAY62          = '#9E9E9E' ;
+   C.GRAY63          = '#A1A1A1' ;  C.GRAY64          = '#A3A3A3' ;
+   C.GRAY65          = '#A6A6A6' ;  C.GRAY66          = '#A8A8A8' ;
+   C.GRAY67          = '#ABABAB' ;  C.GRAY68          = '#ADADAD' ;
+   C.GRAY69          = '#B0B0B0' ;  C.GRAY70          = '#B3B3B3' ;
+   C.GRAY71          = '#B5B5B5' ;  C.GRAY72          = '#B8B8B8' ;
+   C.GRAY73          = '#BABABA' ;  C.GRAY74          = '#BDBDBD' ;
+   C.GRAY            = '#BEBEBE' ;  C.GRAY75          = '#BFBFBF' ;
+   C.GRAY76          = '#C2C2C2' ;  C.GRAY77          = '#C4C4C4' ;
+   C.GRAY78          = '#C7C7C7' ;  C.GRAY79          = '#C9C9C9' ;
+   C.GRAY80          = '#CCCCCC' ;  C.GRAY81          = '#CFCFCF' ;
+   C.GRAY82          = '#D1D1D1' ;  C.GRAY83          = '#D4D4D4' ;
+   C.GRAY84          = '#D6D6D6' ;  C.GRAY85          = '#D9D9D9' ;
+   C.GRAY86          = '#DBDBDB' ;  C.GRAY87          = '#DEDEDE' ;
+   C.GRAY88          = '#E0E0E0' ;  C.GRAY89          = '#E3E3E3' ;
+   C.GRAY90          = '#E5E5E5' ;  C.GRAY91          = '#E8E8E8' ;
+   C.GRAY92          = '#EBEBEB' ;  C.GRAY93          = '#EDEDED' ;
+   C.GRAY94          = '#F0F0F0' ;  C.GRAY95          = '#F2F2F2' ;
+   C.GRAY96          = '#F5F5F5' ;  C.GRAY97          = '#F7F7F7' ;
+   C.GRAY98          = '#FAFAFA' ;  C.GRAY99          = '#FCFCFC' ;
+   C.GRAY100         = '#FFFFFF' ;  C.WHITE           = '#FFFFFF' ;
+   C.DARKGRAY        = '#A9A9A9' ;  C.DARKSLATEGRAY   = '#2F4F4F' ;
+   C.DARKSLATEGRAY1  = '#97FFFF' ;  C.DARKSLATEGRAY2  = '#8DEEEE' ;
+   C.DARKSLATEGRAY3  = '#79CDCD' ;  C.DARKSLATEGRAY4  = '#528B8B' ;
+   C.DIMGRAY         = '#696969' ;  C.LIGHTGRAY       = '#D3D3D3' ;
+   C.LIGHTSLATEGRAY  = '#778899' ;  C.SLATEGRAY       = '#708090' ;
+   C.SLATEGRAY1      = '#C6E2FF' ;  C.SLATEGRAY2      = '#B9D3EE' ;
+   C.SLATEGRAY3      = '#9FB6CD' ;  C.SLATEGRAY4      = '#6C7B8B' ;
+   if C.NAME = '' then  C. = ''  ;  else  return C.NAME
+   exit ERR( 'invalid or unknown X11 colour:' arg( 1 ))

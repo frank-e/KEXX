@@ -1,0 +1,42 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] QX [file]                               */
+/* Example:       QX                                              */
+/* Purpose:       QQuit current file and Xedit new file, or just  */
+/*                reload current file, combining the functions of */
+/*                SAMPLES\RELOAD.KEX with SAMPLES\XQ.KEX:         */
+/*                MACRO QX (= RELOAD) shows relevant GET-settings */
+/*                like TABSIN after setting TABSIN OFF.           */
+/*                MACRO QX file (= XQ) uses QQuit instead of QUIT */
+/*                and does not delete old lines (to free memory). */
+/*                Kedit 5.0 OS/2 HPFS file names are supported.   */
+/* History:       MACRO QX updated 2010 now (tries to) preserve   */
+/*                the current line, e.g., the focus in a modified */
+/*                compiler listing or similar files.              */
+/* Requires:      Kedit 5.0 or Keditw 1.0 (Frank Ellermann, 1998) */
+
+
+   OLD = fileid.1()
+
+   if arg() > 0 then do /* ----------- simplified XQ: ----------- */
+      NEW = strip( strip( strip( arg( 1 )),, '"' ))
+
+      'xedit "' || NEW || '"' ;  if OLD = fileid.1() then exit rc
+      'xedit "' || OLD || '" (new nodefext)'       ;  'qquit'
+      'xedit "' || NEW || '"'                      ;  exit rc
+   end                  /* ----------- simplified RELOAD: ------- */
+
+   'extract /TABSIN/LINE/'                         ;  'tabsin OFF'
+   'range -* +*'  ;  'locate :0 all'         /* complete OLD file */
+   'set alt 0 0'  ;  'del ALL'               /* cheat AUTOSAVE 2  */
+   'set alt 0 0'  ;  'nomsg get "' || OLD || '"'   ;  GRC = rc
+   MSG = 'tabsin' tabsin.1() tabsin.2()      /* show what GET did */
+   'tabsin' TABSIN.1 TABSIN.2                /* reset user TABSIN */
+   if GRC <> 0 then  do                      /* let user try UNDO */
+      'emsg' lastmsg.1()                           ;  exit GRC
+   end
+
+   'set alt 0 0'  ;  'lineflag nonew nochange ALL' ;  ':' LINE.1
+   MSG = MSG ' eofin' eofin.1() ' eolin' eolin.1() ;  'refresh'
+   'msg' MSG ' lrecl' lrecl.1() recfm.1() ' trailing' trailing.1()
+   exit 0

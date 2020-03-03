@@ -1,0 +1,75 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] EX commands                             */
+/* Or:            KEDIT file (PROF EX options) commands           */
+/* Example:       EX x                             => command x   */
+/*                EX x ; y ; z                     => 3 commands  */
+/*                EX ren =.= =.old; ff =.old       => similar to  */
+/*                   IMM 'ren =.= =.old'; 'ff =.old'              */
+/* Purpose:       Macro EX temporarily sets 'LINEND ON ;' before  */
+/*                executing its arguments.  Unlike IMMediate the  */
+/*                arguments are not (KEXX-) INTREPRETed and must  */
+/*                not be quoted.                                  */
+/*                Macro EX can also bypass 'SET LINEND ON #' for  */
+/*                a character "#" that is no semicolon, example:  */
+/*                   LINEND ON #                                  */
+/*                   MACRO EX INPUT # line                        */
+/* Profile:       As profile EX can be used in one-liner scripts, */
+/*                e.g., change line ends in a file with Kedit 5:  */
+/*                   KEDIT file (PROF EX) EOLOUT LF ; FF          */
+/*                   KEDIT file (PROF EX) EOLOUT CRLF ; FF        */
+/*                A simple use case is to show an initial message */
+/*                for a loaded file:                              */
+/*                   KEDIT file (PROF EX) MSG hello world         */
+/*                Compilers often report the line and column of   */
+/*                the first error, this can be handled by EX.KEX: */
+/*                   KEDIT file (PROF EX) L :123 CL :4 ; CURSOR C */
+/*                As profile EX first executes the defprofile.1() */
+/*                to establish all default profile settings.  If  */
+/*                this fails EX terminates without executing any  */
+/*                specified command(s).                           */
+/* REXX example:  A REXX script runs a given command with STDOUT  */
+/*                and STDERR redirected into a scratch file shown */
+/*                by Kedit, and PROF EX displays the return code: */
+/*                   address CMD arg( 1 ) '> EX.TMP 2>&1'         */
+/*                   R = arg( 1 ) 'return code' rc                */
+/*                   address CMD 'kedit' EX.TMP '(prof EX) msg' R */
+/* Commands:      All commands are executed as if entered on the  */
+/*                command line.  Commands valid only if executed  */
+/*                in a macro including ALERT, DIALOG, some forms  */
+/*                of EDITV, EXTRACT, POPUP, and READV yield rc -3 */
+/*                error 53 if executed on the command line, e.g., */
+/*                   MACRO EX BOTTOM ; READV KEY ; TOP            */
+/*                SOS EX honours synonyms, unless SYNONYM OFF is  */
+/*                in effect or a command x is given as COMMAND x. */
+/* Caveats:       The default LINEND is 'SET LINEND OFF #', and   */
+/*                the default ARBCHARs are ARBCHAR OFF $ ?.  For  */
+/*                an explicitly 'SET LINEND ON ;' or for ARBCHARs */
+/*                using ";" macro EX might not work as expected.  */
+/*                EX.KEX cannot handle file names containing '('  */
+/*                when used as a profile.                         */
+/* See also:      KHELP SOS EXecute, KHELP LINENd, KHELP PROFile, */
+/*                KHELP DEFPROFile, KHELP ARBchar, KHELP SYNonym, */
+/*                KHELP COMMAND, KHELP UNIQUEID (for KeditW 1.0). */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   EX = arg( 1 )                          /* respects REPROF OFF: */
+   if initial() | ( reprofile.1() = 'ON' & profile()) then  do
+      'macro' defprof.1() EX           ;  if rc <> 0  then  exit rc
+      parse var EX . '(' . ')' EX      ;  'refresh'
+   end                                    /* -------------------- */
+
+   if EX = ''  then  exit 4            ;  ID = GETVIEW()
+   'extract /LINEND/'                  ;  'linend on ;'
+   'cmsg' strip( EX )                  ;  'sos ex'
+
+   do ring.0()                            /* try to reset LINEND  */
+      if ID = GETVIEW() then  'linend' LINEND.1 LINEND.2
+      'x'                                 /* visit all ring files */
+   end                                    /* -------------------- */
+   if ring.0() > 0            then  exit lastrc.1()
+   if version.1() = 'KEDIT'   then  exit sysrc.1()
+                              else  exit rc
+
+GETVIEW: if version.1() <> 'KEDIT'  then  return uniqueid.2()
+   /* (KEDIT 5) match all views: */ else  return efileid.1()

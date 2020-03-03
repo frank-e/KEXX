@@ -1,0 +1,25 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         DEFine macro C-S 'macro C-SHADOW'               */
+/* Purpose:       This macro is used internally by INITIAL.KML to */
+/*                minimize the macrospace size (DOS KEDIT 5 ISA). */
+/* C-S mnemonic:  C-Shadow: S+1 above, S-1 below, or S (all) in   */
+/*                shadow lines.  C-Shadow uses 'lprefix S'.       */
+/* See also:      KHELP LPREFIX                                   */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2010) */
+
+   parse source . . THIS
+   if shadow() then do
+      'lprefix S' || arg(1) ; if arg() then 'sos makecurr' ; exit 1
+   end
+   if arg() then exit 0
+   'sos save' ; if command() then 'sos current'
+   if shadow.1() = 'OFF' then 'shadow ON'
+   if tof() = 0 &    topedge() = 0 then do
+      'sos cu' ; 'macro' THIS '-1' ; if rc = 1 then exit ; 'sos cd'
+   end
+   if eof() = 0 & bottomedge() = 0 then do
+      'sos cd' ; 'macro' THIS '+1' ; if rc = 1 then exit ; 'sos cu'
+   end
+   'sos restore errorbeep'
+   say 'cursor is not in or next to a visible shadow line'

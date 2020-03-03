@@ -1,0 +1,18 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         DEFine macro A-V 'macro A-VIEW'                 */
+/* Purpose:       This macro is used internally by INITIAL.KML to */
+/*                minimize the macrospace size (DOS KEDIT 5 ISA). */
+/* A-V mnemonic:  A-View any block, then jump from end to end of  */
+/*                block.  A-V handles a missing BLOCK like A-F by */
+/*                a dummy FILLbox to show the relevant error.     */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2010) */
+
+   if block.1() = 'NONE' then do ; 'fill' ; exit rc ; end
+   if block() = 0 then 'x "' || block.6() || '"(nodefext)'
+   'extract /ZONE/'  ;  'zone 1 *'
+   if inblock() = 0 then 'sos current'
+   if line.1() = block.2() & column.1() = block.3()
+      then 'sos rightedge blockend'
+      else 'sos firstcol  blockstart'
+   'zone' ZONE.1 ZONE.2

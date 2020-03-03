@@ -1,0 +1,47 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] LASTRC [command [arguments]]            */
+/* Example:       LASTRC                  QUERY LASTRC shorthand  */
+/*                LASTRC foo bar          show foo bar error + RC */
+/* Purpose:       LASTRC displays the last RC like QUERY LASTRC.  */
+/*                A specified command is executed before, showing */
+/*                its LASTMSG and return code.  Output format for */
+/*                macro LASTRC without arguments:                 */
+/*                   lastrc n - last RC n, LASTMSG was no "Error" */
+/*                   x (RC n) - last RC n, LASTMSG x was an error */
+/*                Unlike QUERY LASTRC macro LASTRC preserves any  */
+/*                visible error message adding only the LASTRC.   */
+/*                Output for macro arguments executed as command: */
+/*                   lastrc n - command RC n, no command message  */
+/*                   x (RC n) - command RC n, LASTMSG x           */
+/*                Just in case the LASTRC exit code is LASTRC ;-) */
+/* Commands:      Some commands will not show their error message */
+/*                when executed in a macro, e.g., SET SYSRC shows */
+/*                error 213 in KeditW 1.0 only if executed on the */
+/*                command line.  Emulating command line execution */
+/*                with CMSG and SOS EX as in macro EX.KEX would   */
+/*                work for SET SYSRC, but then other interesting  */
+/*                commands including ALERT, DIALOG, some forms of */
+/*                EDITV, EXTRACT, POPUP, and READV would always   */
+/*                display error 53 (RC -3).                       */
+/* Caveats:       For commands resulting in more than one message */
+/*                line such as  QUERY SYNONYM *  macro LASTRC can */
+/*                only show the last message line.                */
+/* See also:      KHELP LASTMSG, KHELP LASTRC,                    */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   if arg( 1 ) <> '' then  do             /* show RC of a command */
+      'nomsg msg' ;  'nomsg' arg( 1 )  ;  ERR = rc
+      if lastmsg.1() <> '' then  MSG = lastmsg.1() '(RC' ERR || ')'
+                           else  MSG = 'lastrc'  ERR
+   end
+   else  do                               /* expand error message */
+      MSG = lastmsg.1()                ;  ERR = lastrc.1()
+      if abbrev( MSG, 'Macro ' ) & sign( pos( '- Error ', MSG ))
+                           then  MSG = MSG '(RC' ERR || ')'
+      else  if abbrev( MSG, 'Error ' ) & ERR <> 0
+                           then  MSG = MSG '(RC' ERR || ')'
+      else                       MSG = 'lastrc'  ERR
+   end                                    /* no error (or rc = 0) */
+
+   say MSG                             ;  exit ERR

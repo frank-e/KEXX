@@ -1,0 +1,243 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] XHTML [target]                          */
+/* Purpose:       Convert a text/plain PC-Multilingual-850+euro   */
+/*                file (or an area specified by target) to XHTML. */
+/*                If no target is specified add dummy <head> and  */
+/*                <address> sections forcing FTYPE htm.           */
+/*                Target BLOCK is only supported for LINE BLOCKS  */
+/*                (checked by XHTML.KEX), see also KHELP CHANGE.  */
+/* Caveats:       NUL, TAB, BEL, DEL, etc. in the converted area  */
+/*                are handled as graphical characters.  Load the  */
+/*                file with TABSIN ON (or use EXPAND ALL) if TABs */
+/*                are meant to be white space.                    */
+/* Features:      &euro; requires netscape 4.x (don't try &#128;) */
+/*                &bull; requires netscape 4.x (don't try &#149;) */
+/*                &fnof; doesn't work, netscape 4.x knows &#402;  */
+/*                &apos; requires WebExplorer (replaced by &#39;) */
+/*                &nbsp; is less reliable than &#160; use &#160;  */
+/* Installation:  Edit HOME (URL of your homepage), INIT and NAME */
+/*                (your name), ICON (URL of a W3 validator icon), */
+/*                and MADE (your Web feedback URL) below.         */
+/*                These values are only used in full conversions, */
+/*                please adjust the generated <title>, <address>, */
+/*                meta description, meta keywords, etc. manually. */
+/* Strict XHTML:  I use transitional XHTML without CSS.  If you   */
+/*                want strict XHTML edit the DOCTYPE, replace the */
+/*                align="right" in <img>, and link a style sheet  */
+/* See also:      <URL:http://purl.net/xyzzy/kex/xhtml.kex>       */
+/*                <URL:http://purl.net/xyzzy/xhtml.htm> (example) */
+/*                <URL:http://purl.net/xyzzy/xedit.htm>  (macros) */
+/*                <URL:http://purl.net/xyzzy/ibm850.htm> (CP 850) */
+/* Requires:      Kedit 5.0               (Frank Ellermann, 2003) */
+
+   HOME = 'http://purl.net/xyzzy/'
+   ICON = 'valid.jpg'                        ;  INIT = 'F'
+   MADE = HOME || 'mailto/webmaster'         ;  NAME = 'Ellermann'
+
+   arg ALL                       ;  TITLE = fn.2() || '.' || ft.2()
+   if ( ALL = 'BLOCK' ) > ( block.1() = 'LINE' ) * block() then do
+      'emsg only internal LINE BLOCK supported' ;  exit 1
+   end                                 /* cannot handle BOX BLOCK */
+   else  if ALL = ''    then do  ;  ALL = 'all' ;  'ft htm' ;  end
+   else  parse arg ALL                 /* no arg. => *.htm file   */
+
+   C.   = 0 ;  do NN = 32 to 126    ;  C.NN = 1 ;  end
+   C.34 = 0 ;  C.38 = 0 ;  C.39 = 0 ;  C.60 = 0 ;  C.62 = 0
+
+   B = 0 ;  C = 0 ;  W = 0 ;  X = 0    /* compatibility counters  */
+   'extract /STAY/INPUTMODE/'    ;  'stay ON'   ;  'eofout EOL'
+   call ENTITY '&', 'amp'              /* & -> &amp; is the first */
+
+   call ENTITY '<',     'lt'     ;  call ENTITY '>',     'gt'
+   call ENTITY 'Ô',     'acute'  ;  call ENTITY '›',     'brvbar'
+   call ENTITY '†',     'aacute' ;  call ENTITY 'µ',     'Aacute'
+   call ENTITY 'Ç',     'eacute' ;  call ENTITY 'ê',     'Eacute'
+   call ENTITY '°',     'iacute' ;  call ENTITY '÷',     'Iacute'
+   call ENTITY '¢',     'oacute' ;  call ENTITY '‡',     'Oacute'
+   call ENTITY '£',     'uacute' ;  call ENTITY 'È',     'Uacute'
+   call ENTITY 'É',     'acirc'  ;  call ENTITY '∂',     'Acirc'
+   call ENTITY 'à',     'ecirc'  ;  call ENTITY '“',     'Ecirc'
+   call ENTITY 'å',     'icirc'  ;  call ENTITY '◊',     'Icirc'
+   call ENTITY 'ì',     'ocirc'  ;  call ENTITY '‚',     'Ocirc'
+   call ENTITY 'ñ',     'ucirc'  ;  call ENTITY 'Í',     'Ucirc'
+   call ENTITY 'Ö',     'agrave' ;  call ENTITY '∑',     'Agrave'
+   call ENTITY 'ä',     'egrave' ;  call ENTITY '‘',     'Egrave'
+   call ENTITY 'ç',     'igrave' ;  call ENTITY 'ﬁ',     'Igrave'
+   call ENTITY 'ï',     'ograve' ;  call ENTITY '„',     'Ograve'
+   call ENTITY 'ó',     'ugrave' ;  call ENTITY 'Î',     'Ugrave'
+   call ENTITY '˘',     'uml'    ;  call ENTITY 'ò',     'yuml'
+   call ENTITY 'Ñ',     'auml'   ;  call ENTITY 'é',     'Auml'
+   call ENTITY 'â',     'euml'   ;  call ENTITY '”',     'Euml'
+   call ENTITY 'ã',     'iuml'   ;  call ENTITY 'ÿ',     'Iuml'
+   call ENTITY 'î',     'ouml'   ;  call ENTITY 'ô',     'Ouml'
+   call ENTITY 'Å',     'uuml'   ;  call ENTITY 'ö',     'Uuml'
+   call ENTITY 'ë',     'aelig'  ;  call ENTITY 'í',     'AElig'
+   call ENTITY 'Ü',     'aring'  ;  call ENTITY 'è',     'Aring'
+   call ENTITY '∆',     'atilde' ;  call ENTITY '«',     'Atilde'
+   call ENTITY '˜',     'cedil'  ;  call ENTITY '¯',     'deg'
+   call ENTITY 'á',     'ccedil' ;  call ENTITY 'Ä',     'Ccedil'
+   call ENTITY 'Ω',     'cent'   ;  call ENTITY 'œ',     'curren'
+   call ENTITY '–',     'eth'    ;  call ENTITY '—',     'ETH'
+   call ENTITY '®',     'iquest' ;  call ENTITY '≠',     'iexcl'
+   call ENTITY 'Æ',     'laquo'  ;  call ENTITY 'Ø',     'raquo'
+   call ENTITY 'Ê',     'micro'  ;  call ENTITY '˙',     'middot'
+   call ENTITY '™',     'not'    ;  call ENTITY 'Ò',     'plusmn'
+   call ENTITY '§',     'ntilde' ;  call ENTITY '•',     'Ntilde'
+   call ENTITY '¶',     'ordf'   ;  call ENTITY 'ß',     'ordm'
+   call ENTITY 'õ',     'oslash' ;  call ENTITY 'ù',     'Oslash'
+   call ENTITY '‰',     'otilde' ;  call ENTITY 'Â',     'Otilde'
+   call ENTITY d2c(20), 'para'   ;  call ENTITY d2c(21), 'sect'
+   call ENTITY 'Ù',     'para'   ;  call ENTITY 'ı',     'sect'
+   call ENTITY 'ú',     'pound'  ;  call ENTITY 'æ',     'yen'
+   call ENTITY '©',     'reg'    ;  call ENTITY '∏',     'copy'
+   call ENTITY '´',     'frac12' ;  call ENTITY '¨',     'frac14'
+   call ENTITY 'Û',     'frac34' ;  call ENTITY '˚',     'sup1'
+   call ENTITY '˝',     'sup2'   ;  call ENTITY '¸',     'sup3'
+   call ENTITY '·',     'szlig'  ;  call ENTITY 'û',     'times'
+   call ENTITY 'Á',     'thorn'  ;  call ENTITY 'Ë',     'THORN'
+   call ENTITY 'Ï',     'yacute' ;  call ENTITY 'Ì',     'Yacute'
+   call ENTITY '"',     'quot'   ;  call ENTITY 'ˆ',     'divide'
+   call ENTITY "'",     '#39'          /* &apos; (XHTML 1.0 C.16) */
+   call ENTITY "ˇ",     '#160'         /* &nbsp; for Netcape 2.02 */
+
+   B = B + ENTITY( '',     'shy'    ) /* NetScape 2/4 has &shy;  */
+   B = B + ENTITY( 'Ó',     'macr'   ) /* NetScape 2/4 has &macr; */
+
+   C = C + ENTITY( d2c( 7), 'bull'   ) /* Netscape 4.x has &bull; */
+   C = C + ENTITY( '’'    , 'euro'   ) /* Netscape 4.x has &euro; */
+   C = C + ENTITY( 'ü'    , '#402'   ) /* but no &fnof; (strange) */
+
+   W = W + ENTITY( d2c(24), 'uarr'   ) /* WebExplorer 1.1d has 3  */
+   W = W + ENTITY( d2c(26), 'rarr'   ) /* arrows, but (see below) */
+   W = W + ENTITY( d2c(27), 'larr'   ) /* no &varr; &darr; &harr; */
+
+   X = X + ENTITY( d2c(18), '#8597'  ) /* nobody knows &varr;     */
+   X = X + ENTITY( d2c(25), '#8595'  ) /* nobody knows &darr;     */
+   X = X + ENTITY( d2c(29), '#8596'  ) /* nobody knows &harr;     */
+
+   X = X + ENTITY( '≥'    , '#9474'  ) /* nobody knows &boxv;     */
+   X = X + ENTITY( '¥'    , '#9508'  ) /* nobody knows &boxvl;    */
+   X = X + ENTITY( 'Ÿ'    , '#9496'  ) /* nobody knows &boxul;    */
+   X = X + ENTITY( '⁄'    , '#9484'  ) /* nobody knows &boxdr;    */
+
+   X = X + ENTITY( 'π'    , '#9571'  ) /* nobody knows &boxVL;    */
+   X = X + ENTITY( '∫'    , '#9553'  ) /* nobody knows &boxV;     */
+   X = X + ENTITY( 'ª'    , '#9559'  ) /* nobody knows &boxDL;    */
+   X = X + ENTITY( 'º'    , '#9565'  ) /* nobody knows &boxUL;    */
+
+   X = X + ENTITY( 'ø'    , '#9488'  ) /* nobody knows &boxdl;    */
+   X = X + ENTITY( '¿'    , '#9492'  ) /* nobody knows &boxur;    */
+   X = X + ENTITY( '¡'    , '#9524'  ) /* nobody knows &boxhu;    */
+   X = X + ENTITY( '¬'    , '#9516'  ) /* nobody knows &boxhd;    */
+   X = X + ENTITY( '√'    , '#9500'  ) /* nobody knows &boxvr;    */
+   X = X + ENTITY( 'ƒ'    , '#9472'  ) /* nobody knows &boxh;     */
+   X = X + ENTITY( '≈'    , '#9532'  ) /* nobody knows &boxvh;    */
+
+   X = X + ENTITY( '»'    , '#9562'  ) /* nobody knows &boxUR;    */
+   X = X + ENTITY( '…'    , '#9556'  ) /* nobody knows &boxDR;    */
+   X = X + ENTITY( ' '    , '#9577'  ) /* nobody knows &boxHU;    */
+   X = X + ENTITY( 'À'    , '#9574'  ) /* nobody knows &boxHD;    */
+   X = X + ENTITY( 'Ã'    , '#9568'  ) /* nobody knows &boxVR;    */
+   X = X + ENTITY( 'Õ'    , '#9552'  ) /* nobody knows &boxH;     */
+   X = X + ENTITY( 'Œ'    , '#9580'  ) /* nobody knows &boxVH;    */
+
+   X = X + ENTITY( 'ﬂ'    , '#9600'  ) /* nobody knows &uhblk;    */
+   X = X + ENTITY( '∞'    , '#9617'  ) /* nobody knows &blk14;    */
+   X = X + ENTITY( '±'    , '#9618'  ) /* nobody knows &blk12;    */
+   X = X + ENTITY( '≤'    , '#9619'  ) /* nobody knows &blk34;    */
+   X = X + ENTITY( '€'    , '#9608'  ) /* nobody knows &block;    */
+   X = X + ENTITY( '‹'    , '#9604'  ) /* nobody knows &lhblk;    */
+
+   X = X + ENTITY( 'Ú'    , '#8215'  ) /* DOUBLE LOW LINE         */
+   X = X + ENTITY( d2c(127),'#8962'  ) /* HOUSE                   */
+   X = X + ENTITY( d2c(23) ,'#8616'  ) /* UP DOWN ARROW WITH BASE */
+   X = X + ENTITY( d2c(19) ,'#8252'  ) /* DOUBLE EXCLAMATION MARK */
+   X = X + ENTITY( d2c(14) ,'#9835'  ) /* BEAMED EIGTH NOTES      */
+   X = X + ENTITY( d2c(10) ,'#9689'  ) /* INVERSE WHITE CIRCLE    */
+   X = X + ENTITY( d2c( 8) ,'#9688'  ) /* INVERSE BULLET          */
+   X = X + ENTITY( d2c( 2) ,'#9787'  ) /* BLACK SMILING FACE      */
+   X = X + ENTITY( d2c( 1) ,'#9786'  ) /* WHITE SMILING FACE      */
+
+   X = X + ENTITY( d2c( 3), '#9829'  ) /* nobody knows &hearts;   */
+   X = X + ENTITY( d2c( 4), '#9830'  ) /* nobody knows &diams;    */
+   X = X + ENTITY( d2c( 5), '#9827'  ) /* nobody knows &clubs;    */
+   X = X + ENTITY( d2c( 6), '#9824'  ) /* nobody knows &spades;   */
+
+   X = X + ENTITY( d2c( 0), '#9251'  ) /* nobody knows &blank;    */
+   X = X + ENTITY( d2c( 9), '#9675'  ) /* nobody knows &cir;      */
+   X = X + ENTITY( d2c(11), '#9794'  ) /* nobody knows &male;     */
+   X = X + ENTITY( d2c(12), '#9792'  ) /* nobody knows &female;   */
+   X = X + ENTITY( d2c(13), '#9834'  ) /* nobody knows &sung;     */
+   X = X + ENTITY( d2c(28), '#8735'  ) /* nobody knows &angrt;    */
+
+   X = X + ENTITY( d2c(15), '#10038' ) /* &sext;   (not &#9788;)  */
+   X = X + ENTITY( d2c(22), '#8259'  ) /* &hybull; (not &#9644;)  */
+   X = X + ENTITY( '˛'    , '#9642'  ) /* &squf;   (not &#9632;)  */
+
+   X = X + ENTITY( d2c(16), '#9656'  ) /* &rtrif;  (not &#9658;)  */
+   X = X + ENTITY( d2c(17), '#9666'  ) /* &ltrif;  (not &#9668;)  */
+   X = X + ENTITY( d2c(30), '#9652'  ) /* &utrif;  (not &#9650;)  */
+   X = X + ENTITY( d2c(31), '#9662'  ) /* &dtrif;  (not &#9660;)  */
+
+   'stay' STAY.1                       /* restore user's STAY OFF */
+
+   do NN = 0 to 255                    /* sanity check 256 char.s */
+      if C.NN then iterate ;  'emsg fatal: missing' NN   ;  exit 2
+   end
+   if arg( 1 ) = ALL then exit RESULT( B, C, W, X )
+
+   NAME = INIT || '</a>.<a href="' || HOME || '">' || NAME || '</a>'
+   NAME = fn.2() || '.' || ft.2() || '" rel="bookmark">' || NAME
+   NAME = '<a href="' || HOME || NAME
+
+   ICON = '<img src="' || ICON || '" height="31" width="88"'
+   ICON = '<a href="http://validator.w3.org/check/referer">' || ICON
+   ICON = ICON 'align="right" alt="W3 validator" /></a>'
+
+   INIT = '<!DOCTYPE html PUBLIC'
+   INIT = INIT '"-//W3C//DTD XHTML 1.0 Transitional//EN"'
+   INIT = INIT '"http://www.w3.org/TR/xhtml1/DTD/'
+   INIT = INIT || 'xhtml1-transitional.dtd">'
+   'inputmode OFF'   ;  ':0 i' INIT    /* insert header at TOP :0 */
+
+   INIT = '<html lang="en" xml:lang="en"'
+   'i' INIT 'xmlns="http://www.w3.org/1999/xhtml"><head>'
+   INIT = '    <meta http-equiv="Content-'
+   'i' INIT || 'Type" content="text/html; charset=us-ascii" />'
+   'i' INIT || 'Script-Type" content="text/javascript" />'
+   'i' INIT || 'Style-Type" content="text/css" />'
+   'i     <meta name="description" content="' || TITLE || '" />'
+   'i     <meta name="keywords" content="' || TITLE || '" />'
+   'i     <link rev="made" href="' || MADE || '" />'
+   'i     <title>' TITLE '</title>'
+   INIT = 'parent.location=location">'
+   'i </head><body onload="if (parent.location != location)' INIT
+   'i <h1>' TITLE '</h1>'
+   'i <!--' copies( '=', 59 ) '--><pre>'
+
+   ':*'                                /* insert footer at EOF :* */
+   'i <!--' copies( '=', 59 ) '--></pre>'
+   'i <hr /><address>'                 /* insert URL of validator */
+   'i    ' ICON                        /* + XHTML file + homepage */
+   'i     Last update:' date() time.2() 'by' NAME
+   'i </address></body></html>'
+   'inputmode' INPUTMODE.1 ;  exit RESULT( B, C, W, X )
+
+ENTITY:                                /* use global variable ALL */
+   NN = c2d( arg(1) )   ;  if C.NN then 'emsg fatal: ambiguous' NN
+   if C.NN then exit 2  ;  C.NN = 1    /* sanity check 256 char.s */
+
+   'nomsg change' delimit( arg(1), '&' || arg(2) || ';' ) ALL '*'
+   if rc > 0 & rc <> 4 then do
+      NN = rc  ;  'emsg' lastmsg.1()   ;  exit NN
+   end
+   return ( rc = 0 )
+
+RESULT:  procedure                     /* other incl. WebExplorer */
+   arg B, C, W, X ;  NN = B + C + W + X
+
+   B = '(2.02:' B || ', 4.x:' B + C || ', other:' W + X || ')'
+   X = sign( NN ) ;  if X then 'sos mousebeep'
+   if X then say NN 'entities not visible with any browser' B
+   return X                            /* 0: no problems counted  */

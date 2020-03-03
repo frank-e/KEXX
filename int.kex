@@ -1,0 +1,201 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] INT [nn [ah|ax] | #nnnn | topic]        */
+/* Example:       INT 21 440d          => DOS IOCTL block device  */
+/*                INT #1378            => PSP format (Table 1378) */
+/*                INT sysvars          => list of lists           */
+/*                INT                  => go back to last topic   */
+/* Purpose:       Macro INT opens Ralf Brown's INTERRUP.LST using */
+/*                the configured (see below) path and locates a   */
+/*                given topic.  If the topic is found you can use */
+/*                LOCATE to find further references.              */
+/*                Macro INT translates two common forms of topics */
+/*                into appropriate TFIND or LOCATE targets:       */
+/*                #NNNN is interpreted as a '(Table NNNN)' adding */
+/*                leading zeros for length 4 or 5 if necessary.   */
+/*                If the table exists you can use LOCATE to find  */
+/*                the next table reference #NNNN.                 */
+/*                NN, NN XX, or NN XXYY are interpreted as INT NN */
+/*                with AH XX or AX XXYY respectively resulting in */
+/*                'TFIND /--------?-NNXXYY/' or shorter variants. */
+/*                Categories (for specific ? values), and flags   */
+/*                are not supported.                              */
+/*                Macro INT uses points .INT.1 etc. for visited   */
+/*                topics.  Use INT without argument to return to  */
+/*                the last saved point.                           */
+/* Other lists:   INT #Rnnnn (msr.lst), INT #Mnnnn (memory.lst),  */
+/*                INT #Snnnn (smm.lst), INT #Pnnnn  (ports.lst),  */
+/*                INT #Innnn (i2c.lst), INT #Cnnnn   (cmos.lst),  */
+/*                or INT #Fnnnn (farcalls.lst):                   */
+/*                Macro INT looks for the corresponding files in  */
+/*                the directory of INTERRUP.LST and tries to find */
+/*                the referenced external table.                  */
+/*                Macro INT #Qnnn is for a table hack mapping all */
+/*                PORTS.lst #P0nnn tables to three digits #Pnnn,  */
+/*                and the remaining #P1nnn to #Qnnn.              */
+/* Table hacks:   Old list converters insist on #nnnn references  */
+/*                with four digits.  For the last (?) release 61  */
+/*                tables can be rearranged:                       */
+/*                #00000 .. #04122 => #0000 .. #4122 interrup.lst */
+/*                #90000 .. #90012 => #4900 .. #4912 (admin 4913) */
+/*                #P0000 .. #P0999 => #5000 .. #5999    ports.lst */
+/*                #P1000 .. #P1100 => #6000 .. #6100 (admin 6101) */
+/*                #M0000 .. #M0134 => #7000 .. #7134   memory.lst */
+/*                #R0000 .. #R0072 => #7500 .. #7572      msr.lst */
+/*                #F0000 .. #F0096 => #8000 .. #8096  farcall.lst */
+/*                #I0000 .. #I0106 => #8500 .. #8606      i2c.lst */
+/*                #C0000 .. #C0098 => #9000 .. #9098     cmos.lst */
+/*                #S0000 .. #S0008 => #9500 .. #9508      smm.lst */
+/*                Macro INT handles references #5000 .. #9999 as  */
+/*                external tables in the corresponding files.     */
+/*                The files I2C.lst, MSR.lst, and SMM.lst are not */
+/*                referenced from INTERRUP.LST; maybe you can use */
+/*                #Innnn, #Rnnnn, and #Snnnn table numbers as is. */
+/* See also:      KHELP LASTOP, KHELP POINT, KHELP QUERY POINT    */
+/* Installation:  To create an INTERRUP.LST look for INTER???.ZIP */
+/*                archives.  You need four INTER61?.ZIP (a-d) for */
+/*                version 61 of INTERRUP.LST.                     */
+/*                Please configure the INTERRUP.LST path below.   */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2010) */
+
+   INT = 'c:\etc\rbrown\interrup.lst'  /*** configure your path ***/
+
+   parse upper source . . ME           ;  'nomsg x "' || INT || '"'
+   if rc == 0  then  'locate' focustof() - focuseof()
+   if rc <> 0  then  do
+      if rc == 1  then  'quit'         /* valid path, but no file */
+      'emsg' ME 'cannot open' INT      ;  exit 4
+   end
+
+   parse arg INT AX NN
+   if PTS( INT )  then  exit 4         /* process empty arguments */
+   if HEX( INT )  then  do             /* INT, INT AH, or INT AX  */
+      if NN <> '' then  exit ERR( NN )
+      NN = HEX( AX ) & sign( pos( length( AX ), '0 1 2 4' ))
+      if NN == 0  then  exit ERR( AX )
+      if length( INT ) > 2 then  exit ERR( INT || ', use 00..FF' )
+      if length( INT ) = 1 then  INT = 0 || INT
+      if length(  AX ) = 1 then   AX = 0 ||  AX
+      'extract' delimit( 'arbchar' )   ;  'arbchar ON $ ?'
+      'nomsg tfind' delimit( '--------?-' || INT || AX )
+      rc = CMD( rc, 'set arbchar' ARBCHAR.1 ARBCHAR.2 ARBCHAR.3 )
+      if rc <> 0 & AX = '' then  do    /* missing interrupt entry */
+         'emsg unexpected file format' ;  exit 4
+      end
+      if rc <> 0  then  do             /* trunc. overspecified AX */
+         NN = INT AX 'not found, try macro' ME INT
+         AX = left( AX, length( AX ) - 2 )
+         'emsg' NN AX
+         'cmsg macro' ME INT AX        ;  exit 1
+      end
+      say 'use macro' ME 'to go back'  ;  exit 0
+   end
+
+   INT = translate( INT )              /* get upper case table id */
+   if abbrev( INT, '#C' )  then  exit TAB( INT, 'cmos' )
+   if abbrev( INT, '#F' )  then  exit TAB( INT, 'farcall' )
+   if abbrev( INT, '#I' )  then  exit TAB( INT, 'i2c' )
+   if abbrev( INT, '#M' )  then  exit TAB( INT, 'memory' )
+   if abbrev( INT, '#P' )  then  exit TAB( INT, 'ports' )
+   if abbrev( INT, '#Q' )  then  exit TAB( INT, 'ports' )
+   if abbrev( INT, '#R' )  then  exit TAB( INT, 'msr' )
+   if abbrev( INT, '#S' )  then  exit TAB( INT, 'smm' )
+   if abbrev( INT, '#' )   then  do    /* Table nnnnn (old: nnnn) */
+      if AX <> '' then  exit ERR( AX ) ;  rc = 4
+      NN = substr( INT, 2 )            ;  AX = datatype( NN, 'w' )
+      if AX == 0 | NN < 0 | NN > 99999 then  exit ERR( INT )
+      if NN < 5000   then  do          /* old style (Table nnnn)  */
+         NN = right( NN, 4, 0 )
+         'nomsg locate' delimit( '(Table' NN || ')' )
+      end
+      else  if NN <  7000  then  exit TAB( '#0' || NN, 'ports' )
+      else  if NN <  7500  then  exit TAB( '#0' || NN, 'memory' )
+      else  if NN <  8000  then  exit TAB( '#0' || NN, 'msr' )
+      else  if NN <  8500  then  exit TAB( '#0' || NN, 'farcall' )
+      else  if NN <  9000  then  exit TAB( '#0' || NN, 'is2' )
+      else  if NN <  9500  then  exit TAB( '#0' || NN, 'cmos' )
+      else  if NN < 10000  then  exit TAB( '#0' || NN, 'smm' )
+      if rc <> 0  then  do             /* new style (Table nnnnn) */
+         NN = right( NN, 5, 0 )
+         'nomsg locate' delimit( '(Table' NN || ')' )
+      end
+      if rc <> 0  then  ':0 tfind' delimit( '--------!---Admin' )
+      if rc <> 0  then  exit 4         /* Admin table number lost */
+      'set lastop locate' delimit( '#' || NN )
+      say 'use macro' ME 'to go back, use LOC to locate references'
+      'cmsg macro' ME                  ;  exit 0
+   end
+   NN = delimit( strip( arg( 1 )))     ;  'nomsg loc prefix' NN
+   if rc <> 0  then  do
+      'emsg' ME 'found no target' NN   ;  exit 1
+   end
+   say 'use macro' ME 'to go back, use LOC to locate next' NN
+   'set lastop loc prefix' NN          /* locate next occurences: */
+   'cmsg LOC'                          ;  exit 0
+
+ERR:  'emsg invalid argument' arg( 1 ) ;  return 1
+HEX:  return ( 0 = verify( arg( 1 ), '0123456789abcdefABCDEF' ))
+
+TAB:  procedure   /* -------------------- external tables ------- */
+   arg REF, FILE                       ;  NN = substr( REF, 3 )
+   if datatype( NN, 'w' ) = 0 then  exit ERR( REF )
+   if NN < 0 | 9999 < NN      then  exit ERR( REF )
+   if fpath.1() = '\'
+      then  FILE = fmode.1() || '\' || FILE || '.lst'
+      else  FILE = fmode.1() || fpath.1() || '\' || FILE || '.lst'
+   'nomsg x "' || FILE || '"'          ;  if rc == 0  then  ':1'
+   if rc <> 0  then  do
+      if rc == 1  then  'quit'         /* valid path, but no file */
+      'emsg' ME 'cannot open' FILE     ;  exit 4
+   end
+   SEL = substr( REF, 2, 1 )           ;  rc = 4
+   if SEL <> 0 then  do
+      if NN <= 999   then  do          /* old style (Table ?nnn)  */
+         NN = right( NN, 3, 0 )
+         'nomsg locate' delimit( '(Table' SEL || NN || ')' )
+      end
+      if rc <> 0     then  do          /* new style (Table ?nnnn) */
+         NN = right( NN, 4, 0 )
+         'nomsg locate' delimit( '(Table' SEL || NN || ')' )
+      end
+   end                                 /* else hacked 5000..9999: */
+   else  'nomsg locate' delimit( '(Table' NN || ')' )
+   if rc <> 0     then  ':0 tfind' delimit( '--------!---Admin' )
+   if rc <> 0     then  'emsg highest table and' REF 'not found'
+   'cmsg QUIT'                         ;  return 0
+
+PTS:  procedure   /* -------------------- manage points --------- */
+   PTS = 'INT.'                        /* manage .INT.nnnn points */
+   'extract' delimit( 'point *' )      ;  P. = 0
+   do P = 1 to POINT.0
+      parse var POINT.P L POINT.P      /* match points for line L */
+      do while POINT.P <> ''           /* collect PTS.nnnn points */
+         parse var POINT.P THIS POINT.P
+         if abbrev( THIS, PTS ) = 0 then  iterate
+         THIS = substr( THIS, 5 )      ;  P.0 = max( P.0, THIS )
+         P.THIS = L
+      end
+   end
+   S = scope.1()                       ;  'scope all'
+   L = lscreen.1() %2 - 2              ;  THIS = '.' || PTS
+   P = P.0
+   if arg( 1 ) = ''  then  do          /* no arg. => locate point */
+      do P = P.0 to 1 by -1
+         if P.P = line.1() then  call CMD 'point' THIS || P 'off'
+         if P.P = line.1() | P.P = 0   then  iterate
+         call CMD 'locate' THIS || P   ;  exit CMD(  0, 'scope' S )
+      end
+      'nomsg locate :' || L            ;  rc = CMD( rc, 'scope' S )
+      if rc == 0  then  exit 0
+   end
+   else  do
+      if P.P <> line.1()   then  call CMD 'point' THIS || ( P + 1 )
+      'nomsg locate :' || L            ;  rc = CMD( rc, 'scope' S )
+      if rc == 0  then  'refresh'      ;  if rc == 0  then  return 0
+   end
+   'emsg unexpected file format'       ;  exit 4
+
+CMD:  'command' arg( arg())            /* execute a KEDIT command */
+      if arg() = 2   then  return arg( 1 )
+      if rc = 0      then  return      /* one argument: no result */
+      exit CMD( rc, 'emsg assertion failed in macro line' sigl )

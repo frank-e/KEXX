@@ -1,0 +1,334 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] BOX [0..9ABC-]                          */
+/*                BOX                        show styles 0..9     */
+/*                BOX 0                      erase box border     */
+/*                BOX 1                      thin lines     (850) */
+/*                BOX 2                      double lines   (850) */
+/*                BOX 3                      double/single  (437) */
+/*                BOX 4                      single/double  (437) */
+/*                BOX 5                      portable -|+ (ASCII) */
+/*                BOX 6                      portable ="# (ASCII) */
+/*                BOX 7                      comment box  (ASCII) */
+/*                BOX 8                      comment box  (ASCII) */
+/*                BOX 9                      thick lines    (850) */
+/*                BOX A                      arrows         (850) */
+/*                BOX B                      boxes, bullets (437) */
+/*                BOX C                      common symbols (850) */
+/*                BOX -                      restore keypad       */
+/* With box:      BOX n operates on any marked box in the current */
+/*                file, unlike EPM within and not around the box. */
+/*                Overlapping boxes of the same type are handled  */
+/*                automatically.  This can result in characters   */
+/*                of BOX 3 or BOX 4 (if single lines cross double */
+/*                lines) only available in code pages 437, 865,   */
+/*                and 860 .. 863.  With other code pages like 850 */
+/*                use BOX 0 before BOX 1 resp. BOX 2 to erase all */
+/*                potential single-double-junctions.              */
+/*                BOX 7 resp. 8 are used for C- or REXX-comments. */
+/*                BOX 8 unlike all other boxes uses 2 columns to  */
+/*                start /* and end */ comment lines.  BOX 8 won't */
+/*                fill the top and bottom box lines.  BOX 7 (8)   */
+/*                require at least 3 (4) box columns.  BOX 9 etc. */
+/*                require at least a 2*2 box.                     */
+/*                Normally BOX A, BOX B, and BOX C are only used  */
+/*                without marked box to define keys.              */
+/* Without box:   If no box is marked, BOX n defines the numeric  */
+/*                keypad to generate box characters.  Use BOX -   */
+/*                or the "reset key" C-Center to restore old key  */
+/*                definitions.  Use BOX without arguments to see  */
+/*                the mapping of box characters to numeric keys.  */
+/*                Normally BOX 0 is only used with a marked box,  */
+/*                (or do you need 12 space keys ?).               */
+/* Details:       BOX.KEX uses EDITV variables BOX.. to store old */
+/*                key definitions.  Only modifiable keys (defined */
+/*                in one line) can be saved.                      */
+/*                The BOX C subset of common 437/850 characters   */
+/*                should be edited as needed, e.g. replace pound  */
+/*                d2c(156) by degree d2c(248) if you use KEYB UK. */
+/* See also:      KHELP QUERY BLOCK, KHELP EDITV, KHELP MODIFY    */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2000) */
+
+   CC = '-' ;  KEYPAD =           CC   ;  BOX...CC = 'c-Center'
+   HH = 0   ;  KEYPAD = KEYPAD || HH   ;  BOX...HH = 's-Ins'
+   VV = .   ;  KEYPAD = KEYPAD || VV   ;  BOX...VV = 's-Del'
+   LL = 1   ;  KEYPAD = KEYPAD || LL   ;  BOX...LL = 's-End'
+   LH = 2   ;  KEYPAD = KEYPAD || LH   ;  BOX...LH = 's-CurD'
+   LR = 3   ;  KEYPAD = KEYPAD || LR   ;  BOX...LR = 's-PgDn'
+   VL = 4   ;  KEYPAD = KEYPAD || VL   ;  BOX...VL = 's-CurL'
+   VH = 5   ;  KEYPAD = KEYPAD || VH   ;  BOX...VH = 's-Center'
+   VR = 6   ;  KEYPAD = KEYPAD || VR   ;  BOX...VR = 's-CurR'
+   UL = 7   ;  KEYPAD = KEYPAD || UL   ;  BOX...UL = 's-HOME'
+   UH = 8   ;  KEYPAD = KEYPAD || UH   ;  BOX...UH = 's-CurU'
+   UR = 9   ;  KEYPAD = KEYPAD || UR   ;  BOX...UR = 's-PgUp'
+
+   do K = 1 to length( KEYPAD )
+      PAD = substr( KEYPAD, K, 1 )  ;  BOX.0.PAD = ' '
+   end
+   A = 10   ;  B = 11   ;  C = 12   ;  BOX.0.CC = 0
+
+   BOX.1.CC = 1         ;  BOX.2.CC = 2         ;  BOX.5.CC = 5
+   BOX.1.HH = d2c(196)  ;  BOX.2.HH = d2c(205)  ;  BOX.5.HH = ' '
+   BOX.1.VV = d2c(179)  ;  BOX.2.VV = d2c(186)  ;  BOX.5.VV = '+'
+   BOX.1.LL = d2c(192)  ;  BOX.2.LL = d2c(200)  ;  BOX.5.LL = '+'
+   BOX.1.LH = d2c(193)  ;  BOX.2.LH = d2c(202)  ;  BOX.5.LH = '-'
+   BOX.1.LR = d2c(217)  ;  BOX.2.LR = d2c(188)  ;  BOX.5.LR = '+'
+   BOX.1.VL = d2c(195)  ;  BOX.2.VL = d2c(204)  ;  BOX.5.VL = '|'
+   BOX.1.VH = d2c(197)  ;  BOX.2.VH = d2c(206)  ;  BOX.5.VH = ' '
+   BOX.1.VR = d2c(180)  ;  BOX.2.VR = d2c(185)  ;  BOX.5.VR = '|'
+   BOX.1.UL = d2c(218)  ;  BOX.2.UL = d2c(201)  ;  BOX.5.UL = '+'
+   BOX.1.UH = d2c(194)  ;  BOX.2.UH = d2c(203)  ;  BOX.5.UH = '-'
+   BOX.1.UR = d2c(191)  ;  BOX.2.UR = d2c(187)  ;  BOX.5.UR = '+'
+
+   BOX.3.CC = 3         ;  BOX.4.CC = 4         ;  BOX.6.CC = 6
+   BOX.3.HH = BOX.2.HH  ;  BOX.4.HH = BOX.1.HH  ;  BOX.6.HH = ' '
+   BOX.3.VV = BOX.1.VV  ;  BOX.4.VV = BOX.2.VV  ;  BOX.6.VV = '#'
+   BOX.3.LL = d2c(212)  ;  BOX.4.LL = d2c(211)  ;  BOX.6.LL = '#'
+   BOX.3.LH = d2c(207)  ;  BOX.4.LH = d2c(208)  ;  BOX.6.LH = '='
+   BOX.3.LR = d2c(190)  ;  BOX.4.LR = d2c(189)  ;  BOX.6.LR = '#'
+   BOX.3.VL = d2c(198)  ;  BOX.4.VL = d2c(199)  ;  BOX.6.VL = '"'
+   BOX.3.VH = d2c(216)  ;  BOX.4.VH = d2c(215)  ;  BOX.6.VH = ' '
+   BOX.3.VR = d2c(181)  ;  BOX.4.VR = d2c(182)  ;  BOX.6.VR = '"'
+   BOX.3.UL = d2c(213)  ;  BOX.4.UL = d2c(214)  ;  BOX.6.UL = '#'
+   BOX.3.UH = d2c(209)  ;  BOX.4.UH = d2c(210)  ;  BOX.6.UH = '='
+   BOX.3.UR = d2c(184)  ;  BOX.4.UR = d2c(183)  ;  BOX.6.UR = '#'
+
+   BOX.9.CC = 9         ;  BOX.A.CC = d2x( A )  ;  BOX.7.CC = 7
+   BOX.9.HH = ' '       ;  BOX.A.HH = d2c( 29)  ;  BOX.7.HH = ' '
+   BOX.9.VV = d2c(219)  ;  BOX.A.VV = d2c( 18)  ;  BOX.7.VV = '*'
+   BOX.9.LL = BOX.9.VV  ;  BOX.A.LL = d2c( 16)  ;  BOX.7.LL = '\'
+   BOX.9.LH = d2c(220)  ;  BOX.A.LH = d2c( 25)  ;  BOX.7.LH = '*'
+   BOX.9.LR = BOX.9.VV  ;  BOX.A.LR = d2c( 31)  ;  BOX.7.LR = '/'
+   BOX.9.VL = d2c(221)  ;  BOX.A.VL = d2c( 27)  ;  BOX.7.VL = '*'
+   BOX.9.VH = d2c(254)  ;  BOX.A.VH = d2c( 15)  ;  BOX.7.VH = ' '
+   BOX.9.VR = d2c(222)  ;  BOX.A.VR = d2c( 26)  ;  BOX.7.VR = '*'
+   BOX.9.UL = BOX.9.VV  ;  BOX.A.UL = d2c( 17)  ;  BOX.7.UL = '/'
+   BOX.9.UH = d2c(223)  ;  BOX.A.UH = d2c( 24)  ;  BOX.7.UH = '*'
+   BOX.9.UR = BOX.9.VV  ;  BOX.A.UR = d2c( 30)  ;  BOX.7.UR = '\'
+
+   BOX.B.CC = d2x( B )  ;  BOX.C.CC = d2x( C )  ;  BOX.8.CC = 8
+   BOX.B.HH = d2c(250)  ;  BOX.C.HH = d2c(170)  ;  BOX.8.HH = ' '
+   BOX.B.VV = d2c(249)  ;  BOX.C.VV = d2c(156)  ;  BOX.8.VV = '*'
+   BOX.B.LL = d2c(177)  ;  BOX.C.LL = d2c(166)  ;  BOX.8.LL = '/'
+   BOX.B.LH = d2c(220)  ;  BOX.C.LH = d2c(171)  ;  BOX.8.LH = '*'
+   BOX.B.LR = d2c(178)  ;  BOX.C.LR = d2c(167)  ;  BOX.8.LR = '/'
+   BOX.B.VL = d2c(221)  ;  BOX.C.VL = d2c(174)  ;  BOX.8.VL = '/'
+   BOX.B.VH = d2c(254)  ;  BOX.C.VH = d2c(172)  ;  BOX.8.VH = '*'
+   BOX.B.VR = d2c(222)  ;  BOX.C.VR = d2c(175)  ;  BOX.8.VR = '/'
+   BOX.B.UL = d2c(219)  ;  BOX.C.UL = d2c(173)  ;  BOX.8.UL = '/'
+   BOX.B.UH = d2c(223)  ;  BOX.C.UH = d2c(246)  ;  BOX.8.UH = '*'
+   BOX.B.UR = d2c(176)  ;  BOX.C.UR = d2c(168)  ;  BOX.8.UR = '/'
+
+   arg N                   ;  if N = BOX.A.CC then N = A /* => 10 */
+   if N = CC   then N = -1 ;  if N = BOX.B.CC then N = B /* => 11 */
+   if N = ''   then N = -3 ;  if N = BOX.C.CC then N = C /* => 12 */
+   if \ datatype( N, 'W' ) then N = -2
+
+   if N < -1 | N > C then do           /* 21 = 16 + 3 + 2 columns */
+      K = BOX.A.CC || BOX.B.CC || BOX.C.CC || ' '
+      BOX...UL = 'use BOX 0-9' || K substr( KEYPAD, 10, 3 ) ' '
+      BOX...VL = 'for marked box '  substr( KEYPAD,  7, 3 ) ' '
+      BOX...LL = 'or without box '  substr( KEYPAD,  4, 3 ) ' '
+      BOX...CC = 'to define keys '  substr( KEYPAD,  1, 3 ) '0'
+      do K = 1 to C                    /* 80 = 21 + 12 * 5 - 1    */
+         BOX...UL = BOX...UL BOX.K.UL || BOX.K.UH || BOX.K.UR || ' '
+         BOX...VL = BOX...VL BOX.K.VL || BOX.K.VH || BOX.K.VR || ' '
+         BOX...LL = BOX...LL BOX.K.LL || BOX.K.LH || BOX.K.LR || ' '
+         BOX...CC = BOX...CC BOX.K.CC || BOX.K.HH || BOX.K.VV || ' '
+      end
+      say BOX...UL   ;  say BOX...VL   ;  say BOX...LL
+      say BOX...CC   ;  exit N + 3
+   end
+   if 0 <= N & block() & block.1() = 'BOX' then exit BOX( N )
+
+   /* --- without BOX define keys ------------------------------- */
+   'editv get BOX..' ;  L = BOX..   ;  if L = '' then L = 0
+   do K = 1 to length( KEYPAD )
+      PAD = substr( KEYPAD, K, 1 )  ;  KEY = BOX...PAD
+      if N = -1 then do
+         'editv get BOX..' || L || . || PAD
+         'editv set BOX..' || L || . || PAD
+         if BOX..L.PAD <> '' then 'define' KEY BOX..L.PAD
+      end
+      else do
+         'sos save tabcmd'       ;  ALERT.1 = field.1()
+         'nomsg mod macro' KEY   ;  ALERT.2 = rc
+         'nomsg cmsg' ALERT.1    ;  'sos restore'
+         if ALERT.2 <> 0 then do
+            ALERT.2 = delimit( 'BOX' BOX.N.CC 'cannot save' KEY )
+            ALERT.1 = delimit( 'continue anyway ?' )
+            'alert' ALERT.1 'title' ALERT.2 'OKCANCEL'
+            if ALERT.2 <> 'OK' then exit 1
+         end
+      end
+   end
+   if 0 <= N then L = L +1 ;  else L = max( 0, L -1 )
+   if 0 <= N then do K = 1 to length( KEYPAD )
+      PAD = substr( KEYPAD, K, 1 )  ;  KEY = BOX...PAD
+      'nomsg query macro' KEY       ;  BOX..L.PAD = lastmsg.1()
+      'editv put BOX..' || L || . || PAD
+      if PAD <> CC
+         then "define" KEY "'macro ASCII" c2d( BOX.N.PAD ) || "'"
+         else "define" KEY "'macro BOX -'"
+   end
+   BOX.. = L   ;  'editv put BOX..' ;  KEY = BOX...CC
+   if 0 <= N
+      then say 'use' KEY 'to reset keypad (' || L 'pending)'
+      else say 'BOX' KEY 'restored keypad (' || L 'pending)'
+   exit rc
+
+BOX:  /* --- uses global variables ------------------------------ */
+   'extract /ALT/AUTOSAVE/INSERTMODE/'
+   V = block.4() - block.2() - 1 ;  arg B ;  ALT.0 = 0
+   H = block.5() - block.3() - 1 ;  'sos save current blockstart'
+   if ( B = 7 & H < 1 ) | ( B = 8 & H < 2 ) then do
+      'emsg BOX' B 'requires' B -4 'or more box columns' ;  return 1
+   end                                 /* ======================= */
+   if V < 0 & B = 7 then B = 8         /* use single comment line */
+   if H < 0 & B > 4 & H <> V & BOX.B.VL <> BOX.B.VR then do
+      'emsg BOX' BOX.B.CC 'requires 2 box columns'       ;  return 1
+   end                                 /* ======================= */
+   if V < 0 & B > 4 & V <> H & BOX.B.UH <> BOX.B.LH then do
+      'emsg BOX' BOX.B.CC 'requires 2 box lines'         ;  return 1
+   end                                 /* ======================= */
+   do C = 1 to 4                       /* Upper     U    (H hor.) */
+      H.C = '' ;  U.C = '' ;  D.C = '' /* Left   L HxV R  Right   */
+      V.C = '' ;  L.C = '' ;  R.C = '' /* Down      D    (V ver.) */
+   end                                 /* ======================= */
+   if BOX.B.HH = BOX.1.HH then do      /* single horizontal line  */
+      H.1 =          BOX.1.VH BOX.3.VH BOX.1.VV BOX.3.VV
+      H.1 = H.1      BOX.1.VL BOX.3.VL BOX.1.VR BOX.3.VR
+      H.4 =          BOX.2.VH BOX.4.VH BOX.2.VV BOX.4.VV
+      H.4 = H.4      BOX.2.VL BOX.4.VL BOX.2.VR BOX.4.VR
+      U.1 = BOX.3.UH BOX.1.UH BOX.3.UL BOX.1.UL BOX.3.UR BOX.1.UR
+      U.4 = BOX.4.UH BOX.2.UH BOX.4.UL BOX.2.UL BOX.4.UR BOX.2.UR
+      D.1 = BOX.3.LH BOX.1.LH BOX.3.LL BOX.1.LL BOX.3.LR BOX.1.LR
+      D.4 = BOX.4.LH BOX.2.LH BOX.4.LL BOX.2.LL BOX.4.LR BOX.2.LR
+   end                                 /* U up, D down, H hor.    */
+   if BOX.B.HH = BOX.2.HH then do      /* double horizontal line  */
+      H.2 =          BOX.2.VH BOX.4.VH BOX.2.VV BOX.4.VV
+      H.2 = H.2      BOX.2.VL BOX.4.VL BOX.2.VR BOX.4.VR
+      H.3 =          BOX.1.VH BOX.3.VH BOX.1.VV BOX.3.VV
+      H.3 = H.3      BOX.1.VL BOX.3.VL BOX.1.VR BOX.3.VR
+      U.2 = BOX.4.UH BOX.2.UH BOX.4.UL BOX.2.UL BOX.4.UR BOX.2.UR
+      U.3 = BOX.3.UH BOX.1.UH BOX.3.UL BOX.1.UL BOX.3.UR BOX.1.UR
+      D.2 = BOX.4.LH BOX.2.LH BOX.4.LL BOX.2.LL BOX.4.LR BOX.2.LR
+      D.3 = BOX.3.LH BOX.1.LH BOX.3.LL BOX.1.LL BOX.3.LR BOX.1.LR
+   end                                 /* ======================= */
+   if BOX.B.VV = BOX.1.VV then do      /* single vertical line    */
+      V.1 =          BOX.1.VH BOX.4.VH BOX.1.HH BOX.4.HH
+      V.1 = V.1      BOX.1.LH BOX.4.LH BOX.1.UH BOX.4.UH
+      V.3 =          BOX.2.VH BOX.3.VH BOX.2.HH BOX.3.HH
+      V.3 = V.3      BOX.2.LH BOX.3.LH BOX.2.UH BOX.3.UH
+      L.1 = BOX.4.VL BOX.1.VL BOX.4.UL BOX.1.UL BOX.4.LL BOX.1.LL
+      L.3 = BOX.3.VL BOX.2.VL BOX.3.UL BOX.2.UL BOX.3.LL BOX.2.LL
+      R.1 = BOX.4.VR BOX.1.VR BOX.4.UR BOX.1.UR BOX.4.LR BOX.1.LR
+      R.3 = BOX.3.VR BOX.2.VR BOX.3.UR BOX.2.UR BOX.3.LR BOX.2.LR
+   end                                 /* L left, R right, V ver. */
+   if BOX.B.VV = BOX.2.VV then do      /* double vertical line    */
+      V.2 =          BOX.2.VH BOX.3.VH BOX.2.HH BOX.3.HH
+      V.2 = V.2      BOX.2.LH BOX.3.LH BOX.2.UH BOX.3.UH
+      V.4 =          BOX.1.VH BOX.4.VH BOX.1.HH BOX.4.HH
+      V.4 = V.4      BOX.1.LH BOX.4.LH BOX.1.UH BOX.4.UH
+      L.2 = BOX.3.VL BOX.2.VL BOX.3.UL BOX.2.UL BOX.3.LL BOX.2.LL
+      L.4 = BOX.4.VL BOX.1.VL BOX.4.UL BOX.1.UL BOX.4.LL BOX.1.LL
+      R.2 = BOX.3.VR BOX.2.VR BOX.3.UR BOX.2.UR BOX.3.LR BOX.2.LR
+      R.4 = BOX.4.VR BOX.1.VR BOX.4.UR BOX.1.UR BOX.4.LR BOX.1.LR
+   end                                 /* ======================= */
+   C = UL UR LL LR                     /* Top tee:    T           */
+   do while C <> ''                    /* left     A  X  C  right */
+      parse var C PAD C ;  X.PAD = ''  /* Bottom      B           */
+      T.PAD = ''  ;  A.PAD = ''  ;  B.PAD = ''  ;  C.PAD = ''
+   end                                 /* edge junctions only for */
+   if 0 < B & B < 5 then do            /* same BOX type (BOX 1-4) */
+      X.UL = BOX.B.VH BOX.B.LH BOX.B.LR BOX.B.VR   /* UL crossing */
+      T.UL = BOX.B.UH BOX.B.UR BOX.B.HH            /* upper tee   */
+      A.UL = BOX.B.VL BOX.B.LL BOX.B.VV            /* left  tee   */
+      X.UR = BOX.B.VH BOX.B.LH BOX.B.LL BOX.B.VL   /* UR crossing */
+      T.UR = BOX.B.UH BOX.B.UL BOX.B.HH            /* upper tee   */
+      C.UR = BOX.B.VR BOX.B.LR BOX.B.VV            /* right tee   */
+      X.LR = BOX.B.VH BOX.B.UH BOX.B.UL BOX.B.VL   /* LR crossing */
+      B.LR = BOX.B.LH BOX.B.LL BOX.B.HH            /* lower tee   */
+      C.LR = BOX.B.VR BOX.B.UR BOX.B.VV            /* right tee   */
+      X.LL = BOX.B.VH BOX.B.UH BOX.B.UR BOX.B.VR   /* LL crossing */
+      B.LL = BOX.B.LH BOX.B.LR BOX.B.HH            /* lower tee   */
+      A.LL = BOX.B.VL BOX.B.UL BOX.B.VV            /* left  tee   */
+   end                                 /* ======================= */
+   'set insertmode OFF' ;  'set autosave OFF'      /* 1*1 box or  */
+   if -1 = V & V = H then call TXT BOX.B.VH        /* clockwise:  */
+   do I = 1 to H                       /* UH: upper horizontal... */
+      'sos cr' ;  if B <> 8   then  call TXT HOR( BOX.B.UH )
+   end                                 /* ======================= */
+   if 0 <= H then do                   /* UR: (upper) right edge  */
+      'sos cr' ;  if 0 <= V   then  call TXT CHR( UR )
+                              else  call TXT VER( BOX.B.VR )
+      if B = 8 & V < 0        then  call ADD 'cl', 'cr'
+   end                                 /* ======================= */
+   do I = 1 to V                       /* VR: vertical right side */
+      'sos cd' ;                    call TXT VER( BOX.B.VR )
+      if B = 8 & 0 < H        then  call ADD 'cl', 'cr'
+   end                                 /* ======================= */
+   if 0 <= V then do                   /* LR: lower (right) edge  */
+      'sos cd' ;  if 0 <= H   then  call TXT CHR( LR )
+                              else  call TXT HOR( BOX.B.LH )
+   end                                 /* ======================= */
+   do I = 1 to H                       /* LH: lower horizontal... */
+      'sos cl' ;  if B <> 8   then  call TXT HOR( BOX.B.LH )
+   end                                 /* ======================= */
+   if 0 <= H then do                   /* LL: (lower) left edge   */
+      'sos cl' ;  if 0 <= V   then  call TXT CHR( LL )
+                              else  call TXT VER( BOX.B.VL )
+      if B = 8 & V < 0        then  call ADD 'cr', 'cl'
+   end                                 /* ======================= */
+   do I = 1 to V                       /* VL: vertical left  side */
+      'sos cu' ;                    call TXT VER( BOX.B.VL )
+      if B = 8 & 0 < H        then  call ADD 'cr', 'cl'
+   end                                 /* ======================= */
+   if 0 <= V then do                   /* UL: upper (left) edge   */
+      'sos cu' ;  if 0 <= H   then  call TXT CHR( UL )
+                              else  call TXT HOR( BOX.B.UH )
+   end                                 /* ======================= */
+   ALT.2 = ALT.2 + sign( ALT.0 )       /* can't use ALT.2() count */
+   ALT.1 = ALT.1 + sign( ALT.0 ) ;  'set alt' ALT.1 ALT.2
+   say 'BOX' BOX.B.CC 'changed' ALT.0 'characters on' V +2 'line(s)'
+   'set insertmode' INSERTMODE.1 ;  'set autosave' AUTOSAVE.1
+   'sos restore'                 ;  return 1 - sign( ALT.0 )
+
+ADD:  /* --- uses global variables ------------------------------ */
+   'sos' arg( 1 ) ;  call TXT BOX.B.VH /* add extra right or left */
+   'sos' arg( 2 ) ;  return rc         /* comment star for BOX 8  */
+
+TXT:  /* --- uses global variables ------------------------------ */
+   if field.2() = arg( 1 ) then return 0
+   'text' arg( 1 )   ;  'sos cl' ;  ALT.0 = ALT.0 + 1 ;  return rc
+
+CHR:  /* --- uses global variables ------------------------------ */
+   C = strip( field.2())   ;  arg L
+   if sign( pos( C, X.L )) then return BOX.B.VH    /* X crossing  */
+   if sign( pos( C, T.L )) then return BOX.B.UH    /* Top    tee  */
+   if sign( pos( C, A.L )) then return BOX.B.VL    /*  left  tee  */
+   if sign( pos( C, B.L )) then return BOX.B.LH    /* Bottom tee  */
+   if sign( pos( C, C.L )) then return BOX.B.VR    /*  right tee  */
+   return BOX.B.L
+
+HOR:  /* --- uses global variables ------------------------------ */
+   C = strip( field.2())
+   if 0 < B & B < 5 then do L = 1 to 4
+      if sign( pos( C, H.L )) then return BOX.L.VH /* VH crossing */
+      if sign( pos( C, U.L )) then return BOX.L.UH /* upper tee   */
+      if sign( pos( C, D.L )) then return BOX.L.LH /* lower tee   */
+   end                                             /* VV junction */
+   else if C = BOX.B.VL | C = BOX.B.VR then return BOX.B.VV
+   if 0 < B & B < 5 & 0 <= H  then return BOX.B.HH /* horizontal  */
+   return arg( 1 )                                 /* no junction */
+
+VER:  /* --- uses global variables ------------------------------ */
+   C = strip( field.2())   ;  if B = 8 then return arg( 1 )
+   if 0 < B & B < 5 then do L = 1 to 4
+      if sign( pos( C, V.L )) then return BOX.L.VH /* VH crossing */
+      if sign( pos( C, L.L )) then return BOX.L.VL /* left  tee   */
+      if sign( pos( C, R.L )) then return BOX.L.VR /* right tee   */
+   end                                             /* VV junction */
+   else if C = BOX.B.UH | C = BOX.B.LH then return BOX.B.VV
+   if 0 < B & B < 5 & 0 <= V  then return BOX.B.VV /* vertical    */
+   return arg( 1 )                                 /* no junction */

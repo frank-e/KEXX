@@ -1,0 +1,28 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         DEFine macro C-W 'macro C-WORD'                 */
+/* Purpose:       This macro is used internally by INITIAL.KML to */
+/*                minimize the macrospace size (DOS KEDIT 5 ISA). */
+/* C-W mnemonic:  C-Word, toggle upper, title, and lower case for */
+/*                field word.                                     */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2010) */
+
+   LOW = xrange( 'a', 'z' )
+   CAP = xrange( 'A', 'Z' )
+   if field.2() = ' ' then exit
+   'extract /WORD/INSERTMODE/' ; 'insertmode off' ; 'word alpha'
+   'sos save startword' ; REST = fieldword.1()
+   do I = 0 while REST <> ''
+      parse var REST C 2 REST
+      if verify( C, LOW || CAP, 'm' ) <> 0 then do
+         if verify( C, CAP, 'm' ) <> 0
+         then if I = 0 & verify( REST, LOW || CAP, 'm' ) <> 0
+              then iterate
+              else 'text' translate( fieldword.1(), LOW, CAP )
+         else if I = 0
+              then 'text' translate( field.2(),     CAP, LOW )
+              else 'text' translate( fieldword.1(), CAP, LOW )
+         leave
+      end
+   end
+   'word' WORD.1 ; 'insertmode' INSERTMODE.1 ; 'sos restore'

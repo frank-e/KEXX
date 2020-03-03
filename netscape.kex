@@ -1,0 +1,78 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] NETSCAPE [url|.|:]                      */
+/* Example:       NETSCAPE about:blank       = show specified URL */
+/*                NETSCAPE                   = show this file:/// */
+/*                NETSCAPE .                 = show directory     */
+/*                NETSCAPE :                 = show focusword.2() */
+/* Option:        define A-HOME 'macro NETSCAPE :'                */
+/* Purpose:       Locate FOCUSWORD.2() or a specified argument as */
+/*                URL and let the NT CMD shell start it.  Spaces  */
+/*                are escaped, all "&amp;" are replaced by "&".   */
+/* Caveats:       The KEDIT command line length is very limited.  */
+/* Bugs:          Apparently #-fragments in local file: URLs are  */
+/*                not supported on NT.  A workaround would be to  */
+/*                launch a browser directly here again, as it was */
+/*                for OS/2, but then changing the default browser */
+/*                would require to patch this macro... <sigh />   */
+/* See also:      KHELP FOCUSWORD                                 */
+/*                <URL:http://purl.net/xyzzy/kex/netscape.kex>    */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   URL = arg( 1 )             ;  rc = 0
+   if URL = ':' then URL = focusword.2()
+   USE = translate( URL )     ;  LOC = 'file://localhost/'
+
+   if URL = '' & dir() = 0             then do
+      URL = LOC || translate( fileid.1(),    '/', '\' )
+      if alt() then 'save'    ;  if rc <> 0 then exit rc
+   end
+   else  if URL = ''                   then
+      URL = LOC || translate( dirfileid.1(), '/', '\' )
+   else  if URL = '.'                  then
+      URL = LOC || translate( directory.1(), '/', '\' )
+   else  if abbrev( USE ,  '<URL:'  )  then
+      parse var URL '<URL:'   URL '>'  /* <URL:any:url> (in text) */
+   else  if abbrev( USE ,  '<'      )  then
+      parse var URL '<'       URL '>'  /* <any:url>     (in news) */
+   else  if abbrev( USE ,  'HREF="' )  then
+      parse var URL =7        URL '"'  /* href="any:url" (X)HTML  */
+   else  if abbrev( USE ,  "HREF='" )  then
+      parse var URL =7        URL "'"  /* href='any:url' (X)HTML  */
+   else  if abbrev( USE ,  'HREF='  )  then
+      parse var URL =6        URL '>'  /* href=any:url> (in HTML) */
+   else  if abbrev( USE ,  '"'      )  then
+      parse var URL '"'       URL '"'  /* "any:url"     (strings) */
+   else  if abbrev( USE ,  "'"      )  then
+      parse var URL "'"       URL "'"  /* 'any:url'     (strings) */
+   else  if sign( pos( '="HTTP://', USE )) then
+      parse var URL '="'      URL '"'  /* any="http://url"  (XML) */
+   else  if abbrev( USE ,  'HTTP://' ) then
+      if verify( right( USE, 1 ), ':;,.', 'Match' ) then do
+         URL = left( URL, length( URL ) - 1 )
+      end   /* kludge for text URL with trailing comma or similar */
+
+   /* maybe add special handling of implicit file: and news: URLs */
+   /* maybe add special handling of explicit mailto:, dict:, etc. */
+
+   URL = QUOT( URL )
+   if version.1() = 'KEDIT'
+      then     'dosn cmd /k start' URL '&& exit'
+      else  'winexec cmd /k start' URL '&& exit'
+   if rc <> 0  then do
+      'emsg "start" failure'  ;  exit 1
+   end
+   say 'href="' || URL || '"' ;  exit 0
+
+QUOT: procedure                        /* percent-encode spaces:  */
+   parse arg SRC     ;  DST = ''       ;  POS = pos( ' '    , SRC )
+   do while POS > 0
+      DST = DST || left( SRC, POS -1 ) || '%20'
+      SRC =      substr( SRC, POS +1 ) ;  POS = pos( ' '    , SRC )
+   end
+   SRC = DST || SRC  ;  DST = ''       ;  POS = pos( '&amp;', SRC )
+   do while POS > 0
+      DST = DST || left( SRC, POS -1 ) || '&'
+      SRC =      substr( SRC, POS +5 ) ;  POS = pos( '&amp;', SRC )
+   end
+   return DST || SRC

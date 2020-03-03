@@ -1,0 +1,54 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] NBSP                                    */
+/* Purpose:       NBSP converts spaces in a block to &#160;   For */
+/*                line blocks this would be almost the same as a  */
+/*                CHANGE / /&#160;/ BLOCK ALL, but handling box   */
+/*                and stream blocks resp. excluding any trailing  */
+/*                blanks in line blocks is less trivial.          */
+/*                Affected lines are converted individually with  */
+/*                REPLACE, and any error aborts macro NBSP.       */
+/* See also:      KHELP BLOCK, KHELP ZONE, KHELP REPLACE          */
+/* Requires:      Kedit 5.0               (Frank Ellermann, 2003) */
+
+   DONE = 0
+
+   if block() then do
+      ACTL =  line.1()  ;  ACTC = column.1() ;     'sos save'
+      TOPL = block.2()  ;  TOPC = block.3()  ;     MINC = zone.1()
+      BOTL = block.4()  ;  BOTC = block.5()  ;     MAXC = zone.2()
+      if block.1() = 'STREAM' & TOPL < BOTL then do
+         DONE = CBOX(      TOPL,    TOPC, TOPL,    MAXC ) + DONE
+         DONE = CBOX(      BOTL,    MINC, BOTL,    BOTC ) + DONE
+
+         if TOPL + 1 <= BOTL - 1 then do
+            DONE = CBOX(   TOPL +1, MINC, BOTL -1, MAXC ) + DONE
+         end
+      end
+      else  DONE = CBOX(   TOPL,    TOPC, BOTL,    BOTC ) + DONE
+
+      'locate :' ACTL   ;  'cl :' ACTC       ;     'sos restore'
+   end
+   say DONE 'blanks converted'   ;  exit ( DONE = 0 )
+
+CBOX: procedure
+   arg TOPL, MINC, BOTL, MAXC    ;  DONE = 0
+
+   do LINE = TOPL to BOTL
+      'locate :' LINE            ;  TAIL = curline.3()
+      HEAD = substr( TAIL,    1, MINC - 1 )
+      AREA = substr( TAIL, MINC, MAXC - MINC + 1 )
+      TAIL = substr( TAIL, MAXC + 1 )
+      if TAIL == '' then AREA = strip( AREA, 'Trailing' )
+      if sign( pos( ' ', AREA )) = 0 then iterate
+
+      do until AREA == ''
+         if abbrev( AREA, ' ' ) then do
+            DONE = DONE + 1      ;  HEAD = HEAD || '&#160;'
+         end
+         else  HEAD = HEAD || left( AREA, 1 )
+         AREA = substr( AREA, 2 )
+      end
+      'replace' HEAD || TAIL     ;  if rc <> 0 then exit rc
+   end
+   return DONE

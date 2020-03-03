@@ -1,0 +1,42 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] HTM [filename}                          */
+/* Example:       HTM pub\index              = X pub\index.HTM[L] */
+/*                HTM err40?                 = XDIR err40?.HTM[L] */
+/*                HTM                        = homepage dir. tree */
+/* Purpose:       Edit existing *.HTM[L] files in homepage dir.   */
+/*                (wildcards ?* and relative paths supported, for */
+/*                 wildcards you need XDIR.KEX in your macropath) */
+/* Caveat:        HTM.KEX does not recurse subdirectories for any */
+/*                given argument. Only HTM called without arg. is */
+/*                a shorthand for TREE.KEX of your homepage PATH  */
+/* Installation:  Edit the PATH to your local homepage directory  */
+/* Requires:      Kedit 5.0, XDIR.KEX, TREE.KEX                   */
+/*                                        (Frank Ellermann, 2003) */
+
+   PATH = 'd:\inetpub\ftproot\'
+   if arg( 1 ) = '' then do                     /* TREE shorthand */
+      'macro TREE "' || PATH || '"' ;  exit rc
+   end
+
+   NAME = strip( strip( arg( 1 )),, '"' )
+   if abbrev( NAME, '\' ) | sign( pos( ':', NAME )) then do
+      'emsg unsupported:' arg( 1 )  ;  exit 1   /* abs. paths and */
+   end                                          /* drives invalid */
+
+   if sign( verify( NAME, '*?', 'M' )) then do  /* -- WILDCARD -- */
+      'nomsg macro XDIR "' || PATH || NAME || '.htm"' ;  CODE = rc
+      if CODE = 0 | CODE = 28 then do           /* 28 "not found" */
+         LAST = lastmsg.1()                     /* may be okay... */
+         'nomsg macro XDIR "' || PATH || NAME || '.html"'
+         if rc = 28 then 'nomsg msg' LAST ;  else CODE = rc
+      end                                       /* ...if at least */
+      say lastmsg.1()   ;  exit CODE            /* a *.HTML found */
+   end                                          /* -------------- */
+
+   'x "' || PATH || NAME || '.htm"  (nodefext)' /* try old *.HTM  */
+   if rc <> 0 | size.1() <> 0 then  exit rc     /* error or found */
+   'x "' || PATH || NAME || '.html" (nodefext)' /* try old *.HTML */
+   if rc <> 0                 then  exit rc     /* too many files */
+   'x "' || PATH || NAME || '.htm"  (nodefext)' ;  'nomsg quit'
+   'x "' || PATH || NAME || '.html"'            ;  exit rc

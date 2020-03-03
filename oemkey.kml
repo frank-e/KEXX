@@ -1,0 +1,315 @@
+* KEDIT 5.0 key macros based on INITIAL.KML for German keyboards.
+*+--------------------------------------------------------------+
+*| If ƒ÷‹‰ˆ¸ are shown as umlauted AOUaou your codepage or font |
+*| is UNSUITED for this file, it might be OS/2 1004 (= NT 1252) |
+*| or a KeditW 1.0 font based on NT ACP 1252.                   |
+*| If éôöÑîÅ are shown as umlauted AOUaou your Kedit 5 codepage |
+*| or KeditW 1.0 font and OEMCP are good enough for this file.  |
+*| Ideally Ô and ı are shown as accent and paragraph, otherwise |
+*| your codepage might be 437 instead of 850.                   |
+*| To view or edit this file with Kedit 5 you need codepage 858 |
+*| (OS/2 850 is actually 858).  Codepage 850 is also okay, its  |
+*| codepoint hex. D5 "dotless i" is interpreted as codepage 858 |
+*| "Euro" for KeditW 1.0.                                       |
+*| To view or edit this file with KeditW 1.0 you need OEMCP 850 |
+*| and an OEM screen font, e.g., "Terminal" or "8514oem".  Use  |
+*| Options -> Screen font to switch the font temporarily.  Note |
+*| your original font and reset it later.                       |
+*+--------------------------------------------------------------+
+*
+* To load these definitions on top of INITIAL.KML use something
+* like the following scheme:
+*     in PROFILE.KEX: if initial() then 'macro initial'
+*     in INITIAL.KEX: 'define INITIAL.KML' ;  'define OEMKEY.KML'
+* Don't forget to define OEMKEY.KML after redefining INITIAL.KML.
+* Of course it is far simpler to use only one INITIAL.KML for all
+* keys, but I often test different configurations and wanted to
+* separate KEYB GR stuff from more generally useful definitions.
+*
+* For "key (number) n" read "scan code n" in the following text:
+* On an obsolete keyboard with 83 keys the real key numbers 1..83
+* correspond to scan codes 1..83.  To simplify debugging of keys
+* defined here (OEMKEY.KML) its number and its KEYB GR label are
+* shown by a DMSG (debug message).  See also KHELP READV and the
+* related topics like LASTKEY for more info on Kedit key numbers.
+*
+* Key 86 exists only on keyboards with 102 keys, the combination
+* of (left) Alt + key 86 does not work.  But on KEYB GR pressing
+* (right) AltGr + key 86 results in "|", and Kedit READV reports
+* it as key 86 s-\ 'text |' correctly.  Often combinations like
+* Alt + key 14 result in hex. 0E00 (hex. 0E = 14), but hex. 5600
+* (hex. 56 = dec. 86) is already used for s-F3 (shifted F3).
+*
+* Although hex. 0C00 (0D00) for Alt + key 12 (13 respectively) is
+* apparently not used for another combination, Alt + key 12 (13)
+* results in hex. 8200 (8300).  READV reports it as key 130 (131)
+* correctly (hex. 82 = 130), but the debug message defined below
+* shows the original scan code 12 (13) for Alt + key 12 (13).
+*
+* The shifted key 4 on KEYB GR is either recognized as C-U if the
+* actual codepage is 437, or READV "unidentifies" it as ASCII 245
+* if the actual codepage is 850.  Similarly all composed keys are
+* "unidentified" with MACRO ASCII nnn using the following method:
+*
+* If in hex. kkcc (key hex. kk) ASCII hex. cc is not zero and no
+* known KEYB US label, then ASCII nnn (hex. cc = nnn) inserts its
+* unmodified text (see QUERY MACRO ASCII).  Composed keys in this
+* sense are accented (or umlauted) ASCII codes and of course all
+* Alt-keypad combinations:  Alt-2-2-4 "‡" is a typical test case,
+* OS/2 REXX SYSGETKEY and PC DOS REXX RXGETKEY don't support it,
+* but READV recognizes ASCII 224.  The inconsistency for shifted
+* key 4 on KEYB GR depending on the codepage is no Kedit bug, but
+* a desirable keyboard device behaviour:  Codepage 437 has only
+* ASCII 21 with a graphical representation corresponding to the
+* label of key 4 on KEYB GR, but in codepage 850 ASCII 245 has
+* the same graphical representation.  ASCII 21 = NAK is used in
+* some communication protocols (NAK = Negative AcKnowledge).
+*
+* Kedit recognizes keypad 0 .. 9, /, *, -, +, and . (point), and
+* so it is possible to define e.g. macro MINUS keeping the normal
+* macro -.  Kedit's "keypad detector" fails for S-DEL on KEYB GR,
+* hex. 532C instead of 532E (53 = key 83, 2C = comma, 2E = point).
+* Kedit recognizes 532C as , (comma) instead of S-DEL.  A simple
+* modification of macro , can "revive" KEYB GR S-DEL (see below).
+*
+* Kedit 5.0 READV reports scan code 0 for all composed characters
+* like '+u=£ or [Alt]+keypad combinations.  KeditW READV reports
+* the last key (e.g. 22 U for £) or left Alt 56 for [Alt]+keypad.
+* READV.1 or the similar LASTKEY.1() is ASCII nnn for composed
+* characters, otherwise it is the name of the corresponding macro.
+* READV.3 and equivalent LASTKEY.3() is 224 for SLASH (key 95),
+* NUMENTER (key 108) and C-NUMENTER (also key 108).
+*
+* Kedit 5.0 ignores C-PrtSc (114), C-Star (150), and A-Star (55).
+* It is possible to patch the table entry for STAR in the binary,
+* then C-PrtSc is recognized as S-STAR, C-STAR and A-STAR work
+* as expected, and a shifted key 55 is still recognized as STAR.
+* The hex. codes are 7200 S-STAR, 9600 C-STAR, and 3700 A-STAR.
+*
+* Kedit treats 9 (or 11) KEYB GR characters as composed like £:
+* label   Ñ   é   î   ô   Å   ö   ·   ¯   ˝   ¸   Ê   Ô   ı   £
+* ASCII 132 142 148 153 129 154 225 248 253 252 230 239 245 200
+* key    40  40  39  39  26  26  12  41   3   4  50  13   4  22
+* (a-: right AltGr, 850: codepage 850)  a-2 a-3 a-M 850 850 '+u
+*
+* An additional AltGr combination A-E was introduced to support
+* the Euro-symbol (ASCII 213 ’) in codepage 850.  This depends
+* on the platform, for OS/2 Warp 3 fixpack 40 added the Euro.
+*
+* Twenty KEYB GR labels are different, not counting swapped Y and Z:
+*  key  3  4  7  8  9 10 11 12 13 26 27 39 40 41 43 51 52 53 86  83
+* s-US  @  #  ^  &  *  (  )  -  +  {  }  :  "  ~  |  <  >  ?      .
+*   US  2  3  6  7  8  9  0  _  =  [  ]  ;  '  '  \  ,  .  /    DEL
+* s-GR  "  ı  &  /  (  )  =  ?  `  ö  *  ô  é  ¯  '  ;  :  _  >   ,
+*   GR  2  3  6  7  8  9  0  ·  '  Å  +  î  Ñ  ^  #  ,  .  -  < DEL
+* AltGr ˝  ¸     {  [  ]  }  \        ~                       |
+*
+* Three control key differences: vvv  vvv  vvv
+* Kedit macro   C-2  C-A .. C-Z  C-[  C-\  C-]  C-6  C--
+* KEYB US label @ 2  a A .. z Z  { [  | \  } ]  ^ 6  _ -
+* KEYB GR label " 2  a A .. z Z  Å ö  ' #  * +  & 6  _ -
+* decimal ASCII   0    1 ..  26   27   28   29   30   31
+*
+* Sometimes "keyboard issues" can be display font issues, e.g. an old
+* PC DOS 7 ISO.CPI file supports only 25*80 modes.  For other modes
+* codepage 850 character 239 is displayed with a codepage 437 glyph,
+* characters 213 and 252 also are not shown as expected.  To get 850
+* glyphs in all modes I use MODE CON CP PREP=((850) C:\DOS\EGA.CPI).
+:::
+* Macro :: introduced by ::: in column 1 is used throughout all
+* following key definitions to keep comments apart from actual
+* key macros.  With this trick only the code is kept in memory,
+* comments automagically redefine each other.  KeditW offers a
+* new ::* KML-comment-line-intro for similar purposes.
+:::
+* --- undefined keys --------------------------------------------------
+* The default macros A-', A-;, A-[, and A-/ are undefined (NOP), here
+* unusual KEYB GR numbers and labels are documented by debug messages.
+* They still do nothing (NOP) if not debugged, but QUERY MACRO A-[ or
+* similar commands show the DMSG.  The default macros A-, and A-. are
+* also undefined (NOP), but their label is less unusual containing at
+* least the comma (or point) on KEYB GR (same numbers as on KEYB US).
+:A-[
+   'macro OEMIF 0 \' ;  'macro OEMKEY 26: Åö NT 12: ·? \'
+:A-;
+   'macro OEMKEY 39: îô NT 26: Åö'
+:A-'
+   'macro OEMKEY 40: ÑA'
+:A-,
+   'macro OEMKEY 51: ,;'
+:A-.
+   'macro OEMKEY 52: .:'
+:A-/
+   "macro OEMKEY 53: -_ NT 43: #'"
+:::
+* --- control keys ----------------------------------------------------
+* The default macros C-[, C-], C-\, and C-U are undefined (NOP), here
+* unusual KEYB GR numbers and labels are documented by debug messages.
+* Like C-2 and C-U defined in INITIAL.KML macro ASCII nnn is used to
+* define the corresponding ASCII character.  C-U is (re)defined here
+* adding a DMSG for key 4 on KEYB GR codepage 437.  Control + U also
+* results in C-U, but READV then correctly reports key 22 instead of
+* key 4 (keyboards BG241 or TR440 probably use other C-U key numbers).
+* The key number for C-\ can be 41 (NT), 13 (PC DOS), or 43 (OS/2 ?).
+:C-U
+   'macro ascii 21'
+   if lastkey.3() = 4 then 'macro OEMKEY 4: 3' || d2c(21)
+:C-[
+   'macro ascii 27'  ;  'macro OEMKEY 26: Åö NT 12: ·? \'
+:C-\
+   'macro ascii 28'  ;  'macro OEMKEY 12: ·? \ NT 41: ^¯'
+:C-]
+   'macro ascii 29'  ;  "macro OEMKEY 27: +* ~ NT 13: Ô`"
+:::
+* --- AltGr keys ------------------------------------------------------
+* With KEYB GR left Alt differs from right AltGr in 12 cases.  Kedit
+* allows to get rid of these differences except from key 86 (AltGr |).
+* This affects the defaults for A-2, A-3, and A-M.  With XPOINT-keys
+* A-1 .. A-6 to lose A-2 and A-3 is no problem, it is still one more
+* XPOINT than Kedit's default A-1 .. A-3.  But A-M (Move block) has
+* to be replaced by some other key, here A-T (mnemonic: block Target)
+* is used.  The default macros C-Q, A-Q, A-T, A-7, A-8, A-9, A-0, A--,
+* A-E, and A-] are undefined (NOP).
+* OS/2 3.x KwikInf supports A-Q, C-Q, and other hot keys.  Therefore
+* A-Q is defined to be compatible with AltGr + Q, and C-Q is reserved
+* for KwikInf instead of A-Q.  Not yet implemented:  For native DOS
+* replace the dummy C-Q debug message by some usage of QuickHelp (QH).
+* Actually KwikInf inherited A-Q from MS OS/2 1.x QuickHelp (yes: MS).
+:A-2
+   'macro OEMKEY ˝'  ;  'macro OEMKEY 3: 2" ˝'
+:A-3
+   'macro OEMKEY ¸'  ;  'macro OEMKEY 4: 3  ¸'
+:A-7
+   'macro S-['       ;  'macro OEMKEY 8: 7/ {'
+:A-8
+   'macro ['         ;  'macro OEMKEY 9: 8( ['
+:A-9
+   'macro ]'         ;  'macro OEMKEY 10: 9) ]'
+:A-0
+   'macro S-]'       ;  'macro OEMKEY 11: 0= }'
+:A--
+   'macro OEMIF 1 \' ;  'macro OEMKEY 12: ·? \ NT 53: -_'
+:A-E
+   'macro OEMKEY ’'  ;  'macro OEMKEY 18: eE ’ [Euro]'
+:A-Q
+   'macro S-2'       ;  'macro OEMKEY 16: qQ @'
+:C-Q
+   'dmsg C-Q reserved for OS/2 KwikInf instead of A-Q'
+:A-]
+   'macro OEMIF 1 ~' ;  "macro OEMKEY 27: +* ~ NT 13: Ô`"
+:A-M
+   'macro OEMKEY Ê'  ;  'macro OEMKEY 50: mM Ê'
+:A-T
+   'mov block'       ;  if rc = 0 then 'reset block'
+:::
+* --- dead keys -------------------------------------------------------
+* KEYB GR has 3 "dead" keys used to compose accented characters, e.g.
+* pressing '+u results in £.  To get the accent character alone it is
+* necessary to "compose" it with a SPACE.  To simplify the input of
+* accents three corresponding Alt-keys are redefined:
+*     Alt + key 41 (label ^¯ on KEYB GR) recognized as A-` key 41.
+*     Alt + key 43 (label #' on KEYB GR) recognized as A-\ key 43.
+*     Alt + key 13 (label '` on KEYB GR) recognized as A-= key 131.
+* Losing the default A-= key definition DUP is no problem, its label
+* is no mnemonic = on KEYB GR and the default F8 is another DUP-key.
+*
+* A bug in OS/2 KEYBOARD.DCP (1995) KEYB GR "unsupports" A-` key 41,
+* it is mapped to hex. 8300 (131, key 13, like accents 1 ' and 2 `),
+* and this wrong mapping is disabled in the key 41 definition.  To
+* revive A-` patch two 5E0D0000008361836588 => 5E290000002961836588
+* and two 0B0003F8000000 => 0B0003F8000003 below KEYB strings "129".
+* BTW: this bug still exists in WARP 3 fixpack 40 KEYBOARD.DCP, but
+*      the 5E29 stuff is already okay, so patch only 0B0003F8000003.
+:A-`
+   'macro S-6'       ;  'macro OEMKEY 41: ^¯ NT 39: îô'
+:A-\
+   "macro '"         ;  "macro OEMKEY 43: #' NT 41: ^¯"
+:A-=
+   'macro OEMIF 0 ~' ;  "macro OEMKEY 13: '` NT 27: +* ~"
+:::
+* --- other keys ------------------------------------------------------
+* The default SLASH definition 'text /' reflects its label on KEYB US,
+* but on KEYB GR codepage 850 'text' d2c(246) corresponds to its label.
+* INITIAL.KML redefines SLASH for another purpose, but A-SLASH is still
+* available (NOP) for 'text' d2c(246).
+* To support redefinitions of S-DEL in other macros, macro , (comma)
+* corrects Kedit's mismatch of key 83 by executing S-DEL if necessary.
+* PURGE S-DEL can restore Kedit's default macro S-DEL 'text .' point.
+:A-Slash
+   'macro OEMKEY' d2c( 246 )  ;  'macro OEMKEY 95:' d2c( 246 )
+:S-Del
+   'text ,'          ;  'macro OEMKEY 83: ,'
+:,
+   if lastkey.3() = 83 then 'macro S-Del' ;  else 'text' lastkey.2()
+:::
+* --- help keys -------------------------------------------------------
+* INITIAL.KML defines C-F3 .. C-F10 as a set of help keys describing
+* its key definitions, some of these macros should be redefined here.
+* The Euro translation is hardwired here for codepage 858 + 1252, as
+* oemtoansi() would create ASCII "i" for codepage 850 instead of 858.
+:C-F8
+   'dmsg OEMKEY.KML redefined INITIAL.KML C-F8 info for KEYB GR keys'
+   if dir() > arg() then do ; 'macro C-F10 Path Name Ext'   ; exit rc ; end
+   Z = d2c( 213 )
+   if version.1() <> 'KEDIT' then if oemfont() = 0 then Z = d2c( 128 )
+   Z = '"' || Z || '"'
+   say 'A-A Altered       A=K Keep copy    A=S Split align   A-Y Yank box   '
+   say 'A-E Euro' Z '     A-N Netscape     A=T move Target   A=Z mark stream'
+   say 'A-H Help keys     A-P Pref on/off  A=V View block                   '
+   say 'A-I lAtIn to 850  A=R Recover      A=W del. Word     A-1 point .A-1 '
+   say 'A=J Join align    A-Star nop       A-X Xedit dir.    A-4..6 like A-1'
+:C-F10
+   'dmsg OEMKEY.KML redefined INITIAL.KML C-F10 info for KEYB GR keys'
+   if dir() & arg( 1 ) <> '.' then do
+      'point .C-F'
+      if arg() = 0 then 'macro C-F11' .
+      else if arg( 1 ) <> 'OFF' then 'dirsort' arg( 1 ) ; else 'q defsort'
+      'locate .C-F point .C-F off'  ; exit rc
+   end
+   B = d2c( 253 ) ;  C = d2c( 252 ) ;  D = d2c( 246 ) ; E = d2c( 230 )
+   if version.1() <> 'KEDIT' then if oemfont() = 0
+      then parse value oemtoansi( B C D E ) with B C D E
+   B = '"' || B || '"' ; C = '"' || C || '"' ;  A = '"''"'
+   D = '"' || D || '"' ; E = '"' || E || '"' ; XX = "A-':"
+   say 'C-2:  NUL  C-\: FS   A-\:' A ' A-2:' B ' A-3:' C ' A-Slash ' D '    '
+   say 'C-U:  NAK  C-]: GS   A-]: "~"  A-7: "{"  A-0: "}"  A-Enter = C-Enter'
+   say 'C-Tab: HT  C-[: ESC  A-[: nop  A-8: "["  A-9: "]"  C-Slash = A-Slash'
+   say 'A-.:  nop  A-;: nop  A--: "\"  A-Q: "@"  A-=: "`"  C-Center= Center '
+   say 'A-,:  nop ' XX 'nop  A-/: nop  A-M:' E ' A-`: "^"  C-Star  = A-Star '
+:::
+* --- Macro OEMIF -----------------------------------------------------
+* The Alt-key pairs A-[ or A-- for AltGr-\ and A-] or A-= for AltGR-~
+* depend on the version:  Kedit 5 gets key 12 for A-- and key 27 for
+* A-].  KeditW 1.0 gets key 12 for A-[ and key 27 for A-=.  The key
+* numbers seen by KeditW 1.0 reflect the real keyboard position.  In
+* essence OEMIF wastes two combinations to get a version independent
+* congruence for the two other left Alt-combinations with AltGr.
+:OEMIF
+   parse arg K CHR
+   if K = ( 'KEDIT' = version.1())  then  do
+      if CHR = '\'   then  'macro \'
+      if CHR = '~'   then  'macro S-`'
+   end
+   else  'dmsg Alt-key number' lastkey.3() 'reserved for macro OEMIF'
+:::
+* --- Macro OEMKEY ----------------------------------------------------
+* This macro is called by some keys defined above to translate codepage
+* 850 or 437 definitions into corresponding OEMTOANSI definitions with
+* KeditW 1.0.  For Kedit 5 or OEM fonts it does in essence nothing, key
+* text is inserted as is, anything else is shown as debug message.  The
+* special case Euro 0xD5 to 0x80 is also handled here.
+:OEMKEY
+   parse arg X
+   if version.1() <> 'KEDIT'  then  do
+      if oemfont() = 0  then  do /* otherwise use OEM as is */
+         E = oemtoansi( 'D5'x )  /* translate Euro directly */
+         if E = 'i'  then  X = translate( X, '7F'x, 'D5'x )
+         X = oemtoansi( X )      /* translate all other OEM */
+         if E = 'i'  then  X = translate( X, '80'x, '7F'x )
+      end
+   end
+   if length( X ) = 1   then  'text' X
+                        else  'dmsg KEYB GR' X
+   exit rc
+:::
+'dmsg :: INITIAL.KML + OEMKEY.KML (c) 1993, 2008 by Frank Ellermann'

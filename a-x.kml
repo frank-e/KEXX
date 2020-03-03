@@ -1,0 +1,57 @@
+*  Usage:         DEFINE A-X.KML          (test A-X redefinition)
+*  Purpose:       Extend the builtin A-X definition to bypass a
+*                 problem with DIR for directory names starting
+*                 with a dot (possible on HPFS).  The same trick
+*                 (adding a backslash to directory id.s) works
+*                 in all macros handling <dir> lines in DIR.DIR
+*                 files.
+*                 Another trick to be used in macros evaluating
+*                 DIR.DIR files:  'loc' focustof() - focuseof()
+*                 locates the next file line if the focus line
+*                 is TOF (top of file) or EOF.  Of course it's
+*                 still possible that there is no real file line
+*                 at all in an empty file.
+*                 Added 2003:  My real A-X definition contained
+*                 in INITIAL.KML supports tags created by XTAGS
+*                 or compatible tools.  If you don't need this
+*                 replace the lines starting with TAB = d2c(9) by
+*                    if focusword.2() == '' then exit 1 ;
+*                    'x "' || focusword.2() || '" (nodefext'
+*                 :::
+*  Installation:  To use the new A-X regularly either copy the
+*                 line ::: and anything below it to a KML loaded
+*                 by your PROFILE or simply add DEFINE A-X.KML
+*                 to your PROFILE.
+*                 Macro :: introduced by ::: in column 1 keeps
+*                 comments apart from actual key macros.  With
+*                 this trick only the code is kept in memory,
+*                 comments automagically "redefine" each other,
+*                 and a final ::: results in a rather harmless
+*                 'define :: nop' macro.  KeditW offers a new
+*                 ::* KML-comment-line-intro for (almost) the
+*                 same purpose.
+*  KeditW:        Optionally replace ::: by ::* and :A-X by :A+X
+*                 or :ALT-X, but note that I haven't tested this.
+*  See also:      KHELP A-X (resp. KEDIT BUILTIN.KML for KeditW)
+*  Requires:      Kedit 5.0 or Keditw 1.0 (Frank Ellermann, 2001)
+:::
+*A-Xedit or DIR in *.DIR (default), else Xedit focusword
+*A-X DIR corrected: add \ for "empty" dotted name like .XYZ
+*A-X in tags line (= item TAB file TAB location) supported
+:A-X
+   if dir() then do
+      'locate' focustof() - focuseof()
+      if dirfileid.1() == '' then exit 1
+      if wordpos( '<dir>', curline.3()) = 0
+         then 'x   "' || dirfileid.1() || '" (nodefext'
+         else 'dir "' || dirfileid.1() || '\" (new'
+      exit rc
+   end
+   TAB = d2c(9)
+   parse value curline.3() with . (TAB) SRC (TAB) LOC
+   if SRC = '' | LOC = '' then do
+      SRC = focusword.2()  ;  LOC = ''
+   end
+   if SRC = '' then exit 1 ;  'x "' || SRC || '" (nodefext'
+   if rc = 0 & LOC <> '' then 'tfind' delimit( LOC )
+:::

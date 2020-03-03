@@ -1,0 +1,63 @@
+'set novalue on'  /* use KEXX and its way of SIGNAL ON NOVALUE */
+
+/* Usage:      CDD [directory|-]                               */
+/* Example:    CDD E:\TMP              (CHDR E: + CHDir \TMP)  */
+/*             CDD -                   (previous directory)    */
+/*             CDD                     (use FMode and FPath)   */
+/* Purpose:    CDD combines the function of COMMAND CHDRive    */
+/*             with Kedit 5.0 COMMAND CHDir.  KeditW 1.0 CHDir */
+/*             is similar, adding a new CHDir = for the actual */
+/*             file directory FPATH on drive FMODE.            */
+/*             CDD - returns to the last directory set by CDD, */
+/*             like 4DOS, NDOS, 4OS2, etc.  Using CDD without  */
+/*             argument is almost the same as KeditW CHDir =.  */
+/*                                                             */
+/*             CDD without argument in a *.DIR file uses the   */
+/*             DIRFILEID for the current line as target.  CDD  */
+/*             adjusts an _unmodified_ DIR.DIR path to the new */
+/*             directory.  Otherwise command DIR would open a  */
+/*             new DIR.DIR file (instead of replacing the old  */
+/*             DIR.DIR file).  For intentionally (?) modified  */
+/*             DIR.DIR files CDD does not adjust the path, and */
+/*             proposes to erase this dubious file.            */
+/* Caveats:    Note that '-' or '=' are legal (albeit unusual) */
+/*             directory names.                                */
+/*             CDD uses a global CDD.? edit variable to store  */
+/*             the old directory for a later CDD -.            */
+/* Option:     SYNONYM CHD MACRO CDD                           */
+/* Requires:   Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 1998) */
+
+   CDD.? = fmode.1() || fpath.1()      /* path of current file */
+
+   if dir() then  do                   /* CDD within any *.DIR */
+      'locate' focustof() - focuseof() /* locate 0 or +1 or -1 */
+       CDD.? = dirf.2() || dirf.3()    /* path in a *.DIR line */
+   end
+
+   if arg() = 1   then  do             /* argument specified   */
+      CDD.? = strip( arg( 1 ))         /* last CDD dir. if '-' */
+      if CDD.? = '-' then  'editv get CDD.?'
+
+      if right( CDD.?, 1 ) = '\' then  CDD.? = CDD.? || '.'
+      if right( CDD.?, 1 ) = ':' & length( CDD.? ) = 2
+         then  CDD.? = CDD.? || '.'    /* drive's current dir. */
+   end
+
+   CDD.! = CDD.?                       /* new CDD.!, old CDD.? */
+   CDD.? = directory.1()            ;  'nomsg chd' CDD.!
+   if rc <> 0  then  do
+      CDD.! = rc                    ;  'emsg directory' CDD.?
+      exit CDD.!                       /* shows old directory  */
+   end
+   'editv put CDD.?'                   /* save old for 'CDD -' */
+
+   if substr( CDD.!, 2, 1 ) = ':'      /* change the drive too */
+      then  'nomsg chdr' left( CDD.!, 2 )
+
+   if dir() & fname.1() = 'DIR'  then  do
+      if undo.1() = alt.1()   then  do /* maybe adust DIR.DIR  */
+         'fmode .'                  ;  'fpath .'
+      end
+      else  'cmsg ERASE' efileid.1()   /* else propose ERASE   */
+   end
+   'query dir'                      ;  exit rc

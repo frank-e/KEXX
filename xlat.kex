@@ -1,0 +1,480 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] XLAT                                    */
+/* Purpose:       XLAT "translates" (in KeditW terminology) the   */
+/*                currently edited file to or from UTF-4:         */
+/*                   Input                            Output      */
+/*                   OEM (cp 858 or 850 with Euro)    UTF-4       */
+/*                   ACP (windows 1252 or Latin 1)    UTF-4       */
+/*                   Unicode (UTF-16LE)               UTF-4       */
+/*                   UTF-8                            UTF-4       */
+/*                   UTF-4                            UTF-8       */
+/*                   UTF-4                            UTF-16LE    */
+/*                   UTF-4                            UTF-16BE    */
+/*                   UTF-16BE (big endian)            UTF-4       */
+/*                For UTF-16 and UTF-8 input identified by its    */
+/*                signature output format UTF-4 is automatically  */
+/*                set.  Otherwise you can specify the translation */
+/*                in a DIALOG message box.                        */
+/*                The output always begins with a signature (BOM) */
+/*                for the Unicode encoding format.  Other Unicode */
+/*                encoding formats identified by their signature  */
+/*                are not supported (UTF-32, UTF-1, UTF-EBCDIC,   */
+/*                UTF-7, BOCU-1, or SCSU).                        */
+/*                Obviously using XLAT twice allows to translate  */
+/*                UTF-16 to UTF-8, or vice versa.                 */
+/*                For UTF-16 input XLAT uses macro BINARY.KEX to  */
+/*                get a binary view.  The translation can be used */
+/*                as a temporary "Latin-1 friendly" view; or in   */
+/*                other words, 'SSave' the UTF-4 output manually  */
+/*                if desired.                                     */
+/* Limitations:   UTF-4 input must be valid, otherwise macro XLAT */
+/*                reports the erroneous input line and aborts the */
+/*                translation.                                    */
+/*                For UTF-4, UTF-8, cp 858, or windows-1252 input */
+/*                an input line corresponds to the current KEDIT  */
+/*                setting; compare KHELP EOLIN.  For UTF-16 XLAT  */
+/*                emulates EOLIN LF and interprets LF or CRLF as  */
+/*                line end.  If an output line can be longer than */
+/*                the maximal WIDTH setting macro XLAT aborts the */
+/*                translation with an error message.              */
+/*                Invalid UTF-8 or UTF-16 code points and invalid */
+/*                input sequences are replaced by u+FFFD (UTF-4   */
+/*                hex. 849F9F9F9D).  This includes all surrogates */
+/*                outside of UTF-16 surrogate points, code points */
+/*                above u+10FFFF, "overlong" UTF-8 encodings, and */
+/*                similar UTF-8 issues, but _not_ the 66 Unicode  */
+/*                points classified as "non-characters".          */
+/*                The five undefined windows-1252 octets hex. 81, */
+/*                8D, 8F, 90, and 9D are also replaced by u+FFFD  */
+/*                in a translation from windows-1252.  OS/2 code  */
+/*                pages 1004 and "850 with Euro" are the same as  */
+/*                windows-1252 and cp 858.                        */
+/*                Putting it mildly macro XLAT is not optimized   */
+/*                for translation speed.                          */
+/* Background:    UTF-4 is a variant of Latin-1, where US-ASCII   */
+/*                and Latin-1 code points (0...127 and 160...255) */
+/*                are encoded as octets.  The other code points   */
+/*                128...159, 256...55295, and 57344...1114111 are */
+/*                encoded as lead and tail bytes.  The lead bytes */
+/*                hex. 82...86 introduce 2...6 tail bytes.  Each  */
+/*                tail byte hex. 90...9F encodes four bits, i.e., */
+/*                the hex. digits 0...F.  The first tail byte 9x  */
+/*                cannot be 90, because this would constitute an  */
+/*                "overlong" encoding.  The Unicode points 55296  */
+/*                ... 57343 (u+D800...u+DFFF) are used in UTF-16  */
+/*                surrogate pairs, but invalid in UTF-32, UTF-8,  */
+/*                and UTF-4.                                      */
+/*                The octets hex. 80...81 and 87...8F are invalid */
+/*                for UTF-4.  For comparison, the octets C0...C1  */
+/*                and F5...FF are invalid for UTF-8.              */
+/* See also:      KHELP SSave, KHELP EOLIN, KHELP WIDTH           */
+/* Resources:     <URL:http://purl.net/xyzzy/home/test/utf-4.xml> */
+/*                <URL:http://purl.net/xyzzy/home/test/utf-8.xml> */
+/* Requires:      <http://purl.net/xyzzy/kex/binary.kex>,         */
+/*                Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2010) */
+
+   L = line.1()                     ;  ':1'
+   X = ( ring.0() = nbfile.2())     ;  F = ( 'BAK' == ft.1())
+   if rc <> 0 | dir() | X | F  then  do
+      if rc <> 0        then  T = 'Empty file cannot be translated'
+      if dir()          then  T = 'Directory views not supported'
+      if X              then  T = 'Too many currently edited files'
+      if F              then  T = 'Extension BAK needed internally'
+      'emsg' T                      ;  exit 4
+   end
+   T = curline.3()                  ;  ':' || L
+   if abbrev( T, '0000FEFF'x   ) then  X = 1       /* UTF-32BE    */
+   if abbrev( T, 'FFFE0000'x   ) then  X = 1       /* UTF-32LE    */
+   if abbrev( T, '2B2F7638'x   ) then  X = 1       /* UTF-7       */
+   if abbrev( T, '2B2F7639'x   ) then  X = 1       /* UTF-7       */
+   if abbrev( T, '2B2F762B'x   ) then  X = 1       /* UTF-7       */
+   if abbrev( T, '2B2F762F'x   ) then  X = 1       /* UTF-7       */
+   if abbrev( T, 'DD736673'x   ) then  X = 1       /* UTF-EBCDIC  */
+   if abbrev( T, 'F7644C'x     ) then  X = 1       /* UTF-1       */
+   if abbrev( T, 'FBEE28'x     ) then  X = 1       /* BOCU-1      */
+   if abbrev( T, '0EFEFF'x     ) then  X = 1       /* SCSU        */
+   if abbrev( T, 'FFFE'x       ) then  X = 2       /* UTF-16LE    */
+   if abbrev( T, 'EFBBBF'x     ) then  X = 3       /* UTF-8       */
+   if abbrev( T, '849F9E9F9F'x ) then  X = 4       /* UTF-4       */
+   if abbrev( T, 'FEFF'x       ) then  X = 7       /* UTF-16BE    */
+   if X = 1 then  do
+      'emsg Sorry, this UNICODE encoding format is not supported'
+      exit 1
+   end
+   if alt() then  do
+      parse source . . T            ;  DIALOG.2 = delimit( T )
+      DIALOG.1 = 'Please confirm to save the modified file'
+      DIALOG.1 = delimit( DIALOG.1 )
+      'dialog' DIALOG.1 'title' DIALOG.2 'OkCancel'
+      if DIALOG.2 = 'OK'   then  'save'
+      if alt()             then  exit rc
+   end
+   F = ( 'KEDIT' == version.1())    ;  T = 'Pick a translation:'
+   T = 'title' delimit( T )         ;  if F = 0 then  T = T 'fixed'
+   S = d2c( 10 )
+
+   if X == 0   then  do until 0        /* specify  input charset: */
+      L =      S || '0 (OEM CP 858/850 with Euro)'
+      L = L || S || '1 (Windows-1252 or Latin-1)'
+      L = L || S || '2 (Unicode UTF-16LE)'
+      L = L || S || '3 (UTF-8 to UTF-4)'
+      L = L || S || '4 (UTF-4 to UTF-8)'
+      L = L || S || '5 (UTF-4 to UTF-16LE)'
+      L = L || S || '6 (UTF-4 to UTF-16BE)'
+      L = L || S || '7 (UTF-16BE to UTF-4)'
+      DIALOG.2 = delimit( L )
+      'dialog' DIALOG.2 'edit' delimit( 1 ) T
+      if DIALOG.2 <> 'OK'        then  exit 1
+      X = strip( DIALOG.1 )
+      if datatype( X, 'w' ) & 0 <= X & X <= 7   then  leave
+   end
+   else  if X == 4   then  do until 0  /* specify output charset: */
+      L =      S || '4 (UTF-4 to UTF-8)'
+      L = L || S || '5 (UTF-4 to UTF-16LE)'
+      L = L || S || '6 (UTF-4 to UTF-16BE)'
+      DIALOG.2 = delimit( L )
+      'dialog' DIALOG.2 'edit' delimit( 5 ) T
+      if DIALOG.2 <> 'OK'        then  exit 1
+      X = strip( DIALOG.1 )
+      if datatype( X, 'w' ) & 4 <= X & X <= 6   then  leave
+   end
+   if X = 0 | X = 1  then  exit SBCS( X )
+   if X = 2 | X = 7  then  exit U16I( X <> 2 )
+   if X = 3 | X = 4  then  exit UTF8( X <> 3 )
+   if X = 5 | X = 6  then  exit U16O( X <> 5 )
+   'emsg Please fix macro XLAT'     ;  exit 4
+
+/* -------------------------------------------------------------- */
+UTF8: procedure                        /* UTF-8 output or input   */
+   NEW = fileid.1()                 ;  OLD = INIT( NEW )
+   'x "' || OLD || '"'              ;  ERR = 0
+   ASCII = xrange( '00'x, '7F'x )   ;  LOC = line.1()
+   do N = 1 to size.1()
+      'locate :' || N               ;  SRC = curline.3()
+      if arg( 1 ) & ( N = 1 ) then  SRC = SIG( SRC )
+      DST = ''
+      do while SRC \== ''
+         POS = verify( SRC, ASCII ) - 1
+         if POS < 0  then  leave       /* remaining SRC is ASCII  */
+         DST = DST || left( SRC, POS ) /* copy ASCII begin as is  */
+         SRC = substr( SRC, POS + 1 )
+         parse var SRC TOP 2 SRC    ;  TOP = c2d( TOP )
+
+         if arg( 1 ) then  do          /* convert UTF-4 to UTF-8  */
+            if 160 <= TOP  then  do
+               CNT = TOP // 64      ;  TOP = TOP % 64
+               DST = DST || d2c( TOP + 192 ) || d2c( CNT + 128 )
+               iterate
+            end                        /* ----------------------- */
+            CNT = TOP - 128         ;  BIT = ''
+            if CNT < 2 | 6 < CNT then  exit FAIL( N )
+            CHR = left( SRC, CNT )  ;  SRC = substr( SRC, CNT + 1 )
+            if UTF4( CHR, CNT )  then  exit FAIL( N )
+            do L = 1 to CNT
+               TOP = c2d( substr( CHR, L, 1 )) - 144
+               if TOP < 0 | 16 <= TOP  then  exit FAIL( N )
+               BIT = BIT || D2B( TOP, 4 )
+            end
+
+            BIT = reverse( BIT )    ;  TOP = ''
+            do L = 2 until verify( substr( BIT, 8 - L ), 0 ) = 0
+               TOP = TOP || left( BIT, 6, 0 ) || '01'
+               BIT = substr( BIT, 7 )
+            end
+            TOP = TOP || left( BIT, 7 - L, 0 ) || 0
+            TOP = reverse( TOP || copies( 1, L ))
+            do L = 1 to length( TOP ) by 8
+               DST = DST || B2C( left( TOP, 8 ))
+               TOP = substr( TOP, 9 )
+            end
+         end                           /* ----------------------- */
+         else  do                      /* convert UTF-8 to UTF-4  */
+            LOS = length( SRC )
+            if LOS = 0  then  TMP = 0
+                        else  TMP = c2d( left( SRC, 1 )) % 16
+            if       TOP < 192            then  LEN = -0 /* 80:BF */
+            else  if TOP < 194            then  LEN = -1 /* C0:C1 */
+            else  if TOP < 224            then  LEN = +1
+            else  if TOP = 224 & TMP =  8 then  LEN = -2 /* E08x  */
+            else  if TOP = 224 & TMP =  9 then  LEN = -2 /* E09x  */
+            else  if TOP = 237 & TMP = 10 then  LEN = -2 /* EDAx  */
+            else  if TOP = 237 & TMP = 11 then  LEN = -2 /* EDBx  */
+            else  if TOP < 240            then  LEN = +2
+            else  if TOP = 240 & TMP =  8 then  LEN = -3 /* F08x  */
+            else  if TOP < 244            then  LEN = +3
+            else  if TOP = 244 & TMP =  8 then  LEN = +3 /* F48x  */
+            else  if TOP < 248            then  LEN = -3 /* F4:F7 */
+            else  if TOP < 252            then  LEN = -4 /* F8:FB */
+            else  if TOP < 254            then  LEN = -5 /* FC:FD */
+            else                                LEN = -0 /* FE:FF */
+            BAD = ( LEN <= 0 )      ;  LEN = abs( LEN )
+            if LOS < LEN   then  do
+               BAD = 1              ;  LEN = LOS
+            end
+            CHR = left( SRC, LEN )  ;  SRC = substr( SRC, LEN + 1 )
+            TMP = verify( CHR, xrange( '80'x, 'BF'x ))
+            if TMP > 0  then  do       /* found invalid tail byte */
+               BAD = 1                 /* restore invalid bytes:  */
+               SRC = substr( CHR, TMP ) || SRC
+            end
+            ERR = ERR + BAD
+            if BAD = 0  then  do       /* validated UTF-8 to bits */
+               TOP = D2B( TOP, 8 )  ;  LEN = verify( TOP, 1 ) - 2
+               TOP = copies( 0, LEN ) || right( TOP, 6 - LEN )
+               do L = 1 to LEN         /* tail pieces of six bits */
+                  parse var CHR TMP 2 CHR
+                  TOP = TOP || right( D2B( c2d( TMP ), 8 ), 6 )
+               end
+               if LEN = 2              then  TOP = 00 || TOP
+               if abbrev( TOP, 0000 )  then  TOP = substr( TOP, 5 )
+               LEN = length( TOP ) % 4
+               if LEN > 2 | abbrev( TOP, 100 )  then  do
+                  DST = DST || x2c( 8 || LEN )
+                  do L = 1 to LEN      /* use pieces of four bits */
+                     parse var TOP TMP 5 TOP
+                     DST = DST || B2C( 1001 || TMP )
+                  end
+               end
+               else  DST = DST || B2C( TOP )
+            end
+            else  DST = DST || '849F9F9F9D'x
+         end
+      end
+      if arg( 1 ) < ( N = 1 ) then  DST = SIG( DST )
+      'x "' || NEW || '"'           ;  'i' DST || SRC
+      'x "' || OLD || '"'           ;  'refresh'
+   end
+   'quit'                           ;  'x "' || NEW || '"'
+   'locate :' || LOC                ;  'ssave'
+   if arg( 1 ) then  say 'quit saved UTF-8 file (' || ERR 'errors)'
+               else  say 'quit saved UTF-4 file'
+   'cmsg quit'                      ;  return 0
+
+B2C:  procedure                        /* 8 bits to character     */
+   arg BIN                          ;  DEC = 0
+   do N = 1 to 8
+      DEC = 2 * DEC + substr( BIN, N, 1 )
+   end
+   return d2c( DEC )                   /* KEDIT 5 has no B2X()    */
+
+D2B:  procedure                        /* decimal to 4 or 8 bits  */
+   arg DEC, BITS                    ;  BIN = ''
+   do N = 1 to BITS
+      BIN = ( DEC // 2 ) || BIN     ;  DEC = DEC % 2
+   end
+   return BIN                          /* KEDIT 5 has no X2B()    */
+
+/* -------------------------------------------------------------- */
+U16O: procedure                        /* UTF-16LE (or BE) output */
+   arg BE
+   NEW = fileid.1()                 ;  OLD = INIT( NEW )
+   LEN = 100                        ;  DST = ''
+   'lrecl' LEN                      ;  'recfm vary'
+   'eolout NONE'                    ;  'tabsout OFF'
+   'eofout NONE'                    ;  'trailing ON'
+   'x "' || OLD || '"'
+   do N = 1 to size.1()
+      'locate :' || N               ;  SRC = curline.3() || '0D0A'x
+      if N = 1 then  SRC = SIG( SRC )  /* enforce UTF-4 signature */
+      do until SRC == ''
+         parse var SRC TOP 2 SRC    ;  TOP = c2d( TOP )
+         if TOP < 128 | 160 <= TOP  then  do
+            DST = DST || SWAP( BE, TOP, 0 )
+            iterate
+         end                           /* ----------------------- */
+         CNT = TOP - 128            ;  T. = 0
+         if CNT < 2 | 6 < CNT then  exit FAIL( N )
+         CHR = left( SRC, CNT )     ;  SRC = substr( SRC, CNT + 1 )
+         if UTF4( CHR, CNT )  then  exit FAIL( N )
+         do L = 1 to CNT
+            TOP = c2d( substr( CHR, L, 1 )) - 144
+            if TOP < 0 | 16 <= TOP  then  exit FAIL( N )
+            M = ( L - 1 ) % 2 + 1   ;  T.M = T.M * 16 + TOP
+         end
+
+         CNT = CNT + ( CNT // 2 )      /* round up odd hex. count */
+         if CNT = 2  then  DST = DST || SWAP( BE, T.1, 0 )
+         if CNT = 4  then  DST = DST || SWAP( BE, T.2, T.1 )
+         if CNT = 6  then  do          /* create surrogate pair   */
+            CHR = 0
+            do L = 1 to CNT % 2
+               CHR = CHR * 256 + T.L
+            end
+            CHR = CHR - 65536          /* skip BMP code points    */
+            LOW = ( CHR // 1024 ) + 220 * 256
+            CHR = ( CHR  % 1024 ) + 216 * 256
+            TOP = CHR // 256        ;  CHR = CHR % 256
+            DST = DST || SWAP( BE, TOP, CHR )
+            TOP = LOW // 256        ;  LOW = LOW % 256
+            DST = DST || SWAP( BE, TOP, LOW )
+         end
+      end
+      do while length( DST ) > LEN
+         TOP = left( DST, LEN )     ;  DST = substr( DST, LEN + 1 )
+         'x "' || NEW || '"'        ;  'i' TOP
+         'x "' || OLD || '"'        ;  'refresh'
+      end
+   end
+   'quit'                           ;  'x "' || NEW || '"'
+   if DST \== ''  then  'i' DST     ;  'ssave'
+   if BE then  say 'quit saved UTF-16BE file (binary view)'
+         else  say 'quit saved UTF-16LE file (binary view)'
+   'cmsg quit'                      ;  return 0
+
+SWAP:                                  /* big or little endian    */
+   if arg( 1 ) then  return d2c( arg( 3 )) || d2c( arg( 2 ))
+               else  return d2c( arg( 2 )) || d2c( arg( 3 ))
+
+FAIL:                                  /* abort UTF-4 translation */
+   'x "' || NEW || '"'              ;  'qquit'
+   'x "' || OLD || '"'              ;  'fileid "' || NEW || '"'
+   'emsg translation aborted, invalid UTF-4 in line' arg( 1 )
+   return 4
+
+UTF4: procedure                        /* validate UTF-4 input    */
+   parse arg CHR, CNT
+   if abbrev( CHR, '90'x ) then  return 1
+   if CNT = 6  then  return 1 - abbrev( CHR, '9190'x )
+   if CNT <> 4 then  return 0
+   if abbrev( CHR, '9D'x ) then  return '98'x <= substr( CHR, 2, 1 )
+   return 0                            /* 0: okay, 1: invalid     */
+
+/* -------------------------------------------------------------- */
+U16I: procedure                        /* UTF-16LE (or BE) input  */
+   'macro binary'                   ;  if rc <> 0  then  exit rc
+   NEW = fileid.1()                 ;  OLD = INIT( NEW )
+   BUF = -1                         ;  ERR = 0
+   'x "' || OLD || '"'              ;  DST = ''
+   do N = 1 to size.1()
+      'locate :' || N               ;  SRC = curline.3()
+      do until SRC == ''
+         CHR = left( SRC, 2 )       ;  SRC = substr( SRC, 3 )
+         LOW = c2d( left( CHR, 1 )) ;  CHR = c2d( right( CHR, 1 ))
+         if arg( 1 ) then  parse value LOW CHR with CHR LOW
+         if 0 <= BUF & ( CHR < 220 | 224 <= CHR )  then  do
+            BUF = -1                ;  ERR = ERR + 1
+            DST = DST || '849F9F9F9D'x
+         end
+         if CHR <> 0 | ( 128 <= LOW & LOW < 160 )  then  do
+            if       216 <= CHR & CHR < 224  then  do
+               if CHR < 220 | BUF < 0  then  do
+                  if 220 <= CHR        then  do
+                     DST = DST || '849F9F9F9D'x
+                     ERR = ERR + 1     /* isolated tail surrogate */
+                  end                  /* pending surrogate pair: */
+                  else  BUF = LOW + ( CHR - 216 ) * 256
+                  iterate
+               end
+               LOW = LOW + ( CHR - 220 ) *  256
+               CHR = LOW + ( BUF // 64 ) * 1024
+               LOW = right( d2x( CHR // 256 ), 2, 0 )
+               CHR = right( d2x( CHR  % 256 ), 2, 0 )
+               CHR = d2x(( BUF % 64 ) + 1 ) || CHR || LOW
+               BUF = -1                /* pending surrogate ready */
+            end
+            else  CHR = d2x( CHR ) || right( d2x( LOW ), 2, 0 )
+            DST = DST || x2c( 8 || length( CHR ))
+            do LEN = 1 to length( CHR )
+               DST = DST || x2c( 9 || substr( CHR, LEN, 1 ))
+            end
+         end
+         else  DST = DST || d2c( LOW )
+      end
+      if N = 1 then  DST = SIG( DST )  /* enforce UTF-4 signature */
+      EOL = pos( d2c( 10 ), DST )      /* treat LF or CRLF as EOL */
+      do while EOL <> 0
+         TOP = left( DST, EOL - 1 ) ;  DST = substr( DST, EOL + 1 )
+         if right( TOP, 1 ) = d2c( 13 )
+            then  TOP = left( TOP, EOL - 2 )
+         'x "' || NEW || '"'        ;  EOL = pos( d2c( 10 ), DST )
+         'i' TOP                    ;  'refresh'
+         'x "' || OLD || '"'
+      end
+      if length( DST ) + lrecl.1() > width.1()  then  do
+         'x "' || NEW || '"'        ;  'qquit'
+         'x "' || OLD || '"'        ;  'fileid "' || NEW || '"'
+         N = 'offset' lrecl.1() * N
+         'emsg translation aborted, input line too long near' N
+         return 4                      /* avoid fatal input error */
+      end
+   end
+   'quit'                           ;  'x "' || NEW || '"'
+   if 0 <= BUF then  DST = DST || '849F9F9F9D'x
+   if DST \== ''  then  'i' DST     ;  'refresh'
+   say 'SSave or QQuit translated UTF-4 file (' || ERR 'errors)'
+   'cmsg SSave'                     ;  return 0
+
+INIT: procedure                        /* initialize new settings */
+   'ft BAK'                         ;  if rc <> 0  then  exit rc
+   OLD = fileid.1()
+   'nomsg query attr'               ;  INIT.1 = lastmsg.1()
+   'nomsg query arbchar'            ;  INIT.2 = lastmsg.1()
+   'nomsg query arrow'              ;  INIT.3 = lastmsg.1()
+   'nomsg query backup'             ;  INIT.4 = lastmsg.1()
+   'nomsg query number'             ;  INIT.5 = lastmsg.1()
+   'nomsg query undoing'            ;  INIT.6 = lastmsg.1()
+   'nomsg query varblank'           ;  INIT.7 = lastmsg.1()
+   'nomsg query wrap'               ;  INIT.8 = lastmsg.1()
+   'x "' || arg( 1 ) || '" (NEW NOPROF NODEFEXT)'
+   do N = 1 to 8  ;  'set' INIT.N   ;  end
+   'refresh'                        ;  return OLD
+
+/* -------------------------------------------------------------- */
+SBCS: procedure                        /* CP 1252 or 858 to UTF-8 */
+   if arg( 1 ) then  do                /* FFFD for five undefined */
+      T =   '20AC FFFD 201A  192 201E 2026 2020 2021'       /* 80 */
+      T = T ' 2C6 2030  160 2039  152 FFFD  17D FFFD'       /* 88 */
+      T = T 'FFFD 2018 2019 201C 201D 2022 2013 2014'       /* 90 */
+      T = T ' 2DC 2122  161 203A  153 FFFD  17E  17F'       /* 98 */
+      do N = 160 to 255 ;  T = T d2x( N ) ;  end         /* A0-FF */
+   end
+   else  do /* 0xD5 850: u+0131 small dotless i, 858: u+20AC Euro */
+      T =   '  C7   FC   E9   E2   E4   E0   E5   E7'       /* 80 */
+      T = T '  EA   EB   E8   EF   EE   EC   C4   C5'       /* 88 */
+      T = T '  C9   E6   C6   F4   F6   F2   FB   F9'       /* 90 */
+      T = T '  FF   D6   DC   F8   A3   D8   D7  192'       /* 98 */
+      T = T '  E1   ED   F3   FA   F1   D1   AA   BA'       /* A0 */
+      T = T '  BF   AE   AC   BD   BC   A1   AB   BB'       /* A8 */
+      T = T '2591 2592 2593 2502 2524   C1   C2   C0'       /* B0 */
+      T = T '  A9 2563 2551 2557 255D   A2   A5 2510'       /* B8 */
+      T = T '2514 2534 252C 251C 2500 253C   E3   C3'       /* C0 */
+      T = T '255A 2554 2569 2566 2560 2550 256C   A4'       /* C8 */
+      T = T '  F0   D0   CA   CB   C8 20AC   CD   CE'       /* D0 */
+      T = T '  CF 2518 250C 2588 2584   A6   CC 2580'       /* D8 */
+      T = T '  D3   DF   D4   D2   F5   D5   B5   FE'       /* E0 */
+      T = T '  DE   DA   DB   D9   FD   DD   AF   B4'       /* E8 */
+      T = T '  AD   B1 2017   BE   B6   A7   F7   B8'       /* F0 */
+      T = T '  B0   A8   B7   B9   B3   B2 25A0   A0'       /* F8 */
+   end
+   do N = 128 to 255                   /* associate UTF-4 char.s, */
+      parse var T SRC T                /* MUST NOT contain 00..9F */
+      if length( SRC ) = 2 then  DST = x2c( SRC )  ;  else  do
+         DST = x2c( 8 || length( SRC ))
+         do LEN = 1 to length( SRC )
+            DST = DST || x2c( 9 || substr( SRC, LEN, 1 ))
+         end
+      end
+      SRC = d2c( N )                ;  UTF.SRC = DST
+   end
+
+   ASCII = xrange( '00'x, '7F'x )   ;  LOC = line.1()
+   do N = 1 to size.0()
+      'locate :' || N               ;  'refresh'
+      SRC = curline.3()             ;  DST = ''
+      do while SRC \== ''
+         POS = verify( SRC, ASCII ) - 1
+         if POS < 0  then  leave       /* remaining SRC is ASCII  */
+         DST = DST || left( SRC, POS ) /* copy ASCII begin as is  */
+         SRC = substr( SRC, POS + 1 )
+         parse var SRC TOP 2 SRC    ;  DST = DST || UTF.TOP
+      end
+      if N = 1 then  DST = SIG( DST )  /* enforce UTF-4 signature */
+      'replace' DST || SRC
+   end
+   'locate :' || LOC                ;  return 0
+
+SIG:  procedure                        /* enforce UTF-4 signature */
+   parse arg STR                    ;  SIG = '849F9E9F9F'x
+   if abbrev( STR, SIG )   then  return STR
+                           else  return SIG || STR

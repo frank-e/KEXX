@@ -1,0 +1,499 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         MACRO KHELP [arg]                               */
+/* Options:       SYNONYM KHelp 2 MACRO KHELP                     */
+/*                DEFINE F1 'SYNEX KHELP' FOCUSWORD.1()           */
+/* Examples:      MACRO KHELP BOXFILL     (header of BOXFILL.KEX) */
+/*                MACRO KHELP             (command KHELP)         */
+/*                MACRO KHELP UNKNOWN     (command KHELP UNKNOWN) */
+/*                MACRO KHELP UNKNOWN.KEX (header of UNKNOWN.KEX) */
+/*                MACRO KHELP EXT SCReen  (warning in KeditW 1.0) */
+/*                MACRO KHELP SOS ABORT   (warning in KeditW 1.0) */
+/*                MACRO KHELP SOS DELSEL  (warning in Kedit 5)    */
+/*                MACRO KHELP Set COLMark (warning in Kedit 5)    */
+/*                MACRO KHELP CLIPboard   (warning in Kedit 5)    */
+/*                MACRO KHELP Q POOLSTAT  (undocumented EXT/Q)    */
+/*                MACRO KHELP Q STARTUP   (undocumented EXT/Q)    */
+/*                MACRO KHELP ALT         (KHELP ALTer)           */
+/*                MACRO KHELP S ALT       (KHELP SET ALT)         */
+/*                MACRO KHELP INSERT      (KHELP SET INSERTmode)  */
+/*                MACRO KHELP INSERT()    (KEXX function INSERT)  */
+/* Purpose:       Offer context help for the macros listed below. */
+/*                Accelerate KHELP EXTract *, Query *, Set *, and */
+/*                SOS *.  Display a warning for old Set operands  */
+/*                not more supported in KeditW 1.0 if called from */
+/*                KeditW 1.0, and vice versa.                     */
+/*                Macro KEXPAND expands truncated Kedit commands  */
+/*                and operands.  Macro KEXPATH handles the actual */
+/*                MACROPATH or a MACROPATH ON default.            */
+/* Special:       For type 5 KHELP shows the macro definition in  */
+/*                INITIAL.KML with comments above the definition  */
+/*                not shown by a QUERY MACRO, MACROS, or DEFINE.  */
+/* See also:      <URL:http://purl.net/xyzzy/xedit.htm>           */
+/*                <URL:http://purl.net/xyzzy/kex/kex.kex>         */
+/*                <URL:http://purl.net/xyzzy/kex/kexpand.kex>     */
+/*                <URL:http://purl.net/xyzzy/kex/kexpath.kex>     */
+/* Requires:      macros KEXPAND.KEX and KEXPATH.KEX              */
+/*                Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+/* BASE           insert <base href="URL" /> in local XHTML copy  */
+/* BINARY         edit binaries using LRECL based on window width */
+/* BOX            draw BOXes (9 styles, use keypad or box block)  */
+/* BOXFILL        fill marked box (sample macro)                  */
+/* CDD            CHD + CHDR like 4DOS CDD supporting *.DIR items */
+/* CDEFG          show biggest files (top 1000) in DIR.DIR file   */
+/* CHANGES        CHANGE all occurences on line, not only first   */
+/* CLIPS          W2K ooREXX CLIPS.REX interface using GET & PUT  */
+/* CMATCH       * adds REXX and XHTML match to command CMATCH     */
+/* COLOR        * INITIAL.KEX calls COLOR by 'macro' monitor.1()  */
+/* COLOR2         Old (1995-2005) colour scheme for younger eyes  */
+/* COUNTS         COUNT string in BLOCK / ALL lines ignoring CASE */
+/* CURSORSH     * improved CURSORSHape based on CURSORSHape auto  */
+/* DAY            display date + weekday, any arg.: input as line */
+/* DELIMIT      * check and optionally patch a broken delimit()   */
+/* DO           * placeholder (optional DOwn compatible synonym)  */
+/* DOSX           edit redirected standard output of OS command   */
+/* EURO           find char.s not contained in ASCII 32..126 or 9 */
+/* EX           * run arguments with temporarily SET LINEND ON ;  */
+/* EXTRACT      * EXTRTEST clone, supports = and abbreviations    */
+/* EXTract operand => like Query operand (see below)              */
+/* FEATURES       Kedit 5.00 (D3/P3) bug list and workarounds     */
+/* FMODE        * MODify or SET FE, FM, FN, FP, FT, or FILEId     */
+/* HEX          * show visible ASCII char.s (overload SET HEX)    */
+/* HEXA           hex. editor (like HEXE but using current MODE)  */
+/* HEXE           hex. editor (show and maybe even patch binary)  */
+/* HREF           convert URL (focus word) to dummy XHTML link    */
+/* HTM            edit *.htm or *.html in homepage directory      */
+/* INISAVE      * INIUTIL CONVERT SETTINGS if no argument given   */
+/* INISET         saved INIUTIL CONVERT SETTINGS output as backup */
+/* INITIAL      * PROFILE.KEX calls 'macro initial' if INITIAL()  */
+/* INT            locates a topic in Ralf Brown's INTERRUP.LST    */
+/* KC             KCOMPARE clone (resetting special keys at exit) */
+/* KCOMPARE       compare files with Kedit (samples macro)        */
+/* KEX            Kedit macro using MACROPATH (or its definition) */
+/* KEXPAND        expand commands, needed for KHELP.KEX & KEX.KEX */
+/* KEXPATH        MACROPATH search needed for KHELP.KEX & KEX.KEX */
+/* KEYDIFF        determine all reDEFINEd (non-default) keys      */
+/* KEYMAP         patch missing STAR keys in KEDIT binary         */
+/* KHELP        * KHELP.KEX allows normal 'command khelp khelp'   */
+/* KHELPADD       KHELP.kex and xedit.htm maintenance (3 tables)  */
+/* KTAGS          XTAGS clone (supporting TABs and Unix tags)     */
+/* LASTKEY      * Kedit key decoder (showing name and definition) */
+/* LASTMSG      * like QUERY LASTMSG, but in DIALOG (word wrap)   */
+/* LASTRC       * improved QUERY LASTRC (preserves error message) */
+/* LESSMORE       used as synonym for LESS TAG and MORE TAG issue */
+/* LOCUS          locate target in any currently edited file      */
+/* LONGEST        locate and tag longest line(s) in edited file   */
+/* MEMORY       * show current MEMORY usage (samples macro)       */
+/* MONITOR      * combines [set] MONitor and 'macro' monitor.1()  */
+/* MONO           INITIAL.KEX calls MONO  by 'macro' monitor.1()  */
+/* MSGLINE      * explores KeditW SET MSGLINE message box effects */
+/* MUSTARD        RFC 2119 keywords (MAY, MUST, SHOULD, etc.)     */
+/* NAME           change filename and rename a corresponding file */
+/* NBSP           convert blanks in marked block to XHTML &#160;  */
+/* NETSCAPE       view the focus URL with your favourite browser  */
+/* OEMKEY         OEMKEY.KML header for KEYB GR key modifications */
+/* PROFILE      * KHELP.KEX allows normal 'command khelp profile' */
+/* Query operand  expands operand for KHELP QUERY/EXTRACT operand */
+/* QX             simplified XQ.KEX and RELOAD.KEX samples macros */
+/* REXX           edit REXX script or copy REXXTRAP.CMD stuff     */
+/* REXXTRAP       update REXXTRAP.CMD functions in *.CMD scripts  */
+/* RING         * DIR currently edited files TAGging modified     */
+/* RW             force write access on edited read-only file     */
+/* RXHELP         REXX context help (OS/2, MDOS, PC DOS 7, PREXX) */
+/* S-STAR         test macro for [Ctrl]+[PrtSc] in patched Kedit  */
+/* SAY          * display persistent result of REXX expression    */
+/* SEQBOX         put numbers in marked box (samples macro)       */
+/* Set operand    expands operand for a KHELP SET operand         */
+/* SOS operand    expands operand for a KHELP SOS operand         */
+/* START          shorthand for NT 'winexec nowait' or for OS/2   */
+/* STATUS       * mini status: only relevant non-default settings */
+/* TALL           Two lines context before/after ALL selected tar */
+/* TIME         * show elapsed time for specified command         */
+/* TRACE        * DEBUG manager (keys, debugging, RXTRACE, etc.)  */
+/* TREE           corrected sample supporting long and HPFS id.s  */
+/* UNBLANK        get rid of blank lines with even line numbers   */
+/* UNESCAPE       experimental: JavaScript decoder                */
+/* UNIX           raw text mode based on EOLIN LF etc. settings   */
+/* UNTITLED       shorthand / emulation of KeditW 'x (untitled)'  */
+/* UTF            hex. UTF-32 or UTF-16 to hex. UTF-8 and UTF-16  */
+/* VI             Windows:  Kedit 8+3 file name of long file name */
+/* WINDOWS        KeditW: could be called by  'macro' monitor.1() */
+/* WINHELP      * DIR.DIR list *.HLP for KeditW command WINHELP   */
+/* WINK           status of ?-C-keys, or map A-C-keys to A-keys   */
+/* WMSG         * emulates KeditW 1.0 command WMSG with a DIALOG  */
+/* WO             locate word in any edited file (uses LOCUS.kex) */
+/* X-WIKI         profile for text/x-wiki translates UTF-8 to NCR */
+/* XD             update file listing, can be used in makefiles   */
+/* XDIR           MANYFILE clone (corrected)                      */
+/* XHTML          convert plain text (codepage 850) to XHTML 1.0  */
+/* XID            x =:=\x.= or x =:=\x.y, for XID .y edit =:=\=.y */
+/* XLAT           858, 1252, UTF-4, UTF-8, and UTF-16 conversions */
+/* XMLCHECK       check that XML or XHTML file is well formed XML */
+/* XTREE          DIR all subdirecories TAGging empty directories */
+/* XX             XEDIT file with name completion (DIR ambiguous) */
+/* ZIP            edit preselected files (e.g. here: ZIP manuals) */
+/* ZOO            absolute ZOne Offset navigation, e.g., binaries */
+/* ::             INITIAL.KML header                              */
+/* :              accelerate KHELP TARGETS                        */
+/* &              accelerate KHELP "&" (for OS/2)                 */
+/* 0              shorthand for "error messages and return codes" */
+/* ~              DIR *.KEX *.KML in "home" directory of profile  */
+/* *              show this comment list (= header of KHELP.KEX)  */
+
+   nop            /* any statement marks the end of KHELP headers */
+
+/* macro header types terminated by first non-empty instruction:  */
+/* +1 KEXX 'set novalue on' followed by REXX-style /* comments */ */
+/*         or any REXX-comment header excluding the first line    */
+/* +2 REXX comment header including the first line (no example)   */
+/* +3 SAMPLES macro: KEXX-style *-comment lines                   */
+/* +4 none, show complete macro                                   */
+/* +5 :name defined in INITIAL.KML with preceding (!) *-comments  */
+/* +6 same as +3 with KEXX-style *-comments, but for *.KML files  */
+/* +7 reserved for future use                                     */
+/* +8 reserved for future use                                     */
+/* +9 none, for help use MACRO name    (e.g. MACRO KTAGS)         */
+/* -X same as +X, but there is also an entry in the Kedit manual  */
+/*  0 temporarily disabled or reserved topics result in a WARNING */
+
+   S =   space( '+5 ::           +1 BASE         +1 BINARY       ' )
+   S = S space( '+1 BOX          +3 BOXFILL      +1 CDD          ' )
+   S = S space( '+1 CDEFG        +1 CHANGES      +1 CLIPS        ' )
+   S = S space( '-1 CMATCH       -1 COLOR        +4 COLOR2       ' )
+   S = S space( '+1 COUNTS       -1 CURSORSH     +5 DAY          ' )
+   S = S space( '-1 DELIMIT      -1 DO           +5 DOSX         ' )
+   S = S space( '+1 EURO         -1 EX           -1 EXTRACT      ' )
+   S = S space( '+1 FEATURES     -1 FMODE        -1 HEX          ' )
+   S = S space( '+1 HEXA         +1 HEXE         +1 HTM          ' )
+   S = S space( '-1 INISAVE      +4 INISET       -1 INITIAL      ' )
+   S = S space( '+1 INT          +1 KC           +1 KEX          ' )
+   S = S space( '+1 KEXPAND      +1 KEXPATH      +1 KEYDIFF      ' )
+   S = S space( '+1 KEYMAP       -1 KHELP        +1 KHELPADD     ' )
+   S = S space( '+9 KTAGS        -1 LASTKEY      -5 LASTMSG      ' )
+   S = S space( '-1 LASTRC       +1 LESSMORE     +1 LOCUS        ' )
+   S = S space( '+1 LONGEST      -3 MEMORY       -1 MONITOR      ' )
+   S = S space( '+1 MONO         -1 MSGLINE      +1 MUSTARD      ' )
+   S = S space( '+5 NAME         +1 NBSP         +1 NETSCAPE     ' )
+   S = S space( '+6 OEMKEY       -3 PROFILE      +1 QX           ' )
+   S = S space( '-1 REXX         +1 REXXTRAP     -1 RING         ' )
+   S = S space( '+1 RW           +1 RXHELP       +4 S-STAR       ' )
+   S = S space( '-5 SAY          +3 SEQBOX       +5 START        ' )
+   S = S space( '-1 STATUS       +1 TALL         -1 TIME         ' )
+   S = S space( '-1 TRACE        +1 TREE         +1 UNBLANK      ' )
+   S = S space( '+1 UNESCAPE     +1 UNIX         +5 UNTITLED     ' )
+   S = S space( '+1 UTF          +1 VI           +1 WINDOWS      ' )
+   S = S space( '-1 WINHELP      +1 WINK         -1 WMSG         ' )
+   S = S space( '+5 WO           +1 X-WIKI       +1 XD           ' )
+   S = S space( '+1 XDIR         +1 XHTML        +5 XID          ' )
+   S = S space( '+1 XLAT         +1 XMLCHECK     +1 XTREE        ' )
+   S = S space( '+1 XX           +1 ZIP          +1 ZOO          ' )
+   S = S space( ' 0 [TEST]                                       ' )
+
+   X = translate( space( arg( 1 )))    ;  N = 0
+
+   if datatype( X, 'W' ) = 0  then  N = wordpos( X, S ) - 1
+   if N > 0 then  do    /* X is an explicitly covered KHELP topic */
+      S = word( S, N )  /* S = 0 for temporarily disabled topics  */
+      if S > 0 then  exit HEADER( X, S )
+      if S = 0 then  call WARNING X 'not available at this time'
+      if S < 0 then  call ASKFOR  X, abs( S )
+   end                  /* S < 0: ask if X is also a manual topic */
+   drop S               /* reduce ISA memory use for DOS KEDIT 5  */
+   if X = '~'        then  exit HOMEDIR()       /* home DIR *.K?? */
+   if X = '*'        then  X = 'KHELP.KEX'      /* * = own header */
+   if TRYKEX( X )    then  exit 0               /* explicit *.KEX */
+   'command khelp' KHELP( arg( 1 ))    ;  exit rc
+
+TRYKEX:     procedure   /* --- determine HEADER type of given KEX */
+   parse arg FILE    ;  if right( FILE, 4 ) <> '.KEX' then  return 0
+   FILE = SEARCH( FILE )            ;  if FILE = ''   then  return 1
+   PATH = fileid.1()
+   'kedit "' || FILE || '" (noprof' ;  if rc <> 0     then  return 1
+   'nomsg locate :1'    ;  TYPE = translate( curline.3())
+   if ring.0() > 1 then 'nomsg quit'   /* silent QUIT found macro */
+   'kedit "' || PATH || '" (nodefext'
+
+   if abbrev( TYPE, "'S" ) then exit HEADER( FILE, 1 ) /* 'SET... */
+   if abbrev( TYPE, "'N" ) then exit HEADER( FILE, 1 ) /* 'NOV... */
+   if abbrev( TYPE, "/*" ) then exit HEADER( FILE, 2 ) /* REXXify */
+   if abbrev( TYPE, "* " ) then exit HEADER( FILE, 3 ) /* samples */
+   return ASKFOR( FILE, 4 )            /* KEX HEADER unidentified */
+
+ASKFOR:     procedure   /* --- ask user for ambiguous KHELP topic */
+   parse arg FILE, TYPE ;  parse upper source . . DIALOG.2
+   DIALOG.2 = delimit( 'macro' DIALOG.2 FILE )
+   DIALOG.1 = 'No: show header of' FILE
+   if TYPE = 6 then  DIALOG.1 = DIALOG.1 || '.KML'
+               else  DIALOG.1 = DIALOG.1 || '.KEX'
+   if TYPE = 5 then  DIALOG.1 = 'No: display macro' FILE
+   if TYPE = 4 then  DIALOG.1 = 'No: display macro' FILE || '.KEX'
+   if TYPE = 9 then  DIALOG.1 = 'No: command macro' FILE
+   DIALOG.1 = 'Yes: command khelp' FILE || d2c(10) || DIALOG.1
+   'dialog' delimit( DIALOG.1 ) 'TITLE' DIALOG.2 'YESNOCANCEL'
+   if DIALOG.2 = 'NO'   then  exit HEADER( FILE, TYPE )
+   if DIALOG.2 = 'YES'  then  return 0 /* YES for a command khelp */
+   exit rc                             /* CANCEL or error => exit */
+
+HEADER:     procedure   /* --- display help HEADER of given macro */
+   parse arg FILE, TYPE                ;  PATH = fileid.1() ;  I = 2
+   if TYPE = 9 then  'macro' FILE      ;  if TYPE = 9 then return rc
+
+   if TYPE = 6 then  FILE = FILE || '.kml'
+   if TYPE = 5 then  do /* get INITIAL.KML definition and comment */
+      TYPE = SEARCH( 'INITIAL.KML' )   ; if TYPE = '' then return 1
+      'kedit "' || TYPE || '" (noprof' ; if rc <> 0   then return rc
+      ':0 tfind' delimit( ':' || FILE || ' ' )
+      if rc = 0 then do
+         TYPE = curline.3()            ; 'wrap off'
+         'nomsg tfind -~/:/ & ~/*/'    ; if rc <> 0   then 'top'
+         do I = 0 until FILE.I = TYPE  /* get comment above macro */
+            'next'   ;  FILE.I = curline.3()
+         end
+         do I = I +1 until abbrev( FILE.I, ':' )
+            'next'   ;  FILE.I = curline.3()
+         end
+      end
+      else FILE.1 = 'macro' FILE 'not found in' TYPE
+   end
+   else  do             /* get macro header depending on its type */
+      FILE = SEARCH( FILE )            ; if FILE = '' then return 1
+      'kedit "' || FILE || '" (noprof' ; if rc <> 0   then return rc
+      'locate :' || ( TYPE = 1 )       ; I = 1
+      do until focuseof()
+         'next'                        ; FILE.I = curline.3()
+         if FILE.I > '' then do
+            if TYPE = 1 > abbrev( FILE.I, '/*' ) then leave
+            if TYPE = 2 > abbrev( FILE.I, '/*' ) then leave
+            if TYPE = 3 > abbrev( FILE.I, '*'  ) then leave
+            if TYPE = 6 > abbrev( FILE.I, '*'  ) then leave
+            X = lastpos( '*/' , FILE.I )
+            if TYPE = 1 then parse var FILE.I '/*' FILE.I =(X) .
+            if TYPE = 2 then parse var FILE.I '/*' FILE.I =(X) .
+            if TYPE = 3 then parse var FILE.I '*'  FILE.I
+            if TYPE = 6 then parse var FILE.I '*'  FILE.I
+         end
+         if opmode.1() = 'REAL' & memory.3() < 2 then leave
+         if FILE.1 > '' then I = I + 1
+      end
+   end
+
+   if ring.0() > 1 then 'nomsg quit'
+   'x "' || PATH || '" (nodefext'   ;  if rc <> 0  then  return rc
+   'refresh'         ;  I = I - 1   ;  if FILE.I = '' then  I = I -1
+   if version.1() = 'KEDIT' | lscreen.1() < I   then  do
+      do I = 1 to I  ;  say FILE.I  ;  end               ;  return 0
+   end                  /* scroll the message box for KeditW 1.0: */
+   'extract /MSGLINE'               ;  'msgline on 1' max( 1, I-1 )
+   do I = 1 to I     ;  say FILE.I  ;  end
+   'msgline' MSGLINE.1 MSGLINE.2 MSGLINE.3 MSGLINE.4     ;  return 0
+
+HOMEDIR:    procedure   /* --- DIR *.K?? in defprof.1() directory */
+   PATH = SEARCH( defprof.1())         ;  rc = 28
+   PATH = left( PATH, lastpos( '\', PATH ))
+   if PATH <> ''  then  'dir "' || PATH || '*.k??"'
+   return rc
+
+SEARCH:     procedure   /* --- search macro in whatever MACROPATH */
+   arg FILE             /* see also SEARCH procedure in TRACE.KEX */
+   if right( FILE, 4 ) <> '.KEX' & right( FILE, 4 ) <> '.KML'
+      then FILE = FILE || '.KEX'
+   if pos( '\', FILE ) > 0 | pos( ':', FILE ) = 2 then do
+      LAST = lastpos( '\', FILE ) + 1  ;  if LAST = 1 then LAST = 3
+      parse var FILE PATH =(LAST) FILE    /* split PATH from id.  */
+      'nomsg macro KEXPATH' delimit( FILE, PATH )
+      if rc = 0   then  return lastmsg.1() || FILE
+      if rc > 0   then  return WARNING( PATH || FILE 'not found' )
+      return WARNING( lastmsg.1() '- install required KEXPATH.KEX' )
+   end
+
+   'nomsg macro KEXPATH' delimit( FILE )
+   if rc = 0   then  return lastmsg.1() || FILE
+   if rc > 0   then  do
+      'nomsg macro KEXPATH'            ;  FILE = FILE 'not found'
+      if rc = 0   then  FILE = FILE 'in MACROPATH'
+                  else  FILE = FILE || ': unknown KEDIT directory'
+      return WARNING( FILE  )
+   end
+   return WARNING( lastmsg.1() '- install required KEXPATH.KEX' )
+
+KHELP:      procedure   /* --- expand and map KHELP abbreviations */
+   if arg( 1 ) = ''  then  return ''   ;  K = 'KEDIT' <> version.1()
+
+   if sign( wordpos( arg( 1 ), ': = & 0' )) then  do
+      if arg( 1 ) = ':'          then  return 'Targets'
+      if arg( 1 ) = '&' & K      then  return '&'
+      if arg( 1 ) = '&'          then  return '"&"'
+      if arg( 1 ) = '=' & K      then  return WINHELP( 0 arg( 1 ))
+      if arg( 1 ) = '='          then  return '='
+      if arg( 1 ) = '0' & K      then  return 'Error Messages'
+      return 'Error Messages and Return Codes'
+   end                                    /* OS/2 needs KHELP "&" */
+
+   'nomsg macro KEXPAND' arg( 1 )      ;  S = lastmsg.1()
+   parse upper var S S.1 S.2           ;  R = rc
+   if       rc = -1  then  do    /* KEXPAND.KEX required -------- */
+      call WARNING S '- install macro KEXPAND.KEX'
+      return arg( 1 )
+   end                           /* ----------------------------- */
+   else  if rc =  0  then  nop            /* improve Kedit 5 help */
+   else  if rc = -4  then  do    /* SET operands ---------------- */
+      U = ''                           ;  X = ''
+      if K & S.2 = '='           then  return WINHELP( arg( 1 ))
+      if K & S.2 = 'ATTRIBUTES'  then  do
+         if wordpos( S.1, 'MODIFY QUERY EXTRACT' ) = 0   then  do
+            U = 'not more documented'  ;  X = 'KHELP QUERY' S.2
+         end
+      end
+      if K & S.2 = 'SCREEN'      then  do
+         if wordpos( S.1, 'MODIFY QUERY EXTRACT' ) > 0   then  do
+            U = 'not more supported'   ;  X = 'KHELP SET' S.2
+         end
+      end
+      if K & S.2 = 'KEYBOARD'    then  do
+         X = delimit( S.2 )
+         U = 'not more documented'     ;  X = 'macro EXTRACT' X
+      end
+      if U <> ''  then  do                /* warning: unsupported */
+         'cmsg' X                      ;  X = ', try' X
+         U = VERSION( '"' || S || '"' U 'in', X, 0 )
+      end
+      if     S.1 = 'MODIFY'   then  S = 'Set'   S.2
+      if K & S.1 = 'EXTRACT'  then  S = 'Query' S.2
+   end                           /* ----------------------------- */
+   else  if rc // 4 = -2   then  do       /* unsupported commands */
+      U = 'not supported'              ;  X = ''
+      if K  then  U = 'not more supported'
+      if K & rc = -6 then  do             /* EXTract still works: */
+         if S = 'Set MOUSETEXT'  then  do
+            U = 'is an oddity'         ;  X = WINHELP( S )
+         end
+         X = 'macro EXTRACT' delimit( S.2 )
+         'cmsg' X                      ;  X = ', try' X
+      end
+      U = VERSION( '"' || S || '"' U 'in', X, 1 )
+   end                           /* ----------------------------- */
+   else  if rc = -8  then  do    /* valid MODify mapped to Query  */
+      if sign( wordpos( S.2, 'FOCUS POOLSTAT STARTUP' )) then  do
+         X = 'macro EXTRACT' delimit( S.2 )
+         'cmsg' X                      ;  X = ', try' X
+         U = VERSION( '"' || S || '" not documented in', X, 0 )
+      end
+      if S.1 = 'MODIFY' then  S = 'Query' S.2
+   end                           /* ----------------------------- */
+   else  if rc = -12 then  do    /* map some KHELP SOS operands   */
+      if K  then  do
+         if S.2 = 'BEEP'         then  S.2 = 'Alarm'
+         if S.2 = 'BOTTOMEDGE'   then  S.2 = 'BOTTOME'
+         if S.2 = 'CURRENT'      then  S.2 = 'CURRe'
+         if S.2 = 'LEFTEDGE'     then  S.2 = 'LEFTE'
+         if S.2 = 'RESTORE'      then  S.2 = 'RESTORECol'
+         if S.2 = 'RIGHTEDGE'    then  S.2 = 'RIGHTE'
+         if S.2 = 'SAVE'         then  S.2 = 'SAVECol'
+         if S.2 = 'TOPEDGE'      then  S.2 = 'TOPE'
+         if S.2 = 'PREFIX'       then  return WINHELP( arg( 1 ))
+         if S.2 = 'ASSERT' | S.2 = 'GPF'  then  do
+            S.2 = S                       /* keeps SOS for ASSERT */
+            U = VERSION( '"' || S || '" not documented in', '', 0 )
+         end
+         S = S.2                          /* drops SOS for KeditW */
+      end
+      else  if S.2 = 'CURSORADJUST' then  S = S.1 'CURSORAdj'
+   end                           /* ----------------------------- */
+   else  if rc = -16 then  nop   /* ToDo: specific Locate topics  */
+   else  if rc = -20 then  do    /* builtin MACRO excl. MENU/TOOL */
+      if K  then  do                      /* for KeditW 1.0 KHELP */
+         X =   'DEL  C-END C-HOME C-PGUP C-PGDN S-CURU S-CURL BKSP'
+         X = X 'HOME S-END S-HOME S-PGUP S-PGDN S-CURD S-CURR PLUS'
+         X = X 'S-C-CURL S-C-CURR S-C-HOME S-C-PGUP S-C-PGDN TAB'
+         X = X 'ENTER C-ENTER NUMENTER S-C-END F10 F12'
+         X = X 'C-A C-C C-F C-P C-X A-A A-F A-H A-O A-W'
+         U =   'PARENTDIR PROMPT_FILLBOX'
+         if        sign( wordpos( S.2, U ))  then  do
+            X = 'macros' S.2
+            'cmsg' X                   ;  X = ', try' X
+            U = VERSION( '"' || S || '" not documented in', X, 0 )
+         end
+         else  if  sign( wordpos( S.2, X ))  then  S = 'keys'
+         else  if  S.2 = 'ASCII'             then  S = S.2 'macro'
+         else  if  abbrev( S.2, 'BUTTON' )   then  S = 'Mouse'
+         else  S = 'ASCII macro'          /* comes at least close */
+      end                                 /* -------------------- */
+      else  do                            /* for Kedit 5.00 KHELP */
+         S = 'Default Mouse Operations'
+         if       abbrev( S.2, 'BUTTON' ) then  nop
+         else  if S.2 = 'ASCII'  then  S = 'Special Characters'
+         else  if abbrev( S.2, 'A-' )     then  do
+            X =   'A B C D F G J K L M O R S U W X'
+            X = X '1 2 3 4 5 6 = BKSP PLUS F8 F9 F10'
+            U = substr( S.2, 3 )
+            if sign( wordpos( U, X ))     then  S = S.2
+         end
+         else  if abbrev( S.2, 'C-' )     then  do
+            X =   'A F P CURD CURU BKSP F1 END ENTER'
+            X = X 'C L R CURL CURR HOME F2 NUMENTER X'
+            U = substr( S.2, 3 )
+            if sign( wordpos( U, X ))     then  S = S.2
+         end
+         else  if abbrev( S.2, 'S-' )     then  do
+            X = 'S-TAB'
+            do U = 1 to 10 ;  X = X 'S-F' || U  ;  end
+            if sign( wordpos( S.2, X ))   then  S = S.2
+         end
+         else  if length( S.2 ) > 1       then  S = S.2
+         else  S = 'Default Key Definitions'
+      end
+      /* builtin MOUSEBAR_*, MENU_*_*, and TOOL_* are not covered */
+   end                           /* ----------------------------- */
+   else  if rc = -24 then  do    /* any KEXX or EXTRACT functions */
+      U = pos( '.', S )          /* map implied EXTRACT to Query: */
+      if sign( U )      then  S = 'Query' left( S, U - 1 )
+      if S = 'CENTRE()' then  S = 'CENTER()'
+      if sign( wordpos( S, 'DOSDIRCLOSE() DOSDIRPOS() FORM()' ))
+         then  U = VERSION( 'Function' S 'not documented in', , 0 )
+   end                           /* ----------------------------- */
+   else  do                      /* other topics or a KEXPAND bug */
+      if       rc = +5 & datatype( arg( 1 ), 'M' ) = 0   then  nop
+      else  if rc = +3 & ( arg( 1 ) = 0 | arg( 1 ) = 1 ) then  nop
+      else  if rc <> 1 & rc <> 2 then  do /* rc 1 or rc 2 is okay */
+         parse upper source . . ALERT.2
+         ALERT.2 = ALERT.2 'assertion failed'
+         ALERT.1 = 'unexpected KEXPAND' S 'rc' rc 'for' arg( 1 )
+         'alert' delimit( ALERT.1 ) 'title' delimit( ALERT.2 )
+      end
+      S = arg( 1 )                        /* unknown khelp topics */
+      say 'khelp' S '(KEXPAND rc' R || ')'
+   end                           /* show info for modified topic: */
+   if S <> arg( 1 )  then  say 'khelp' S '(KEXPAND rc' R || ')'
+   return S
+
+VERSION:    procedure   /* --- if not supported in KEDIT version: */
+   parse upper source . . ALERT.2
+   ALERT.2 = ALERT.2 'warning: OK to continue anyway'
+   ALERT.1 = arg( 1 ) version.1() version.2() || arg( 2 )
+   ALERT.1 = centre( ALERT.1, max( 42, length( ALERT.1 )))
+   ALERT.0 = 'OKCANCEL DEFBUTTON 2'    ;  'extract /BEEP'
+   if arg( 3 ) then  'set beep off'       /* after KEXPAND beeped */
+   if version.1() <> 'KEDIT'  then  ALERT.0 = ALERT.0 'ICONE'
+   'alert' delimit( ALERT.1 ) 'title' delimit( ALERT.2 ) ALERT.0
+   'set beep' BEEP.1                      /* old BEEP before exit */
+   if ALERT.2 <> 'OK'   then  exit 1   ;  else  return ''
+
+WINHELP:    procedure   /* --- bypass two KeditW 1.0 KHELP issues */
+   X = 'keditw.hlp'                    ;  arg L R
+   if L <> 0   then  L = L R           ;  else  L = R
+   'nomsg macro KEXPATH' delimit( X )
+   if rc = 0   then  X = lastmsg.1() || X
+   X = 'winhelp' X R                   ;  'cmsg' X
+   X = WARNING( 'KHELP' L 'does not work, try' X )
+   if R <> '=' then  return arg( 1 )      /* map KeditW KHELP =   */
+   say 'khelp EQUALSIGN'               ;  return 'EQUALSIGN'
+
+WARNING:    procedure   /* --- support early exit 1 for bad topic */
+   parse upper source . . ALERT.2
+   ALERT.2 = ALERT.2 'warning: OK to continue anyway'
+   ALERT.1 = centre( arg( 1 ), max( 42, length( arg( 1 ))))
+   ALERT.0 = 'OKCANCEL DEFBUTTON 2'
+   if version.1() <> 'KEDIT'  then  ALERT.0 = ALERT.0 'ICONE'
+   'alert' delimit( ALERT.1 ) 'title' delimit( ALERT.2 ) ALERT.0
+   if ALERT.2 <> 'OK'   then  exit 1   ;  else  return ''

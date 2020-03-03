@@ -1,0 +1,67 @@
+** see INITIAL.KEX for details, PROFILE.KEX kept in memory
+
+'nomsg editv get INITIAL.0'   /* read variable INITIAL.0 */
+if INITIAL.0 = '' then  do    /* if INITIAL.0 undefined: */
+   arg N
+   if pos( 'PROFDEBUG', N ) > pos( '(', N )
+      then  'debug INITIAL'   /* use INITIAL.KEX to set  */
+      else  'macro INITIAL'   /* new INITIAL.0 count of  */
+   'editv get INITIAL.0'      /* unusual local defaults  */
+end                           /* including initial ATTRs */
+if datatype( INITIAL.0, 'w' ) then  do N = 1 to INITIAL.0
+   'editv get INITIAL.' || N  /* local INITIAL.N setting */
+   'set' INITIAL.N   ;  if rc <> 0  then  exit rc
+end
+
+do ;  if dir() | FILE( 'MACROS.KML' )  then  do
+      'forward half' ;  if dir() then  exit 0
+   end                        /* special in-memory files */
+else  if TYPE( 'KML KEX REX CLS NRX' ) then  do
+      'eolout lf'    ;  'tabs incr 3'
+      if TYPE( 'REX' )  then  'eofin prevent'
+   end                        /* UNIX lineends, EOF = LF */
+else  if TYPE( 'BAT CMD INI SYS' ) then  do
+      'tabsin off'   ;
+      if TYPE( 'BAT CMD' )       then  'tabs incr 3'
+      if TYPE( 'BAT INI SYS' )   then  'eofout eoleof'
+   end                        /* EOF char. for old *.BAT */
+else  if TYPE( 'SYS INI' ) then  do
+      'tabsin off'   ;  'eofout eoleof'
+   end                        /* DOS lineends, EOF char. */
+else  if TYPE( 'S SH ASM INC NMK' ) then  do
+      'eolout lf'
+   end                        /* UNIX lineends, EOF = LF */
+else  if TYPE( 'AWK C H CPP HPP' )  then  do
+      'eolout lf'    ;  'tabs incr 5'
+   end                        /* indent cuddled up else_ */
+else  if TYPE( 'JS PAC' ) | NAME( 'COOKIES' )   then  do
+      'eolout crlf'  ;  'tabs incr 5'  ;  'eofout none'
+      'eolin lf'     ;  'tabsin off'   ;  'eofin allow'
+   end                        /* weird netscape lineends */
+else  if NAME( 'CTAGS TAGS KTAGS MAKEFILE' )    then  do
+      'eolout lf'    ;  'tabsin off'
+   end                        /* do not expand tags TABs */
+end
+
+if opmode.1() = 'REAL'  then  'undoing on 200 100'
+                        else  'undoing on 999 200'
+'extract /LASTMSG'   ;  'nomsg refresh'
+'macro status'       ;  'nomsg msg' LASTMSG.1
+
+if version.1() <> 'KEDIT'  then  do
+   if monitor.1() = 'WINDOWS' then  do
+      if TYPE( 'CSS JS PAC AWK' )   then  'coloring on C'
+      if TYPE( 'CLS CMD NRX' )      then  do N = 1 to 2
+         L = line.1()                  ;  'locate :' || N
+         if abbrev( curline.3(), '/*' )
+            then  'coloring on REXX'   ;  'locate :' || L
+      end                     /* line 1 can be #! magic  */
+   end
+   else  'coloring off'
+end
+else  'nomsg macro dosmouse'  /* old Kedit 5 experiment  */
+exit 0
+
+TYPE: return sign( wordpos( ft.1(), arg( 1 )))
+NAME: return sign( wordpos( fn.1(), arg( 1 )))
+FILE: return sign( wordpos( fn.1() || '.' || ft.1(), arg( 1 )))

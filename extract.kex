@@ -1,0 +1,108 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         MACRO EXTRACT argument                          */
+/* Examples:      MACRO EXTRACT /color arrow/=/arb/               */
+/*                MACRO EXTRACT /block/macro ascii/last           */
+/* Option:        SYNONYM EXTract 3 MACRO EXTRACT                 */
+/* Purpose:       Command EXTract works only within macros, not   */
+/*                on the command line.  Macro EXTRACT shows the   */
+/*                possible results of command EXTract.  Operands  */
+/*                have to be delimited and can be abbreviated:    */
+/*                      MACRO EXTRACT /SYN/=/MACRO ASCII/VAR/     */
+/*                reports SYNONYM.1, EQUALSIGN.1, and EXTRACT.1,  */
+/*                but not VARBLANK.1, just like command EXTract.  */
+/* Special:       Macro EXTRACT uses 'nomsg query VAR' to get the */
+/*                variable names set by 'command extract /VAR/',  */
+/*                (e.g. VARBLANK.0 etc.).  But 'nomsg query REXX' */
+/*                reports error 153 (rc 99) if no external REXX   */
+/*                interpreter is loaded.  This is now handled as  */
+/*                special case, similar problems are reported.    */
+/* Caveats:       Kedit 5.0 DIALOG shows only up to 10 lines and  */
+/*                certain long results like MACRO EXTRACT /ATTR/  */
+/*                or MACRO EXTRACT /RING/ won't work as expected. */
+/* Updated 2008:  Added missing POINT abbreviation for EXT 'P *'. */
+/*                Fixed KeditW 1.0 TOOLButton, a QUERY to expand  */
+/*                abbreviations does not work for SYN *, TOOLB *, */
+/*                and TOOLB.  Added six Kedit 5 abbreviations not */
+/*                found by KeditW QUERY but supported by EXTRACT. */
+/* See also:      KHELP EXTRACT, KHELP QUERY MACRO, KHELP =       */
+/*                <http://purl.net/xyzzy/kex/extract.kex>         */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2000) */
+
+   ISKW = ( 'KEDIT' <> version.1())    ;  EOL  = d2c( 10 )
+   LINE = ''         ;  WORD = ''      ;  LONG = 13 + 7 * ISKW
+   WHAT = ''         ;  STOP = left( strip( arg( 1 )), 1 )
+   if \ datatype( STOP, 'A' ) then  parse arg (STOP) WHAT
+   if WHAT = ''   then  do                /* show EXTRACT message */
+      'extract' arg( 1 )               ;  exit rc
+   end
+   do until WHAT = ''
+      parse var WHAT NEXT (STOP) WHAT
+      'nomsg query'  NEXT              ;  WORD = word( NEXT, 1 )
+      if rc = 0   then  do                /* RING and MACRO okay, */
+         ABBR = word( lastmsg.1(), 1 )    /* expect EXTRACT name: */
+         ABBR = 'Point PREfix SYNonym TOOLButton' ABBR
+         ABBR = MATCH( WORD, ABBR )
+      end
+      else  if rc = 5 & ISKW  then  do    /* use old abbreviation */
+         ABBR = 'BORDer CURSORSHape EAPreserve KEYBoard PSCReen'
+         ABBR = 'RETRace SCReen SHIFTState' ABBR
+         ABBR = MATCH( WORD, ABBR )
+      end
+      else  if rc <> 5  then  ABBR = MATCH( WORD, 'REXXversion' )
+      else  ABBR = ''                     /* WORD.x variable name */
+      if ABBR <> ''     then  WORD = translate( ABBR )
+      'extract' STOP || NEXT || STOP
+      if WORD = '='     then  WORD = 'EQUALSIGN'
+      else  if rc = 5   then  WORD = 'EXTRACT'
+      else  if rc <> 0  then  leave
+
+      W = VALUE( WORD || '.0' )
+      if datatype( W, 'w' )   then  do W = 0 to W
+         NEXT = WORD || '.' || W
+         LINE = LINE || EOL || left( NEXT, LONG ) VALUE( NEXT )
+      end
+      else  do                            /* this must not happen */
+         STOP = "'command EXTRACT" STOP || NEXT || STOP || "'"
+         'emsg' STOP 'has not set variable' WORD || '.0' ;  exit 4
+      end                                 /* missing special case */
+      if WORD = 'EXTRACT'  then  leave    /* rc 5 aborts EXTRACT  */
+   end
+
+   STOP = rc                              /* rc 5 normally quiet: */
+   if WORD = 'EXTRACT'  then  'emsg' WORD 'rc' STOP
+   if ISKW = 0 | length( LINE ) <= 512 then  do
+      WHAT = delimit( 'EXTRACT' strip( arg( 1 )))
+      if ISKW  then  WHAT = WHAT 'fixed'
+      'dialog' delimit( strip( LINE, 'L', EOL )) 'title' WHAT
+   end
+   else  do                               /* bypass DIALOG limit: */
+      'extract /MSGLINE'               ;  'msgline ON 1 1'
+      do until LINE = ''
+         parse var LINE W (EOL) LINE   ;  say W
+      end
+      'msgline' MSGLINE.1 MSGLINE.2 MSGLINE.3 MSGLINE.4
+   end
+   exit STOP
+
+VALUE:                  /* --- REXX value('x') of (un)defined 'x' */
+   "imm OLDRC =" rc ";  'novalue off'  ;  exit OLDRC"
+   interpret 'SIGL =' arg( 1 )            /* SIGL already changed */
+   "imm OLDRC =" rc ";  'novalue on'   ;  exit OLDRC"
+   return SIGL                            /* preserve RC + RESULT */
+
+MATCH:      procedure   /* --- find abbreviation in list of words */
+   DEBUG = debugging.1()               ;  'debugging off'
+   MATCH = MAT.H( arg( 1 ), arg( 2 ))  ;  'debugging' DEBUG
+   return MATCH                           /***** trusted code *****/
+MAT.H:      procedure   /* --- find abbreviation in list of words */
+   parse arg U, S                      ;  U = translate( U )
+   do while S <> ''
+      parse var S X S                  ;  T = translate( X )
+      if abbrev( T, U ) then  do
+         if datatype( substr( X, length( U ) + 1, 1 ), 'U' ) = 0
+            then  return X                /* else abbr. too short */
+      end                                 /* upper case indicates */
+   end                                    /* a minimal truncation */
+   return S
+

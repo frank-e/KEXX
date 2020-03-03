@@ -1,0 +1,211 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] KEYDIFF [macroname(s)]                  */
+/* Examples:      KEYDIFF                          (default: ALL) */
+/*                KEYDIFF A-F8                     (compare A-F8) */
+/*                KEYDIFF CHANGED                  (failure test) */
+/* Purpose:       Show changed key definitions in CHANGED.KML and */
+/*                corresponding defaults in KEYDIFF.KML.  This is */
+/*                not the same as MACROS CHANGED or ALL because   */
+/*                only modified defaults are listed.              */
+/*                MACROS ALL ignores "uninteresting" macros, and  */
+/*                therefore KEYDIFF won't show these macros: use  */
+/*                MACROS CHANGED to get all changed macros.       */
+/*                MACROS X Y lists X Y (even if "uninteresting"), */
+/*                therefore KEYDIFFF X Y includes X Y if changed. */
+/* Caveats:       Supporting KEYDIFF CHANGED would be simple, but */
+/*                KEYDIFF or KEYDIFF ALL already show ALL CHANGED */
+/*                builtin macros.  Therefore KEYDIFF CHANGED is a */
+/*                failure test case for developers.  KEYDIFF uses */
+/*                PROFDEBUG for debugging with macro TRACE.KEX.   */
+/* Operation:     KEYDIFF.KEX quits an old loaded KEYDIFF?.KML or */
+/*                CHANGED.KML.  If a KEYDIFF?.KML exists KEYDIFF  */
+/*                uses it as base for the relevant original keys. */
+/*    Step 2:     If no KEYDIFF?.KML exists KEYDIFF starts KEDIT? */
+/*                with PROF KEYDIFF to execute MACROS xxx, e.g.,  */
+/*                MACROS ALL saved as KEYDIFF?.KML.  After that   */
+/*                this second KEDIT? instance terminates itself,  */
+/*                KEYDIFF loads the new KEYDIFF?.KML, and erases  */
+/*                it.  Any old manually saved KEYDIFF?.KML has to */
+/*                be erased manually, otherwise KEYDIFF would use */
+/*                it again, and given arguments have no effect.   */
+/*                This feature is used for odd cases when KEDIT?  */
+/*                is unable to start itself, or when a user wants */
+/*                to compare keys in different KEDIT versions.    */
+/*    Step 3:     Normally at this point a temporary KEYDIFF?.KML */
+/*                is loaded containing all original keys the user */
+/*                wants to compare.  KEYDIFF then creates a new   */
+/*                temporary CHANGED.KML with *all* changed keys.  */
+/*                That is a normal MACROS.KML file created by a   */
+/*                MACROS CHANGED and renamed to avoid confusion,  */
+/*                it exists only in memory.                       */
+/*                KeditW 1.0 MACROS CHANGED uses the :?+key style */
+/*                of key definitions.  KEYDIFF changes this style */
+/*                to :?-key if necessary.                         */
+/*    Step 4:     KEYDIFF then scans the macros in KEYDIFF?.KML.  */
+/*                All macros not found in CHANGED.KML are removed */
+/*                because they are not changed, as the name says. */
+/*                In a similar loop KEYDIFF checks the macros in  */
+/*                CHANGED.KML.  Macros not found in KEYDIFF?.KML  */
+/*                are removed because they are no changed KEDIT?  */
+/*                default macros.  Eventually KEYDIFF shows both  */
+/*                files, CHANGED.KML with the changed macros, and */
+/*                KEYDIFF?.KML with the corresponding defaults.   */
+/* Updated 2008:  A MACROPATH with more than one directory works  */
+/*                now.  KEYDIFF fails if it cannot locate KEDIT?, */
+/*                e.g., if KEDIT? is not in the PATH.  For KeditW */
+/*                comparing s-*, a-*, c-*, and s-c-* with s+c+*,  */
+/*                s+*, a+*, and c+* should now work.  Long names  */
+/*                with SHIFT+, SHIFT-, ALT+, ALT-, CTRL+, CTRL-   */
+/*                are on the fly replaced by the short names S+*, */
+/*                A+*, C+*, or S+C+*.  BTW, this is a royal PITA. */
+/* See also:      KHELP MACROS, KHELP DEFINE, KHELP PURGE,        */
+/*                KHELP MACRO, macro KEX.KEX, macro TRACE.KEX,    */
+/*                and (only for KeditW 1.0) SAMPLES\BUILTIN.KML   */
+/* Requires:      Macros KEX.KEX, KEXPAND.KEX,                    */
+/*                Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   parse value dosenv( macropath.1()) with NEW ';'
+   if NEW = '' then NEW = '.'    /* if MACROPATH ON or OFF use .  */
+   if right( NEW, 1 ) <> '\' then NEW = NEW || '\'
+   'dmsg KEYDIFF home directory:' NEW
+   CHANGED = '"' || NEW || 'CHANGED.KML"'
+   KEYDIFF = '"' || NEW || 'KEYDIFF.KML"'          ;  K = 'KEDIT'
+   if version.1() = K   then  CANON = arg( 1 )     ;  else  do
+      PRO = arg( 1 ) ;  CANON = ''
+      do while PRO <> ''
+         parse var PRO K PRO     ;  K = KEDITW( K, 'shift' )
+         K = KEDITW( K, 'ctrl' ) ;  K = KEDITW( K, 'alt' )
+         if abbrev( K, 'c+s+' )  then  K = 's+c+' || substr( K, 5 )
+         if abbrev( K, 'c+a+' )  then  K = 'a+c+' || substr( K, 5 )
+         CANON = space( CANON K )
+      end
+      if space( arg( 1 )) <> CANON
+         then 'dmsg KEYDIFF' arg( 1 ) 'will evaluate' CANON
+      KEYDIFF = '"' || NEW || 'KEYDIFFW.KML"'      ;  K = 'KEDITW'
+   end
+
+   if initial() then do          /* default macros in KEYDIFF.KML */
+      arg . '(' . ')' NEW        /* argument after profile option */
+      'nomsg macros' NEW   ;  'ff' KEYDIFF   ;  'cancel' ;  exit rc
+   end
+
+   'x' CHANGED '(new noprof'  ;  if rc  = 0 then 'quit'
+   if rc = 0 then 'x' KEYDIFF ;  if rc <> 0 then exit rc
+
+   do while size.1() = 0         /* MACRO TRACE KEYDIFF supported */
+      'quit'                  ;  if rc <> 0 then exit rc
+      'macros' CANON          ;  if rc <> 0 then exit rc
+      'quit'                  ;  PRO = 'PROFDEBUG'
+      'nomsg q macro KEYDIFF' ;  if rc <> 0 then PRO = 'NOSCREEN'
+      'macro kex KEYDIFF'     ;  if rc <> 0 then exit rc
+      PROFILE = '"' || fileid.1() || '"'
+      NEW = size.1()          ;  if ring.0() > 1 then 'nomsg quit'
+      if NEW = 0 then do         /* KEDIT cannot find KEYDIFF.KEX */
+         NEW = 'Fatal, macro KEX cannot find KEYDIFF.KEX,'
+         'emsg' NEW 'likely' K 'also would not find it'.
+         exit 28
+      end
+      if K <> 'KEDIT' then PRO = PRO 'INSTANCE MULTIPLE'
+      'dosq' K 'dir (prof' PROFILE PRO || ')' CANON
+      'x' KEYDIFF             ;  if rc <> 0 then exit rc
+      'nomsg erase' KEYDIFF   ;  if size.1() > 0 then leave
+      if ring.0() > 1 then 'quit'
+      PRO = 'Use' K 'DIR (PROF' PROFILE || ') outside' K || ','
+      PRO = PRO d2c(10) || 'then try KEYDIFF within' K 'again'
+      KEYDIFF = 'Cannot create' KEYDIFF
+      'alert' delimit( PRO ) 'title' delimit( KEYDIFF )  ;  exit 12
+   end
+
+   'macros changed'           ;  if rc <> 0 then exit rc
+   if size.1() = 0 then do       /* changed macros in CHANGED.KML */
+      'quit'   ;  'x' KEYDIFF ;  if ring.0() > 1 then 'nomsg quit'
+      'emsg No changed macro' ;  exit 1
+   end
+
+   'extract /SCREEN/ARBCHAR/UNDOING/STAY/WRAP/ZONE/CASE/'
+   if K = 'KEDIT' then  OFPW.1 = '' ;  else  do
+      SCREEN.1 = 1   ;  OFPW.1 = ofpw.1() ;  'ofpw off'
+   end
+   'fileid' CHANGED  ;  'wrap off'  ;  'arbchar off'  ;  'stay off'
+   'reset block'     ;  'zone 1 *'  ;  'undoing off'  ;  'case M I'
+   'x' KEYDIFF       ;  'wrap off'  ;  'arbchar off'  ;  'stay off'
+                        'zone 1 *'  ;  'undoing off'  ;  'case M I'
+   NEW = 0           ;  'locate :0 nomsg find :'
+
+   do while rc = 0               /* remove all unmodified macros: */
+      MACRO = word( curline.3(), 1 ) || ' '
+      'x' CHANGED    ;  'locate :0 nomsg tfind' delimit( MACRO )
+      if rc <> 0 then do         /* this is no changed default... */
+         'x' KEYDIFF ;  'mark line' ;  'nomsg find :' ;  'up'
+                        'mark line' ;  'del block'    ;  'up'
+      end
+      else 'refresh' ;  'x' KEYDIFF ;  'nomsg find :'
+   end
+   'x' CHANGED       ;  'locate :0 nomsg find :'
+
+   do while rc = 0               /* remove completely new macros: */
+      MACRO = word( curline.3(), 1 ) || ' '  ;  NEW = NEW + 1
+      'x' KEYDIFF    ;  'locate :0 nomsg tfind' delimit( MACRO )
+      if rc <> 0 then do         /* this is no changed default... */
+         'x' CHANGED ;  'mark line' ;  'nomsg find :' ;  'up'
+         NEW = NEW-1 ;  'mark line' ;  'del block'    ;  'up'
+      end
+      else 'refresh' ;  'x' CHANGED ;  'nomsg find :'
+   end
+
+   'screen 2'     ;  ':0 forward half'    ;  'set alt 0 0'
+   'stay' STAY.1  ;  'arbchar' ARBCHAR.1  ;  'case' CASE.1 CASE.2
+   'wrap' WRAP.1  ;  'undoing' UNDOING.1  ;  'zone' ZONE.1 ZONE.2
+   'sos tabcmdf'  ;  NEW = delimit( NEW 'changed default(s) found' )
+   'x' KEYDIFF    ;  ':0 forward half'    ;  'set alt 0 0'
+   'stay' STAY.1  ;  'arbchar' ARBCHAR.1  ;  'case' CASE.1 CASE.2
+   'wrap' WRAP.1  ;  'undoing' UNDOING.1  ;  'zone' ZONE.1 ZONE.2
+
+   if size.1() = 0 then  do      /* MACROS new or unCHANGED: exit */
+      'nomsg quit'   ;  'sos tabcmdb'     ;  'x' CHANGED
+      if ring.0() > 1   then  'quit'      ;  'screen' SCREEN.1
+      'emsg either new or default:' translate( arg( 1 )) ;  exit 1
+   end
+
+   DIALOG.2 = delimit( 'use split screen?' )
+   'dialog' DIALOG.2 'title' NEW 'OKCANCEL'
+   if DIALOG.2 <> 'OK'  then  do
+      'screen' SCREEN.1 ;  'x'
+      if OFPW.1 <> ''   then  'ofpw' OFPW.1
+   end
+   exit 0
+
+KEDITW:  procedure               /* use MACROS CHANGED key names: */
+   parse arg KEY, OLD            ;  LOW = left( OLD, 1 ) || '+'
+   NEW = translate( OLD )        ;  REF = translate( KEY )
+   OLD = left( NEW, 1 ) || '-'
+   POS = pos( OLD, REF )         ;  LEN = length( OLD )
+   do while POS > 0
+      R = substr( KEY, POS + LEN )
+      L = left(   KEY, POS - 1 ) ;  KEY = L || LOW || R
+      R = substr( REF, POS + LEN )
+      L = left(   REF, POS - 1 ) ;  REF = L || LOW || R
+      POS = pos(  OLD, REF )
+   end
+   OLD = NEW || '-'
+   POS = pos( OLD, REF )         ;  LEN = length( OLD )
+   do while POS > 0
+      R = substr( KEY, POS + LEN )
+      L = left(   KEY, POS - 1 ) ;  KEY = L || LOW || R
+      R = substr( REF, POS + LEN )
+      L = left(   REF, POS - 1 ) ;  REF = L || LOW || R
+      POS = pos(  OLD, REF )
+   end
+   OLD = NEW || '+'
+   POS = pos( OLD, REF )         ;  LEN = length( OLD )
+   do while POS > 0
+      R = substr( KEY, POS + LEN )
+      L = left(   KEY, POS - 1 ) ;  KEY = L || LOW || R
+      R = substr( REF, POS + LEN )
+      L = left(   REF, POS - 1 ) ;  REF = L || LOW || R
+      POS = pos(  OLD, REF )
+   end
+   if pos( LOW, REF ) = lastpos( LOW, REF )  then  return KEY
+   'emsg cannot replace' NEW 'by' LOW 'in' arg( 1 )
+   exit 1

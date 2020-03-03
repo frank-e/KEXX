@@ -1,0 +1,193 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] ZOO [offset|*|.]                        */
+/* Example:       ZOO                     => show zone offset     */
+/*                ZOO 1234000             => go to zone offset    */
+/*                ZOO 1234 * 1000         => go to zone offset    */
+/*                ZOO 1234 * LRECL.1()    => go to zone offset    */
+/*                ZOO 0                   =>    top  left edge    */
+/*                ZOO *                   => bottom right edge    */
+/*                ZOO .                   => optional use as key  */
+/* Option:        DEFine A-F2 'macro zoo .'                       */
+/* Purpose:       ZOO called without argument shows the offset of */
+/*                the current line and column in the actual range */
+/*                and zone.  ZOO reports if the current column is */
+/*                not in the zone or if the current line is not   */
+/*                in the range.                                   */
+/*                'ZOO n' interprets expressions as "ZOne Offset" */
+/*                and locates the corresponding line and column.  */
+/*                If the target line is greater than range.2(()   */
+/*                an error is reported.                           */
+/* Background:    The default range is line 1 (top of file) up to */
+/*                the last line.  The default zone is column 1 up */
+/*                to the width column (longest possible line).    */
+/*                ZOO can be used to navigate in non-default zone */
+/*                and/or range areas:                             */
+/*                   Lines | Columns: 1  ZONE.1  ZONE.2   WIDTH   */
+/*                   1                :      :       :       :    */
+/*                                    :      :       :       :    */
+/*                   RANGE.1 (start)  :::::::@-------+::::::::    */
+/*                                    :      |  ZOO  |       :    */
+/*                   RANGE.2 (end)    :::::::+-------X::::::::    */
+/*                                    :      :       :       :    */
+/*                   SIZE             :      :       :       :    */
+/*                The position indicated by @ is "ZOne Offset" 0, */
+/*                column zone.1() in line range.1().  Position X  */
+/*                is column zone.2() line range.2(), zone offset  */
+/*                (1+R.2-R.1) * (1+Z.2-Z.1) + (1+Z.2-Z.1) from @. */
+/*                'ZOO 0' would go to @.  'ZOO *' would go to X.  */
+/* Use case:      In binary files (EOLOUT NONE for a given LRECL) */
+/*                zone.2() can be set to reflect a "fixed" LRECL. */
+/*                With the default zone.1() and the default range */
+/*                'ZOO n' can then locate absolute offset n in a  */
+/*                binary file.                                    */
+/*                BTW, this does not require RECFM FIXED, and in  */
+/*                fact RECFM FIXED would fill the last line with  */
+/*                trailing spaces up to the record length LRECL.  */
+/* ZOO . key:     Calculating absolute offsets in binary files is */
+/*                a common task, and for the slightly odd record  */
+/*                lengths 32 and 24 in macros HEXA or HEXE.KEX a  */
+/*                macro assigned to a key can do this.  Another   */
+/*                common task is to CLocate the focus column for  */
+/*                following COV, CI, CR, and REPEAT commands.  As */
+/*                these jobs are related 'ZOO .' combines them in */
+/*                one macro like this:                            */
+/*                   'sos makecurr setcolptr tabcmd'              */
+/*                Make the focus line the current line (same idea */
+/*                as in default macro F5), make the focus column  */
+/*                the current column (for later C* command), move */
+/*                the cursor to the command line, and then report */
+/*                the current column and its "ZOne Offset" as for */
+/*                other ZOO applications.                         */
+/* Limitations:   ZOO offset  expressions are limited to numbers, */
+/*                operators, brackets, and most numerical EXTRACT */
+/*                functions like ZONE.2().  They must not contain */
+/*                REXX functions, only X2D() is supported if its  */
+/*                first argument is a hex. number in KeditW 1.0.  */
+/*                Otherwise only unquoted whole decimal numbers   */
+/*                are supported.                                  */
+/* See also:      KHELP CL, KHELP LRECL, KHELP ZONE, KHELP RANGE, */
+/*                KHELP CI, KHELP COV, KHELP REPEAT   (for ZOO .) */
+/*                macros BINARY, HEXA, and HEXE.KEX   (for ZOO n) */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   Z = zone.2() - zone.1() + 1         ;  C = space( arg( 1 ))
+
+   if abbrev( '.', C )  then  do          /* for a dot set column */
+      if C = '.'  then  'sos makecurr setcolptr tabcmd'
+                  else  rc = 0            /* reports zone offset  */
+   end                                    /* -------------------- */
+   else  do                               /* go to a zone offset, */
+      if C <> '*' then  do                /* supports expression, */
+         C = OFFSET( C )                  /* exit 98 if bad expr. */
+         if datatype( C, 'w' ) = 0 | C < 0   then  do
+            'emsg wrong zone offset' C ;  exit 5
+         end                              /* NAN and other errors */
+         else  do                         /* locate offset line   */
+            'L :' || range.1() + C % Z    /*    and offset column */
+            if rc = 0   then  'CL :' || zone.1() + C // Z
+            if rc <> 0  then  call ERRORBEEP
+         end                              /* beep if out of range */
+      end
+      else  'L :' range.2() 'CL :' zone.2()
+      if rc = 0   then  'cursor column'   /* focus on zone offset */
+   end                                    /* -------------------- */
+
+   C = ''                              ;  L = C
+   if zone.1() <= column.1() & column.1() <= zone.2() then  do
+      C = column.1() - zone.1()
+      if range.1() <= line.1() & line.1() <= range.2()   then  do
+         L = line.1() - range.1()
+         L = C + L * Z '=' C || '+' || L || '*' || Z
+      end                                 /* L is the zone offset */
+   end
+
+   Z = 'column' column.1()                /* report column and... */
+   if L <> ''  then  do                   /* line and column okay */
+      C = '(' || zone.1() zone.2() || ',' range.1() range.2() || ')'
+      C = 'zone offset' L C               /* offset with formula  */
+      W = word( L, 1 )                 ;  L = ''
+      do until W = 0
+         B = W // 256                  ;  W = ( W - B ) % 256
+         L = right( d2x( B ), 2, 0 ) || L
+      end
+      C = C '0x' || L
+   end
+   else  if C <> ''  then  do             /* only column was okay */
+      C = 'line' line.1() 'not in range' range.1() range.2()
+   end
+   else  do                               /* range was not tested */
+      Z = 'line' line.1()                 /* report line and zone */
+      C = 'column' column.1() 'not in zone' zone.1() zone.2()
+   end
+   say Z || ',' C                      ;  exit rc
+
+ERRORBEEP:  procedure   /* --- procedure preserves RC of caller   */
+   'sos errorbeep'                     ;  return
+
+OFFSET:     procedure   /* --- evaluate simple offset expressions */
+   S =   'BLOCK.2 BLOCK.3 BLOCK.4 BLOCK.5'
+   S = S 'CLICK.2 CLICK.3 CLICK.5 CLICK.6'
+   S = S 'COL.1 COLU.1 COLUM.1 COLUMN.1'
+   S = S 'CURL.2 CURLI.2 CURLIN.2 CURLINE.2'
+   S = S 'CURS.1 CURSO.1 CURSOR.1'        /* The EXTRACT function */
+   S = S 'CURS.2 CURSO.2 CURSOR.2'        /* list is incomplete,  */
+   S = S 'CURS.2 CURSO.2 CURSOR.2'        /* e.g., non-numerical  */
+   S = S 'CURS.2 CURSO.2 CURSOR.2'        /* functions cannot be  */
+   S = S 'CURS.3 CURSO.3 CURSOR.3'        /* used in a numerical  */
+   S = S 'CURS.4 CURSO.4 CURSOR.4'        /* offset expression.   */
+   S = S 'CURS.5 CURSO.5 CURSOR.5'        /* Numerical functions  */
+   S = S 'CURS.6 CURSO.6 CURSOR.6'        /* are removed before   */
+   S = S 'CURS.7 CURSO.7 CURSOR.7'        /* the plausibility of  */
+   S = S 'CURS.8 CURSO.8 CURSOR.8'        /* the given expression */
+   S = S 'FL.1 FLS.1 FLSC.1 FLSCR.1'      /* can be checked.      */
+   S = S 'FL.2 FLS.2 FLSC.2 FLSCR.2'      /* This limits abnormal */
+   S = S 'FLSCRE.1 FLSCREE.1 FLSCREEN.1'  /* terminations (rc 98) */
+   S = S 'FLSCRE.2 FLSCREE.2 FLSCREEN.2'  /* to syntax errors in  */
+   S = S 'LEN.1 LENG.1 LENGT.1 LENGTH.1'  /* posssibe expressions */
+   S = S 'LI.1 LIN.1 LINE.1'              /* for INTERPRET.       */
+   S = S 'LR.1 LRE.1 LREC.1 LRECL.1'
+   S = S 'LS.1 LSC.1 LSCR.1 LSCRE.1 LSCREE.1 LSCREEN.1'
+   S = S 'LS.2 LSC.2 LSCR.2 LSCRE.2 LSCREE.2 LSCREEN.2'
+   S = S 'LS.3 LSC.3 LSCR.3 LSCRE.3 LSCREE.3 LSCREEN.3'
+   S = S 'LS.4 LSC.4 LSCR.4 LSCRE.4 LSCREE.4 LSCREEN.4'
+   S = S 'LS.5 LSC.5 LSCR.5 LSCRE.5 LSCREE.5 LSCREEN.5'
+   S = S 'LS.6 LSC.6 LSCR.6 LSCRE.6 LSCREE.6 LSCREEN.6'
+   S = S 'MAR.1 MARG.1 MARGI.1 MARGIN.1'
+   S = S 'MAR.2 MARG.2 MARGI.2 MARGIN.2'
+   S = S 'NBS.1 NBSC.1 NBSCO.1 NBSCOP.1 NBSCOPE.1'
+   S = S 'NBS.2 NBSC.2 NBSCO.2 NBSCOP.2 NBSCOPE.2'
+   S = S 'PSCR.1 PSCRE.1 PSCREE.1 PSCREEN.1'
+   S = S 'PSCR.2 PSCRE.2 PSCREE.2 PSCREEN.2'
+   S = S 'RAN.1 RANG.1 RANGE.1'           /* KeditW 1.0 PSCREEN.x */
+   S = S 'RAN.2 RANG.2 RANGE.2'           /* values are dummies.  */
+   S = S 'TARG.1 TARGE.1 TARGET.1'        /* KeditW 1.0 has no    */
+   S = S 'TARG.2 TARGE.2 TARGET.2'        /* LSCREEN.x for x > 4, */
+   S = S 'TARG.3 TARGE.3 TARGET.3'        /* for x > 2 it is only */
+   S = S 'TARG.4 TARGE.4 TARGET.4'        /* a dummy UNIQUEID.3.  */
+   S = S 'TR.1 TRU.1 TRUN.1 TRUNC.1'      /* Kedit 5.0 has no     */
+   S = S 'SI.1 SIZ.1 SIZE.1'              /* CLICK.x for x > 3.   */
+   S = S 'VERS.1 VERSH.1 VERSHI.1 VERSHIF.1 VERSHIFT.1'
+   S = S 'W.1 WI.1 WID.1 WIDT.1 WIDTH.1'
+   S = S 'Z.1 ZO.1 ZON.1 ZONE.1'
+   S = S 'Z.2 ZO.2 ZON.2 ZONE.2'
+
+   arg EXPR                            ;  FUNC = 'X2D('
+
+   if version.1() <> 'KEDIT'  then  do    /* Kedit 5 X2D hopeless */
+      do until Y = ''                     /* check and remove X2D */
+         parse var EXPR EXPR (FUNC) X ')' Y
+         if datatype( X, 'x' )   then  X = x2d( X )
+         EXPR = EXPR X Y                  /* bad X trapped below  */
+      end
+   end
+   do until S = ''                        /* remove EXTRACT func. */
+      parse var S FUNC S               ;  FUNC = FUNC || '('
+      do until X = ''
+         parse var EXPR EXPR (FUNC) X  ;  EXPR = EXPR X
+      end                                 /* erase good FUNC name */
+   end                                    /* junk not INTERPRETed */
+   if verify( EXPR, '(\0|1&2*3%4)5+6-7/8 9' ) = 0
+      then  interpret 'return' arg( 1 )   /* evaluate expression, */
+      else  return arg( 1 )               /* or return junk as is */
+

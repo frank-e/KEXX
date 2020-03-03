@@ -1,0 +1,31 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         MACRO CURSORSH [normal CURSORSHAPE settings]    */
+/* Example:       MACRO CURSORSH USER 11 13 7 12 OFF              */
+/*                MACRO CURSORSH                                  */
+/*                SET SYNONYM CURSORSHAPE 8 macro CURSORSH        */
+/* Purpose:       Called with any arguments CURSORSH simply tries */
+/*                SET CURSORSHAPE, see KEDIT 5 KHELP CURSORSHAPE. */
+/*                For KeditW 1.0 this results in an error.        */
+/*                Called without an argument macro CURSORSH tries */
+/*                to improve the cursor visibility in two steps:  */
+/*                SET CURSORSHAPE AUTO determines Kedit's default */
+/*                for the actual video mode and number of lines.  */
+/*                SET CURSORSSHAPE USER then uses two instead of  */
+/*                one scan line for the INSERT OFF cursor shape,  */
+/*                e.g., 11 13 instead of 12 13.  The cursor shape */
+/*                for INSERT ON is slightly reduced in size.      */
+/* Option:        CURSORSH is designed to replace SET CURSORSHAPE */
+/*                by a 'SET SYNONYM CURSORSHape 8 macro CURSORSH' */
+/* Requires:      Kedit 5.0               (Frank Ellermann, 2009) */
+
+   if arg( 1 ) <> '' then  do          /* arg. given, normal SET  */
+      'set cursorshape' arg( 1 )       ;  exit rc
+   end                                 /* exit for KeditW error   */
+   'cursorshape auto'                  ;  if rc <> 0  then  exit rc
+   'extract /CURSORSHAPE'
+   CURSORSHAPE.2 = CURSORSHAPE.3 - 2   /* use bottom 2 scan lines */
+   CURSORSHAPE.4 = CURSORSHAPE.3 % 2   /* rounded down half block */
+   CURSORSHAPE.5 = CURSORSHAPE.3 - 1   /* moved up one scan line  */
+   CURSORSHAPE.4 = CURSORSHAPE.4 CURSORSHAPE.5 CURSORSHAPE.6
+   'cursorshape user' CURSORSHAPE.2 CURSORSHAPE.3 CURSORSHAPE.4

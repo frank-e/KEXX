@@ -1,0 +1,318 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] FEATURES [target]                       */
+/* Purpose:       FEATURES is a collection of Kedit 5.00 oddities */
+/*                and undocumented KeditW 1.0 features.  The part */
+/*                about Kedit 5.00 is at least ten years old.     */
+/* See also:      COLOR.KEX and MONO.KEX for SET COLOR oddities,  */
+/*                LASTKEY.KEX for KeditW 1.0 double scan issues,  */
+/*                DELIMIT.KEX to fix broken delimit() delimiters. */
+/*                KEYMAP.KEX to revive the lost S/A/C-STAR keys.  */
+/*                EXTRACT.KEX contains specific EXTRACT caveats.  */
+/*                KEXPAND.KEX contains general caveats, detailed  */
+/*                info exported to KEXPATH.KEX due to size limit. */
+/*                KHELP.KEX assisted by KEXPAND.KEX avoids known  */
+/*                KHELP oddities.                                 */
+/* Requires:      Kedit 5.0 or KeditW 1.0, macro KEX.KEX          */
+/*                                        (Frank Ellermann, 2008) */
+
+   parse upper source . . THIS   ;  'macro kex' THIS
+   if rc = 0   then  if arg() then  'locate' arg( 1 )
+   exit rc
+
+/******************************************************************/
+/* KeditW 1.0 observations:                                       */
+
+   'query poolstat'                    /* displays 9 values       */
+   /* poolstat.5() is the same as memory.4(), i.e. allocated FSA, */
+   /* poolstat.3() is often near to memory.7(), i.e. UNDO memory. */
+
+   'query startup'                     /* displays 4 values       */
+   /* startup.1() is the complete KEDITW.EXE startup directory,   */
+   /* startup.2() is empty or the path of the first edited file,  */
+   /* startup.3() is typically empty and definitely unclear :-)   */
+   /* startup.4() is the defprof.1() path based on the KEDITW.INI */
+   /*             state at startup, ignoring init option DEFPROF. */
+
+   'sos assert'                        /* creates KEDIT.RPT       */
+   'sos gpf'                           /* emulates GPF abort      */
+
+   'win log' . . .                     /* ends up with SOS GPF    */
+   'win meter 10000'                   /* unclear, min. 10000     */
+   'win sound' . . .                   /* unclear, any arguments  */
+   'win stackcheck'                    /* displays stack status   */
+
+   'win getdrive D'
+   /* WIN GETDRIVE D causes a direct disk access violation (NTFS) */
+   /* WIN GETDRIVE X sets DRICE.1 = unclear value and DRIVE.0 = 1 */
+   /* WIN GETDRIVE 0 sets DRIVE.1 = -1 (error, obviously)         */
+   /* WIN GETDRIVE U sets DRIVE.1 = 3  (SUBST on D:)              */
+   /* WIN GETDRIVE F sets DRIVE.1 = 0  (no F:)                    */
+   /* WIN GETDRIVE E sets DRIVE.1 = 5  (CDROM, empty or not)      */
+   /* WIN GETDRIVE D sets DRIVE.1 = 3  (NTFS)                     */
+   /* WIN GETDRIVE C sets DRIVE.1 = 3  (FAT)                      */
+   /* WIN GETDRIVE B sets DRIVE.1 = 0  (no B:)                    */
+   /* WIN GETDRIVE A sets DRIVE.1 = 2  (floppy. empty or not)     */
+
+   'keyboard nocombo'                  /* unclear                 */
+   /* SET KEYBoard is allegedly unsupported, but actually the old */
+   /* KEYB Enhanced, KEYB ENHForce, and KEYB Standard are still   */
+   /* accepted (not tested: maybe they have no effect).  There is */
+   /* even a new KEYBoard NOCOMBO (unknown effect).               */
+
+*---- WINK.KML appears once in the binary, WINK_KML twice, but it
+*     is not documented.  "Ctl3d" is likely related to a vintage
+*     1994 $SystemRoot$\system\ctl3d.DLL.
+
+*---- Undocumented initialization options, all rejected if used
+*     within KeditW for commands KEDIT or XEDIT:
+*        device          (known Kedit 5 cruft)
+*        isa             (known Kedit 5 cruft)
+*        noems           (known Kedit 5 cruft)
+*        nomouse         (known Kedit 5 cruft)
+*        noxms           (known Kedit 5 cruft)
+*        noscreen        (known Kedit 5 cruft)
+*        umb             (known Kedit 5 cruft)
+*        norexx          (see Kedit 5 PREXX20)
+*        prexx           (see Kedit 5 PREXX20)
+*        rexxsaa         (see Kedit 5 PREXX20)
+*        mousesoftreset  (unclear Kedit cruft)
+*        macrospace      (unclear, OS/2 cruft)
+*        notrap          (does not disable SOS GPF, maybe OS/2)
+*        trap            (does not cause a SOS GPF, maybe OS/2)
+*        fulltrap        (does not cause a SOS GPF, maybe OS/2)
+
+*---- 'Set debugging' accepts "+", "-", and "?" as third argument,
+*     and interprets it as "+O", "-O", or "?O", i.e. 'trace Off'.
+*     See below for more debugging oddities, almost all handled
+*     by macro TRACE.KEX to protect the innocent.
+
+*---- ALERT and DIALOG can process long "prompts" (output fields),
+*     but display only the first 511 bytes (513 with delimiters).
+
+/******************************************************************/
+/* Kedit 5.0 and KeditW 1.0 observations:                         */
+
+*---- 'query column' and COLUMN.1() return ZONE.1() -1 for column
+*     1 .. ZONE.1() -1 and similar ZONE.2() +1 for all columns to
+*     the right of ZONE.2().
+
+*---- The manual doesn't state that FPath.1() returns a backslash
+*     for root directories, so both FPath.1() || '\' || FName.2()
+*     and Directory.1() || '\' || FName.2() would then be invalid.
+*     There should be a Directory.2() or something similar, where
+*     directory paths always end with a backslash.  It is a pain
+*     to handle root directories as special cases in many macros.
+
+*---- SYNONYM TEST to undefine TEST does not work.  Something like
+*     SYNONYM TEST TEST is an approximation, but TEST would still
+*     be processed as synonym (wasting the limited synonym space).
+
+*---- DIR =:=\*.= used in an edited *.HTM file shows the 1st *.HTM
+*     file in the same directory, DIR =:=\*.HTM shows all *.HTM in
+*     this directory.
+
+*---- The following keys are supported by PREXX 3.0, 4DOS, and all
+*     enhanced keyboards, but ignored by Kedit 5.0 and KeditW 1.0:
+*     C-PrtSc (114), C-Star (150), A-Star (55) (PRESS.EXE names).
+*     It is possible to patch the binary and revive S-Star (114),
+*     C-Star, and A-Star.  For details see KEYMAP.KEX, this macro
+*     optionally patches the Kedit 5 or KeditW 1.0 binary.
+
+*---- All characters above DEL (127) and below blank (32) except
+*     from NUL (0) are legal delimiters for LOCATE, but delimit()
+*     does not consider these 159 additionally valid delimiters.
+*     For a patch of erroneous delimit() results see DELIMIT.KEX.
+
+*---- Maybe delimit() should return no value instead of an empty
+*     string if no delimiter is applicable.  This would trigger
+*     error 122 (RC=98).  Workaround for critical ALERT or DIALOG
+*     delimiters:
+      'alert' delimit( translate( 'TXT', d2c( 128 ), d2c( 127 )))
+
+*---- 'Query range' does not work like (almost) all other queries:
+*     'query range' followed by  'set' lastmsg.1()  or equivalent
+*     'range' Range.1() Range.2()  modifies the range.
+
+*---- In addition to 'range BLOCK' a 'range ALL' could be useful.
+*     And maybe 'range PARAgraph' for the remaining group target.
+
+*---- Most LOCATE targets work forward (+) and backward (-), even
+*     +NEW, -BLAnk, +ALTered, -CHAnged, or similar are supported.
+*     ALL, BLOCK, and PARAgraph targets do not accept a direction.
+
+*---- 'LOCATE target [command]' is documented to run an optional
+*     command after locating the target.  What actually happens
+*     is 'SYNEX command' even within macros.  To avoid this effect
+*     macros would have to use 'LOCATE target COMMAND command' or
+*     use two statements with  if rc <= 1 then 'command'  glue.
+
+*---- DOS Kedit 5.0 and KeditW 1.0 support up to 32 backslashes in
+*     a path (OS/2 not tested), this DOS limit is not mentioned on
+*     the KEDITW.HLP "limits" page.
+
+*---- EXTRACT /FOO/ sets EXTRACT.0 = 1 and EXTRACT.1 = 'FOO' with
+*     rc 5, this is not documented.  EXTRACT /MSGLINE n/ has the
+*     same effect as EXTRACT /MSGLINE/, it is not possible to get
+*     a visible message line in a macro unless it happens to be
+*     lastmsg.1().
+
+*---- Kedit 5 strips leading spaces in a multi-line DIALOG prompt,
+*     NUL characters are preserved and displayed as spaces.  This
+*     trick does not work in KeditW 1.0, where NUL characters are
+*     not accepted in DIALOG prompts.
+
+*---- Kedit 5 QUERY DEBUGGING reports trace setting +N as +O and
+*     N as O.  KeditW 1.0 and Kedit 5 treat +O and O identically,
+*     only DMSG output is shown.  The undocumented failure trace F
+*     reports only rc -1 and -3 (rc < 0 ) as it should.  Trace +F
+*     is handled like F, and E (error) is handled like trace +E,
+*     i.e. interactive +E or +F trace is actually NOT interactive.
+
+*---- In REXX programs trace N is the default and works like F, in
+*     KEXX macros the default is O.  With KeditW 1.0 trace F and N
+*     are almost identical:  Trace N does not show the "starting"
+*     intro and the final "exiting macro" message.  Interactive +L
+*     label trace works as expected.
+
+/******************************************************************/
+/* Using Kedit as "binary editor" is not always straight forward. */
+/* Here "binary" means EOLIN NONE or EOLOUT NONE or RECFM FIXED.  */
+
+*---- Function length.1() allegedly ignores trailing spaces.  For
+*     TRAILING ON this is fortunately not the case, length.1()
+*     and length(curline.3()) are equivalent.
+
+*---- As documented EOLIN LF accepts also CRLF as line end, and
+*     EOLIN CR accepts also CRLF.  This is not ideal to deal with
+*     binary offsets.  There should be a new EOLIN CRLF accepting
+*     only CRLF as line end corresponding to EOLOUT CRLF.
+
+*---- RECFM FIXED fills the last record up to LRECL with spaces.
+*     RECFM VARYING is no obvious workaround if all but the last
+*     record are supposed to have a fixed length.  To match the
+*     documented EOFOUT behaviour RECFM FIXED should result in:
+*     -  EOFOUT NONE    => do not fill last record with spaces
+*     -  EOFOUT EOL     => fill last record with spaces
+*     -  EOFOUT EOF     => fill last record with EOF characters
+*     -  EOFOUT EOLEOF  => ditto, if needed adding a record to
+*                          get at least one EOF (for CP/M files)
+
+*---- Command GET ignores RECFM FIXED for EOLIN NONE, the last
+*     added line is not filled with spaces up to LRECL.
+
+*---- Kedit 5.0 D1 issue:  For trunc.1() = lrecl.1() curline.3()
+*     returns only lrecl.1() - 1 bytes.  A workaround is to set
+*     TRUNC = 1 + lrecl.1(), but this disables LRECL monitoring.
+
+/******************************************************************/
+/* The following problems are apparently corrected in KeditW 1.0: */
+
+*---- Something like 'mark ALL' would be useful:  It is often
+*     necessary to move parts of a file (as block) into a buffer
+*     file, do something with it, and then move the result (ALL,
+*     again as block) back or to another file.  'Putd ALL' is not
+*     really equivalent, as it writes physically to disk.  There
+*     are numerous '-* mark line reset' ; '* mark line' in one of
+*     my scripts, where a new 'mark ALL' would be much clearer...
+
+*---- 'Nomsg cancel' does not work, i.e. displays a quit message.
+*     'Quit' and 'cancel' quit changed files without warning, if
+*     these files were originally added to the ring by MACROS or
+*     DIR.  Apparently an undocumented "quit anyway"-flag exists,
+*     as files MACROS.KML or DIR.DIR added to the ring by command
+*     KEDIT instead of MACROS or DIR don't have this problem.
+
+*---- With a German keyboard layout, where S-Del on the numeric
+*     keypad is comma ',' instead of point '.', Readv recognizes
+*     READV.3 == 83, but reports READV.1 = ',' instead of S-Del.
+*     With a redefinition of ',' (comma) it is possible to revive
+*     S-DEL for Kedit 5.0 and KEYB GR:
+*     DEFINE , if lastkey.3() = 83 then 'macro S-Del' ;
+*                                  else 'text' lastkey.2()
+
+*---- 'File', 'Ffile', 'Save', or 'Ssave' in an empty file should
+*     always truncate the file on disk, not only if it is LOCKed.
+*     At the moment 'File' and 'FFile' behave like 'QQuit' in an
+*     unLOCKed empty file, and 'Save' is a NOP, all setting RC=0.
+
+*---- Kedit 5 D1 'debugging on 10 +n' results in TRACE +O (off).
+
+/******************************************************************/
+/* Kedit 5.00 observations and two patches not yet documented in  */
+/* other macros listed in <URL:http://purl.net/xyzzy/xedit.htm>:  */
+
+*---- Kedit's key detect logic could allow something like this:
+*     SET KEY S-DEL   83  44   /* scan code  83, ascii  44 ',' */
+*     SET KEY S-STAR 114  0    /* scan code 114 = C-PrtSc 7200 */
+*     SET KEY C-STAR 150  0    /* scan code 150 = C-Star  9600 */
+*     SET KEY A-STAR  51  0    /* scan code  51 = A-Star  3700 */
+
+*---- 'Pscreen 12 80 preset' does not work, although VGAs support
+*     12 lines (8x16 character box with 200 double scanned lines),
+*     even MODE 80,12 in a DOS text window works.  DOS KHELP with
+*     12 lines doesn't show its last 2 lines.  OS/2 KHELP has no
+*     problem with 12 lines.  'Pscreen 13 80 preset' is okay, but
+*     less lines cannot be set.  Other tools like QuickHelp (DOS)
+*     accept 12 "preset" lines (e.g. QH -d KREF50.HLP).
+
+*---- If KEDIT starts in a text window with less than 13 lines
+*     QUERY PSCREEN states incorrectly PSCREEN 25 80 PRESET and
+*     the command line is invisible.  Workaround in PROFILE.KEX:
+      if  pscreen.1() = 25 & pscreen.3() = 'PRESET' then do
+         'pscreen 28' ; 'pscreen 25' /* force 25 if lines < 13 */
+      end                            /* confused KEDIT startup */
+
+*---- OS/2:  Macros ..KEX, ...KEX, etc. (on HPFS) do not behave
+*     like other weird macros.  Macros with blanks in their file
+*     names can be DEFined, but not PURGEd.
+
+*---- OS/2:  DIR and DIRAppend don't work for directories starting
+*     with a dot (possible on HPFS).  The workaround "add trailing
+*     backslash" can cause dead loops in macros building a TREE in
+*     other Kedit versions (seen in Kedit 5.00 D1 and KeditW 1.0).
+
+*---- DIALOG /whatever/ YESNOCANCEL supports the keys Y, N, ESC
+*     in addition to ENTER, TAB, S-TAB, CURR, CURL, SPACE, and
+*     mouse button 1.  Without mouse especially ESC resulting in
+*     DIALOG.2 = 'CANCEL' is very handy but not documented.
+
+*---- Control Break aborts DIALOG and calling macro as expected,
+*     but reports at least two errors 80 followed by 113.  With
+*     NOMSG DIALOG the error 80 output can be suppressed.
+
+*---- MORE and LESS return 2 if nothing found with DISPLAY 0 0,
+*     but always 0 with DISPLAY 1 1.  A consistent return code
+*     (RC 4 ?) would simplify using MORE and LESS in macros.
+
+*---- The manual should emphasize that MORE and LESS operate on
+*     matching instead of ordinary targets:  MORE TAG 1 tags all
+*     lines instead of only one line.  The effects of something
+*     like LESS 1 followed by MORE 2 are quite interesting and
+*     could be used as an example (how to hide odd linenumbers
+*     in files with weird CRLFCR line ends).
+
+*---- Kedit 5.0 D3 time.3() has a Y2K bug and reports 02-12-109
+*     for 2009-02-12 (example).  While time.1() works as expected
+*     its output depends on the country setting unlike time.3().
+
+*---- Under unclear conditions involving the use of 'sigl' in a
+*     macro called by another macro to determine the source line
+*     of an unexpected error perfectly harmless commands such as
+*     'X DIR.DIR (NEW NOPROF)' can throw error 90 rc 95 "internal
+*     stack overflow" in Kedit 5.0 D3.  As a workaround don't use
+*     KEXX 'sigl' unless it is absolutely required.  This issue
+*     does not exist in the obsolete Kedit 5.0 D1 version, other
+*     versions (notably P3) and external REXX 'sigl' not tested.
+
+*---- After return from DOS or DOSN the status and / or command
+*     lines can be invisible or at the wrong place.  For example:
+*     - start a TEXTWINDOW session of KEDIT
+*     - change the number of screen lines by e.g. DOS MODE 80,34
+*     - inform KEDIT about the screen size by PSCREEN 34 80 PRESET
+*     - execute another shell command, e.g. only COMMAND DOSN EXIT
+*     - a new status line appears at screen line NN, and the old
+*       status line 34 is not updated, command line 33 is okay
+*     - editing file lines between NN and 33 won't work
+*     - PSCREEN 34 fixes this situation until the next DOS command
+

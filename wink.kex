@@ -1,0 +1,159 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] WINK [?|*|key]                          */
+/* Example:       WINK                 => show status of ?-C-keys */
+/*                WINK ?               =>  map undefined A-C-keys */
+/*                WINK *               => similar only named keys */
+/*                WINK key             =>  map specified A-C-key  */
+/* Purpose:       Macro WINK without argument lists all undefined */
+/*                or defined A-C- or S-C-keys.  Undefined builtin */
+/*                ?-C-keys are identified by a "nop" result for a */
+/*                DEFINE ?-C-key query.                           */
+/*    WINK ?:     WINK ?  maps all undefined A-C-keys to execute  */
+/*                macro A-key, e.g., DEFINE A-C-F12 'macro A-F12' */
+/*                (named key F12), or DEFINE A-C-Q 'macro A-Q'.   */
+/*    WINK *:     WINK *  maps only undefined named keys such as  */
+/*                A-C-F12, but not ordinary A-C-? character keys. */
+/*    WINK key:   WINK key  maps A-C-key even if it was defined.  */
+/*                There are no single A-C-* or A-C-? keys, to get */
+/*                the complete list use  WINK  without argument.  */
+/* Background:    KeditW 1.0 introduced additional A-C- and S-C-  */
+/*                key prefixes.  On some keyboards A-C- has the   */
+/*                same effect as the right Alt-key ("AltGr" used  */
+/*                for Alternate Graphics), and A- corresponds to  */
+/*                the left Alt-key.                               */
+/*                There are no A-CENTER, A-ESC, A-STAR, or A-TAB  */
+/*                keys in KeditW 1.0.  Macro WINK does not map or */
+/*                list A-C-CENTER, A-C-ESC, A-C-STAR, or A-C-TAB. */
+/*                A-C-DEL is not completely pointless, AltGr-Del  */
+/*                does not (necessarily) start the task manager.  */
+/* Keyboards:     The KeditW 1.0 keyboard input procedure reads   */
+/*                various A-C-key combinations *twice* on non-US  */
+/*                keyboards, i.e., a single AltGr-key or A-C-key  */
+/*                combination can be interpreted as two different */
+/*                macros.                                         */
+/*                For example on KEYB GR the key for character @  */
+/*                is AltGr-Q or A-C-Q.  KeditW 1.0 interprets it  */
+/*                as A-C-Q immediately followed by S-2, where S-2 */
+/*                would be the position of @ on KEYB US.          */
+/*                Mapping single character A-C-keys such as A-C-Q */
+/*                therefore might not work as expected on non-US  */
+/*                keyboards.  Depending on the keyboard not all   */
+/*                A-C-? keys are affected.                        */
+/* Caveats:       Do not use  WINK ?  in any startup macro unless */
+/*                you are sure that it is only used with KEYB US. */
+/*                WINK *  should work for other keyboard layouts, */
+/*                but better test this.                           */
+/*                The KeditW 1.0 binary indicates that "WINK.KML" */
+/*                is a special Kedit Macro Library file.  I have  */
+/*                not yet figured out what it is or was supposed  */
+/*                to do.                                          */
+/*                Macro WINK in Kedit 5 results in many pointless */
+/*                alerts because Kedit 5 has no builtin ?-C-keys. */
+/* Unrelated:     Make and break codes for six additional keys on */
+/*                "European" (non-US) keyboards with 108 instead  */
+/*                of 102 keys:                                    */
+/*                   102nd key           56    D6                 */
+/*                   103   WIN left    E05B  EODB                 */
+/*                   104   WIN right   E05C  EODC                 */
+/*                   105   WIN print   E05D  EODD                 */
+/*                   106   Power       E05E  EODE                 */
+/*                   107   Sleep       E05F  EODF                 */
+/*                   108   Wakeup      E063  EOE3                 */
+/* See also:      LASTKEY.KEX + KEXPAND.KEX (working for Kedit 5) */
+/* Requires:      KeditW 1.0              (Frank Ellermann, 2008) */
+
+   ONE = translate( space( arg( 1 )))  ;  parse upper source . . SRC
+
+   S = KEYNAME( 0 )                    ;  DEF = '' ;  NOP = ''
+   do until S = ''
+      parse var S KEY S
+      if sign( wordpos( KEY, 'CENTER ESC STAR TAB' )) then  iterate
+      if ONE = '*'   then  MAP = ( 1 < length( KEY ))
+                     else  MAP = ( ONE = KEY | ONE = '?' )
+      'nomsg def A-C-' || KEY
+      if rc <> 0 | lastmsg.1() = 'nop' | ONE = KEY    then  do
+         if rc <> 0  then  do             /* SHOULD NEVER HAPPEN: */
+            if DUBIOUS( 'A-C-' || KEY, MAP )          then  iterate
+         end                              /* -------------------- */
+         NOP = NOP KEY
+         if KEY = "'"   then  D = '"macro A-' || KEY || '" ;'
+                        else  D = "'macro A-" || KEY || "' ;"
+         if ONE = '*' & MAP = 0           /* replace NOP by DMSG: */
+                        then  D =   "'dmsg ignored by" SRC || "'"
+                        else  D = D "'dmsg DEFined by" SRC || "'"
+         if ONE = '*' | MAP   then  do
+            'def A-C-' || KEY D        ;  if rc <> 0  then  exit rc
+         end
+      end
+      else  DEF = DEF KEY
+   end
+
+   if ONE = '*' | ONE = '?'
+      then  MAP = -1                      /* 0: A-C-X not mapped: */
+      else  MAP = sign( wordpos( ONE, NOP ))
+   if  MAP = -1   then  say words( NOP ) 'A-C-keys mapped to A-keys'
+   else  if arg( 1 ) = ''  then  do
+      call KEYLIST '  defined A-C-keys:', DEF
+      call KEYLIST 'undefined A-C-keys:', NOP
+   end
+   else  if MAP   then  say 'A-C-' || ONE 'mapped to A-' || ONE
+   else  'emsg "A-C-' || ONE || '" key not found'
+
+   S = KEYNAME( 0 )                    ;  DEF = '' ;  NOP = ''
+   C = "' , . / ; `"                      /* not allowed for S-C- */
+   if arg( 1 ) = ''  then  do until S = ''
+      parse var S KEY S
+      if sign( wordpos( KEY, 'ESC SPACE STAR' C ))    then  iterate
+      'nomsg def S-C-' || KEY
+      if rc <> 0 | lastmsg.1() = 'nop' then  do
+         if rc <> 0  then  do             /* SHOULD NEVER HAPPEN: */
+            if DUBIOUS( 'S-C-' || KEY, 0 )            then  iterate
+         end                              /* -------------------- */
+         NOP = NOP KEY
+      end
+      else  DEF = DEF KEY
+   end
+   if arg( 1 ) = ''  then  do
+      call KEYLIST '  defined S-C-keys:', DEF
+      call KEYLIST 'undefined S-C-keys:', NOP
+   end
+   exit ( MAP = 0 )                       /* 1: A-C-key not found */
+
+KEYLIST:    procedure   /* --- multiple messages for set of keys: */
+   parse arg MSG, LIST                 ;  LINE = MSG
+   do until LIST = ''
+      parse var LIST KEY LIST
+      if length( LINE KEY ) > 75 then  do /* avoid msg box scroll */
+         say LINE                      ;  LINE = MSG
+      end
+      LINE = LINE KEY
+   end
+   if LINE <> MSG then  say LINE       ;  return
+
+DUBIOUS:    procedure   /* --- undefined could be no builtin key: */
+   parse upper source . . ALERT.2      ;  ALERT.0 = ''
+   ALERT.1 = arg( 1 ) 'purged or no builtin key'
+   if arg( 2 ) then  do
+      ALERT.0 = 'YESNO DEFBUTTON 2'
+      ALERT.1 = ALERT.1 || ', define it anyway?'
+      ALERT.2 = delimit( ALERT.2 'mapping' )
+   end
+   else  ALERT.2 = delimit( ALERT.2 'info' )
+   'alert' delimit( ALERT.1 ) 'title' ALERT.2 ALERT.0
+   return ( ALERT.2 <> 'YES' )
+
+/* -------------------------------------------------------------- */
+/* KEYNAME as found in <http://purl.net/xyzzy/kex/kexpand.kex>    */
+
+KEYNAME:    procedure   /* --- 0: all names, 1: letters (plural)  */
+   S =   'BKSP          CENTER         CURD           CURL        '
+   S = S 'CURR          CURU           DEL            END         '
+   S = S 'ENTER         ESC            HOME           INS         '
+   S = S 'MINUS         NUMENTER       PGDN           PGUP        '
+   S = S 'PLUS          SLASH          SPACE          STAR        '
+   S = S 'TAB  '     ;  if arg( 1 ) then  return space( S )
+   S = S 'F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12  0 1 2 3 4 5 6 7'
+   S = S '8 9 A B C D E F G H I J K L M N O P Q R S T U V W X Y Z'
+   S = S "' , - . / ; = [ \ ] `"       ;  return space( S )
+

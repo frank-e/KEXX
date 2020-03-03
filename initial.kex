@@ -1,0 +1,149 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] INITIAL                                 */
+/* Example:       PROFILE.KEX: if initial() then 'macro INITIAL'  */
+/* Requires:      Kedit 5.0 or KeditW 1.0                         */
+/*                INITIAL.KML         general key definitions     */
+/*                OEMKEY.KML          optional KEYB GR macros     */
+/*                defprof.1() KEX     PROFILE.KEX or WINPROF.KEX  */
+/*                monitor.1() KEX     COLOR + MONO + WINDOWS.KEX  */
+/*                CDD.KEX             used as CHD     synonym     */
+/*                CHANGES.KEX         used as Change  synonym     */
+/*                CMATCH.KEX          used as CMATCH  synonym     */
+/*                CURSORSH.KEX        used as CURSORSHape synonym */
+/*                DO.KEX              used as DO      synonym     */
+/*                EXTRACT.KEX         used as EXTract synonym     */
+/*                FMODE.KEX           defines six  F* synonyms    */
+/*                HEX.KEX             used as HEX     synonym     */
+/*                INISAVE.KEX         used as INISAVE synonym     */
+/*                KHELP.KEX           used as KHelp   synonym     */
+/*                LESSMORE.KEX        used as LESS & MORE synonym */
+/*                MONITOR.KEX         used as MONitor synonym     */
+/*                WATCOM.KEX          optional Open Watcom macros */
+/*                WINHELP.KEX         used as WINHELP synonym     */
+/*                WINK.KEX            map undefined A-C-? to A-?  */
+/* Caveats:       INITIAL.KML requires additional Kedit macros.   */
+/*                Macros used here MUST NOT load files (including */
+/*                DIR.DIR or other in memory files), because this */
+/*                would confuse Kedit's initialization.  The file */
+/*                to be loaded first is not yet loaded; it should */
+/*                be loaded near the end of the PROFILE.          */
+/* Only OS/2:     In opmode TEXTWINDOW with REXX (typically OS/2) */
+/*                'DEF DOS.KML' defines macros DOS and DOSN for   */
+/*                'SYN DOS macro DOS' and 'SYN DOSN macro DOSN'.  */
+/* See also:      KHELP DEFPROF, KHELP REPROF, KHELP MONITOR, and */
+/*                all associated help topics like KHELP MACROPATH */
+/* Related:       <URL:http://purl.net/xyzzy/xedit.htm>           */
+/*                                        (Frank Ellermann, 2008) */
+
+   nop            /* end of header for KHELP.KEX, developer info: */
+
+/* The proposed three-stage scheme to load INITIAL.KML etc. only  */
+/* once in a Kedit session allows to keep PROFILE.KEX in memory   */
+/* for REPROFile ON, other code needed only initially is kept in  */
+/* INITIAL.KEX (here on disk) instead of PROFILE.KEX (in memory): */
+
+/* 1 PROFILE.KEX: if initial() then 'macro initial'               */
+/* 2 INITIAL.KEX: 'define INITIAL.KML'          /* done once   */ */
+/*                'define PROFILE.KEX'          /* see below   */ */
+/*                'REPROFile ON'                                  */
+/*             /* ...   more global settings and synonyms */      */
+/*                'macro' monitor.1()                             */
+/*             /* ...   more file and view settings */            */
+/*                INITIAL.0 = N                                   */
+/*                INITIAL.N = 'arrow off'                         */
+/*                'editv put INITIAL.0 INITIAL.' || N             */
+/*             /* using N = 1 to INITIAL.0 settings INITIAL.N  */ */
+/* 3 PROFILE.KEX: 'editv get  INITIAL.0'        /* done always */ */
+/*                do N = 1 to INITIAL.0                           */
+/*                   'editv get INITIAL.' || N                    */
+/*                   'set' INITIAL.N                              */
+/*                end                                             */
+/*             /* ...   more settings depending on file type */   */
+
+   'define initial.kml'          /* keep key definition in memory */
+   rc = Q( 'define oemkey.kml' ) /* keep KEYB GR macros in memory */
+   rc = Q( 'macro' monitor.1() ) /* uses COLOR.KEX or WINDOWS.KEX */
+   if '.KEX' <> translate( right( defprof.1(), 4 ))
+      then  'define' defprof.1() || '.kex'
+      else  'define' defprof.1() /* keep  PROFILE.KEX   in memory */
+   'reprof on'                   /* apply PROFILE.KEX on any file */
+   'beep on'                     /* SOS ERRORBEEP in EMSG + ALERT */
+   'hexdisp on'                  /* show ASCII code in statusline */
+   'shifts on'                   /* show shiftstate in statusline */
+   'defsort P E N'               /* DIR sort Path Extension Name  */
+   'sharing denywrite denywrite' /* allow others to read locked   */
+   'debugging' debugging.1() min( 10, debugging.2())  /* min. 6   */
+
+   if pscreen.1() = 25 & pscreen.2() = 80 then  do
+      'nomsg pscreen' 28         /* toggle dubious pscreen 25 80: */
+      if opmode.1() = 'TEXTWINDOW'  then  'nomsg pscreen' 25
+      if opmode.1() = 'FULLSCREEN'  then  'nomsg pscreen' 25
+   end                           /* opmode REAL (DOS) => 28 lines */
+
+   'syn CHD     3 macro CDD'     /* combine CHDir + CHDr commands */
+   'syn Changes 1 macro Changes' /* improve CHANGE by CHANGES.KEX */
+   'syn CMATCH  6 macro CMATCH'  /* improve CMATCH by CMATCH.KEX  */
+   'syn COLOR   5 macro COLOR'   /* replace SET COLOR             */
+   'syn DO      2 macro DO'      /* replace DOwn for non-numbers  */
+   'syn EXTract 3 macro EXTract' /* test EXTRACT with EXTRACT.KEX */
+   'syn HELP    4 dosn  HELP'    /* KHELP for KEDIT, HELP for DOS */
+   'syn HEX     3 macro HEX'     /* ASCII table popup or SET HEX  */
+   'syn INISAVE 7 macro INISAVE' /* SET INISAVE or INIUTIL tricks */
+   'syn WINHELP 7 macro WINHELP' /* if no arg. list WINHELP files */
+   'syn KHelp   2 macro KHelp'   /* improve KHELP using KHELP.KEX */
+   'syn MONitor 3 macro MONitor' /* let MONITOR reset monitor.1() */
+
+   'syn LESS    4 macro LESSMORE LESS' /* LESS TAG => LESS TAGged */
+   'syn MORE    4 macro LESSMORE MORE' /* MORE TAG => MORE TAGged */
+   rc = Q( 'macro FMODE *' )     /* => FE, FM, FN, FP, FT, FILEId */
+   rc = Q( 'macro watcom'  )     /* (optional Open Watcom macros) */
+
+   if version.1() = 'KEDIT'   then  do
+      Q( 'macro CURSORSH' )      /* improve the cursor visibility */
+      if rc = 0   then  'syn CURSORSHape 8 macro CURSORSH'
+      if opsys.1() = 'DOS'    then  'topview on'
+   end
+   else  do                      /* special stuff for KeditW 1.0: */
+      rc = Q( 'macro WINK *' )   /* map AltGr to Alt if available */
+   end
+   if opsys.1() = 'OS/2' then do /* ----------------------------- */
+      'fcase asis'               /* OS/2 mixed case file names    */
+      'dirformat 40 6'           /* default is dirformat 8 3 2    */
+      if opmode.1() = 'TEXTWINDOW' & rexx.0() > 0  then  do
+         rc = Q( 'define dos.kml' )
+         if rc = 0   then  do    /* DOS macros defined in DOS.KML */
+            'syn DOS  macro DOS' /* DOS and DOSN are unreliable.. */
+            'syn DOSN macro DOSN'
+         end                     /* ..if TEXTWINDOW size modified */
+      end                        /* (command DOSQ is always okay) */
+   end                           /* ----------------------------- */
+
+   MSG = lastmsg.1()             /* preserve last message, if any */
+   'nomsg query attributes'      /* local (file or view) settings */
+   I = INITIAL( 0, lastmsg.1()               )  /* save colours   */
+   I = INITIAL( I, 'arbchar      on'         )  /* save ARB ON    */
+   I = INITIAL( I, 'arrow        off'        )  /* save ARROW OFF */
+   I = INITIAL( I, 'autoscroll   20'         )  /* save AUTOSC 20 */
+   I = INITIAL( I, 'eolin        LF'         )  /* save EOLIN LF  */
+   I = INITIAL( I, 'backup       temp'       )  /* save BACK TEMP */
+   I = INITIAL( I, 'number       on'         )  /* save NUM ON    */
+   I = INITIAL( I, 'tabsin       tabquote'   )  /* save TABSIN... */
+   I = INITIAL( I, 'varblank     on'         )  /* save VARB ON   */
+   I = INITIAL( I, 'wrap         on'         )  /* save WRAP ON   */
+   'nomsg msg' MSG      ;  exit 0
+
+Q:          procedure   /* --- quietly ignores missing KEX or KML */
+   MSG = lastmsg.1()    ;  'nomsg' arg( 1 )     ;  QRC = rc
+   if wordpos( QRC, '0 1 28 -1' ) <> 0 then  do /* reset last MSG */
+      'nomsg msg' MSG   ;  return QRC <> 0      /* 1: ignored rc  */
+   end                           /* fatal rc < -1, 2..27, or > 28 */
+   'emsg' lastmsg.1() '(rc' QRC || ')'          ;  exit QRC
+
+INITIAL:    procedure   /* --- saves non-default view preferences */
+   parse arg NUM, VAR VAL
+   NUM = NUM + 1        ;  INITIAL.0   = NUM    /* next  setting: */
+   'set' VAR VAL        ;  if rc <> 0  then  exit rc
+   'nomsg query' VAR    ;  INITIAL.NUM = lastmsg.1()
+   'editv put INITIAL.0 INITIAL.' ||  NUM       /* saved setting  */
+   return NUM                                   /* saved number   */

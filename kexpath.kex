@@ -1,0 +1,265 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] KEXPATH [/file/path/]                   */
+/* Example:       KEXPATH                 => display MACROPATH    */
+/*                KEXPATH /x.kex/         => show x.kex macropath */
+/*                KEXPATH /x.kex/path/    => show x.kex directory */
+/* Purpose:       KEXPATH is mainly used by other macros to find  */
+/*                the directory of a specified file in any given  */
+/*                PATH.  Example code:                            */
+/*                   FILE = 'builtin.kml'                         */
+/*                   PATH = dosenv( 'path' )                      */
+/*                   'nomsg macro kexpath' delimit( FILE, PATH )  */
+/*                   if rc = 0 then FILE = lastmsg.1() || FILE    */
+/*                Finding files in the PATH is pretty useless, as */
+/*                Kedit does this already.  Finding macros in the */
+/*                MACROPATH is more interesting, because that can */
+/*                be ON or OFF giving no clue where "ON" is.  For */
+/*                this case the following code finds macros:      */
+/*                   FILE = 'builtin.kml'                         */
+/*                   'nomsg macro kexpath' delimit( FILE )        */
+/*                   if rc = 0 then FILE = lastmsg.1() || FILE    */
+/*                Finally KEXPATH without arguments displays the  */
+/*                effective MACROPATH (resolving a MACROPATH ON). */
+/* History:       KEXPATH and KEXPAND are former integral parts   */
+/*                of KEX.KEX, KHELP.KEX, and TRACE.KEX.  Because  */
+/*                KEDIT 5.0 DOS restricts the size of macros to   */
+/*                500 lines KEXPATH and KEXPAND are now separate  */
+/*                files.  This size limit still affects KEXPAND,  */
+/*                therefore most of its usage info is contained   */
+/*                in KEXPATH (see below).                         */
+/* Caveats:       KEXPATH uses DIR.DIR.   This would confuse the  */
+/*                Kedit initialization where the 1st loaded file  */
+/*                should not be a DIR.DIR as used by KEXPATH.  To */
+/*                avoid an obscure error 90 in this case KEXPATH  */
+/*                refuses to work if initial() is 1.              */
+/* KeditW 1.60:   STARTUP.1() is a documented feature of KEDITW32 */
+/*                and now used directly.  The old code failed for */
+/*                a long PATH.  The new code uses the new feature */
+/*                *PATH or any *ENVVIR for unexpanded variables.  */
+/* See also:      KHELP 90, KHELP initial                         */
+/* Requires:      Kedit 5.0 or KeditW 1.x (Frank Ellermann, 2008) */
+/* -------------------------------------------------------------- */
+/* Usage:         [MACRO] KEXPAND [category] abbreviation         */
+/*                Category can be DEFine, EXTract, Locate, MACRO, */
+/*                MODify, Query, Set, or SOS.  Without a category */
+/*                commands, implicit LOCATE, implicit MACRO, and  */
+/*                implicit SET operands are expanded.             */
+/* Example:       KEXPAND A                  => 'Add'             */
+/*                KEXPAND AL                 => 'ALter'           */
+/*                KEXPAND ASCII              => 'MACRO ASCII'     */
+/*                KEXPAND X                  => 'Xedit'           */
+/*                KEXPAND Y                  => 'MACRO Y'         */
+/*                KEXPAND Z                  => 'Set zone'        */
+/*                KEXPAND SOS A              => 'SOS Alarm'       */
+/*                KEXPAND Q FN               => 'Query fname'     */
+/*                KEXPAND S back             => 'Set backup'      */
+/*                KEXPAND EXTRA P            => 'EXTract Point'   */
+/*                KEXPAND MOD time           => 'MODify TIME'     */
+/*                KEXPAND MOD ring           => error, bad MODify */
+/*                KEXPAND EXT macro          => error, bad EXTra. */
+/*                nomsg macro KEXPAND X      for use in macros    */
+/* Purpose:       KEXPAND returns the full name of known commands */
+/*                and known or unknown SET operands.  While that  */
+/*                can be entertaining, e.g., KEXPAND ME => MErge, */
+/*                the main use of KEXPAND is as a "subroutine" in */
+/*                other macros, notably KEX.KEX and KHELP.KEX.    */
+/* Return codes:  Invalid expansions for the actual Kedit version */
+/*                are shown, but trigger SOS ERRORBEEP.           */
+/*                 98   KEXPAND must not be longer than 500 lines */
+/*                  5   missing, extraneous, or invalid arguments */
+/*                  4   unexpected quiet Query X for X <> 'Point' */
+/*                  3   KEXPAND 0 or KEXPAND 1 list for delimit() */
+/*                  2   unsupported operand for specified command */
+/*                  1   unknown command (KeditW 1.5 is unknown)   */
+/*                  0     valid command (KeditW 1.0 or Kedit 5.0) */
+/*                 -1           Kedit found no macro KEXPAND.KEX  */
+/*                 -2   invalid command (KeditW 1.0 in Kedit 5.0) */
+/*                 -4     valid SET operand (depends on version)  */
+/*                 -6   invalid SET for the actual Kedit version  */
+/*                 -8     valid MODify / Query / EXTtract operand */
+/*                -10   invalid MODify etc. for the Kedit version */
+/*                -12     valid SOS command for the Kedit version */
+/*                -14   invalid SOS command for the Kedit version */
+/*                -16     valid Locate target class or qualifier  */
+/*                -18   invalid Locate (i.e. Regexp in Kedit 5.0) */
+/*                -20     valid builtin implicit MACRO, e.g., INS */
+/*                -22   invalid MACRO, see KeditW 1.0 BUILTIN.KML */
+/*                -24     valid KEXX function, e.g., BUTTON1()    */
+/*                -26   invalid KEXX function requires KeditW 1.0 */
+/* Test cases:    Known troublemakers not only for macros relying */
+/*                on KEXPAND.KEX:                                 */
+/*                SET   ALT         needs explict SET, else ALter */
+/*                SET   ATTRibutes  not documented in KeditW 1.0, */
+/*                                  but works, KHELP QUERY works  */
+/*                QUERY ISA         not supported  in KeditW 1.0, */
+/*                                  isa.1() = 20 dummy supported  */
+/*                SET   KEYBoard    not documented in KeditW 1.0, */
+/*                                  but works, it got even a new  */
+/*                                  KEYBoard NOCOMBO option       */
+/*                SET   MOUSETEXT   not documented in KeditW 1.0, */
+/*                                  a Query does not work (RC 5), */
+/*                                  mousetext.0() = 0             */
+/*                SET   =           KHELP [QUERY|SET] = does not  */
+/*                                  work with KeditW 1.0 KHELP,   */
+/*                                  WINHELP KEDITW.HLP = is okay  */
+/*                QUERY REXXversion not supported  in KeditW 1.0, */
+/*                                  rexxversion.0() = 0, (RC 99)  */
+/*                QUERY SCReen      not supported  in KeditW 1.0, */
+/*                                  KHELP SET works, SET works if */
+/*                                  one file per window OFPW OFF  */
+/*                QUERY UNIQueid    not supported  in Kedit 5.00  */
+/*                QUERY FOCUS       undocumented Kedit 5.0 dummy, */
+/*                                  focus.0() = 0 [only Kedit 5]  */
+/*                QUERY Point       no message if no Point (RC 0) */
+/*                                  point.0() = 0 if no Point     */
+/*                QUERY POOLSTAT    undocumented KeditW 1.0 query */
+/*                QUERY STARTUP     undocumented KeditW 1.0 query */
+/*                                  MOD STARTUP  does not work    */
+/*                QUERY MACRO x     EXTRACT !MACRO x! unavailable */
+/*                                  MOD MACRO x  works if DEFined */
+/*                QUERY Point *     EXTRACT !P *! => POINT.0 etc. */
+/*                QUERY =           EXTRACT !=!   => EQUALSIGN.n  */
+/*                QUERY PRE Syn *   EXT !PRE S *! => PREFIX.n     */
+/*                QUERY SYNonym *   EXT !SYN *!   => SYNONYM.n    */
+/*                QUERY TOOLB *     EXT !TOOLB *! => TOOLBUTTON.n */
+/* Delimiters:    The Kedit 5.0 and KeditW 1.0 function delimit() */
+/*                erroneously considers "*", "~", "=", and "?" as */
+/*                good delimiters, but "*" and "~" do not work.   */
+/*                KEXPAND 0  shows delimiters used by delimit().  */
+/*                KEXPAND 1  replaces '*' and '~' by '&' and '|'. */
+/* Targets:       The commands "&", "=", and "?" cannot be used   */
+/*                as target delimiters for an implicit LOCATE.    */
+/*                KEXPAND supports only alphabetic LOCATE targets */
+/*                such as BLA and CHA.  Single letter delimiters, */
+/*                ".", "*", and "|" are identified as implicit or */
+/*                explicit LOCate.  Numbers, "-*", ":", "~", etc. */
+/*                are not identified as targets by KEXPAND.       */
+/* Macros:        Kedit 5.0 and KeditW 1.0 builtin keys and other */
+/*                builtin macros (excl. 92 MENU_*-*, MOUSEBAR_*,  */
+/*                and TOOL_*) are identified for DEFine or MACRO. */
+/*                A+ESC, A+TAB, ALT+ESC, and ALT+TAB are reported */
+/*                as unsupported for KeditW 1.0 *and* Kedit 5.0.  */
+/*                Alphabetic macros, e.g., ASCII, are identified  */
+/*                as implicit macros assuming IMPACRO ON.         */
+/*                INISET is created by INIUTIL CONVERT SETTINGS,  */
+/*                INISET is intentionally reported as "builtin".  */
+/* Caveats:       Expansions are shown in mixed case depending on */
+/*                various implementation details.  Users must not */
+/*                assume that this indicates minimal truncations. */
+/*                KEXPAND does not handle PREfix commands, PREfix */
+/*                synonyms, normal SYNonyms, or any non-builtin   */
+/*                macros.                                         */
+/*                KEXPAND generally expects alphabetic arguments. */
+/*                Exceptions are some special characters working  */
+/*                as commands, e.g., "KEXPAND &".  KEXPAND DEFine */
+/*                and KEXPAND MACRO are used to identify builtin  */
+/*                key macros and accept non-alphabetic arguments. */
+/* See also:      macro KEX.KEX, KHELP QUERY, KHELP EXTRACT,      */
+/*                macro KHELP.KEX, KHELP SET, macro EXTRACT.KEX,  */
+/*                KHELP MODIFY, KHELP OFPW (only for KeditW 1.0)  */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   if arg( 1 ) <> '' then  do
+      FILE = strip( arg( 1 ))          ;  X = left( FILE, 1 )
+      if datatype( X, 'A' ) | initial()         then  exit FATAL()
+      parse var FILE (X) FILE (X) PATH (X) DIRT
+      if pos( '*', FILE ) <> pos( '?', FILE )   then  exit FATAL()
+
+      if PATH = ''   then  PATH = GETPATH()
+      PATH = GETDIR( FILE, PATH )         /* search FILE in PATH  */
+   end
+   else  PATH = GETPATH()                 /* expand the MACROPATH */
+
+   'msg' PATH
+   exit 28 * ( PATH = '' )                /* rc 0 or error rc 28  */
+
+FATAL:   if initial()   then  say 'KEXPATH cannot run in profile'
+                        else  say 'KEXPATH cannot evaluate' FILE
+         return -3
+
+GETPATH:    procedure   /* --- resolve MACROPATH (excluding CWD): */
+   PATH = '*PATH;'                        /* prepare macro search */
+   if version.1() = 'KEDIT'      then  do /* Kedit 5.0 MACROPATH: */
+      LAST = GETDIR( 'kedit.exe',  PATH ) /* LAST resort own dir. */
+      if macropath.1() = 'OFF'   then  PATH = LAST /* OFF -> LAST */
+   end
+   else  do                               /* KEDITW 1.* MACROPATH */
+      LAST = startup.1()                  /* get old LAST resorts */
+      LAST = left( LAST, lastpos( '\', LAST ))
+      if LAST > ''   then  do             /* add \USER & \SAMPLES */
+         LAST = LAST || ';' || LAST || 'USER;' || LAST || 'SAMPLES'
+      end
+      if 1.60 <= version.2()     then  do /* KEDITW32 1.6 feature */
+         MYDO = dosenv( 'USERPROFILE' )   /* new ...\KEDIT Macros */
+         'nomsg dir "' || MYDO || '\My Documents\KEDIT Macros"'
+         if rc = 0   then  do
+            LAST = MYDO || '\My Documents\KEDIT Macros;' || LAST
+            if ring.0() > 1   then  'quit'
+         end                              /* quit DIR.DIR listing */
+         else  do                         /* try Windows 7 style: */
+            'nomsg dir "' || MYDO || '\Documents\KEDIT Macros"'
+            if rc = 0   then  do
+               LAST = MYDO || '\Documents\KEDIT Macros;' || LAST
+               if ring.0() > 1   then  'quit'
+            end                           /* quit DIR.DIR listing */
+         end
+      end
+      if macropath.1() = 'ON'    then  PATH = PATH || LAST
+      if macropath.1() = 'OFF'   then  PATH = ''   /* OFF -> void */
+   end
+   if wordpos( macropath.1(), 'OFF ON' ) = 0 then  do
+      PATH = macropath.1()                /* new KEDITW32 feature */
+      if dosenv( PATH ) <> '' then  PATH = '*' || macropath.1()
+      if PATH <> '' & right( PATH, 1 ) <> ';'
+         then  PATH = PATH || ';' || LAST
+         else  PATH = PATH || LAST        /* LAST is startup dir. */
+   end               /* result can be empty if MACROPATH OFF and  */
+   return PATH       /* KEDIT.EXE not found in the ordinary PATH  */
+
+EXPAND:     procedure   /* --- expand new KEDITW32 1.x constructs */
+   parse arg LAST                      ;  PATH = ''
+   do while LAST <> ''
+      parse var LAST NEXT ';' LAST     ;  NEXT = strip( NEXT )
+      if abbrev( NEXT, '*' )  then  do    /* bypass length issues */
+         LAST = dosenv( substr( NEXT, 2 )) || ';' || LAST
+         iterate     /* the * hack is also a new KEDITW32 feature */
+      end
+      if NEXT = '='  then  do             /* new KEDITW32 feature */
+         NEXT = lastpos( '\', fileid.2()) - 1
+         NEXT = left( fileid.2(), NEXT )  /* = directory of file  */
+      end
+      if right( NEXT, 1 ) = '\'  then  do /* remove trailing "\", */
+         if right( NEXT, 2 ) <> ':\'      /* but keep "?:\" root: */
+            then  NEXT = reverse( substr( reverse( NEXT ), 2 ))
+      end            /* absolute . and .. constructs not resolved */
+      if NEXT = ''   then  iterate     ;  NEXT = NEXT || ';'
+      if abbrev( PATH, NEXT )          then  iterate
+      if pos( ';' || NEXT, PATH ) = 0  then  PATH = PATH || NEXT
+   end                                    /* remove trailing ";": */
+   return reverse( substr( reverse( PATH ), 2 ))
+
+GETDIR:     procedure   /* --- find FILE in PATH with DIR command */
+   parse arg FILE, PATH                ;  'extract /DIRFORMAT/'
+   'nomsg dirformat' max( 8, length( FILE )) max( 3, length( FILE ))
+
+   PATH = EXPAND( PATH )                  /* bypass length issues */
+   do while PATH <> ''                    /* DIRFORMAT error okay */
+      parse var PATH NAME ';' PATH        /* NAME= next directory */
+      if right( NAME, 1 ) <> '\' then  NAME = NAME || '\'
+
+      'dir "' || NAME || FILE || '" (noprof nomsg)'
+      if rc <> 0  then  iterate           /* ignore bad path NAME */
+
+      do until focuseof()                 /* match dot file NAMEs */
+         'next'                        ;  ID = dirf.4()
+         if dirf.5() > ''  then  ID = ID || '.' || dirf.5()
+         if translate( ID ) = translate( FILE ) then  do
+            if ring.0() > 1 then 'quit'   /* found, exit DIR.DIR  */
+            'dirformat' DIRFORMAT.1 DIRFORMAT.2
+            return NAME
+         end                              /* return found path    */
+      end
+      if ring.0() > 1   then  'quit'      /* exit DIR.DIR, go on  */
+   end
+   'dirformat' DIRFORMAT.1 DIRFORMAT.2 ;  return ''

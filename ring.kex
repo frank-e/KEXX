@@ -1,0 +1,41 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] RING                                    */
+/* Examples:      RING                          (command line  )  */
+/*                DEFINE C-G 'MACRO RING'       (ring my BEL :-)  */
+/* Purpose:       Show currently edited files in DIR.DIR style,   */
+/*                TAGging any changed files.  See also QUERY RING */
+/* Requires:      Kedit 5.0 or Keditw 1.0 (Frank Ellermann, 1999) */
+
+   'kedit dir.dir (new' ;  if rc <> 0 then exit rc /* ring full ? */
+   'del all'   ;  'extract /DEFSORT/RING/'   ;  'defsort off'
+   do I = 1 to RING.0
+      THIS = subword( RING.I, 1, words( RING.I ) - 4 )
+      if translate( THIS ) = translate( fileid.1() ) then iterate
+      parse value reverse( THIS ) with N '\' P
+      'nomsg dirappend "' || THIS '"'  /* trailing blank intended */
+      if rc = 0 then do                            /* file exists */
+         parse value reverse( RING.I ) with N '=' .
+         if N <> '0,0' then 'more tag :' size.1()  /* tag changed */
+         iterate
+      end                                          /* test Size=0 */
+      parse value word( reverse( RING.I ), 2 ) with S '=' .
+      parse value reverse( P ) with M ':' P        /* fMode:fPath */
+      parse value reverse( N ) with N '.' T        /* fName.fType */
+      if P = '' then P = '\'                       /* fPath empty */
+      if length( N ) > dirformat.1()               /* fName trunc */
+         then N = left( N, dirformat.1() - 1 ) || '*'
+         else N = left( N, dirformat.1() )
+      if length( T ) > dirformat.2()               /* fType trunc */
+         then T = left( T, dirformat.2() - 1 ) || '*'
+         else T = left( T, dirformat.2() )
+      if strip( T ) = ''                           /* fType empty */
+         then N = M || ':' N || ' ' || T right( reverse( S ), 9 )
+         else N = M || ':' N || '.' || T right( reverse( S ), 9 )
+      '* input' N right( time.1(), 9 ) right( time.2(), 6 ) ' ' P
+      if S <> 0 then 'more tag :' size.1()         /* tag changed */
+   end
+   if DEFSORT.1 <> 'OFF' then 'dirsort' DEFSORT.1  ;  'set alt 0 0'
+   'lineflag nonew nochange all' ;  'defsort' DEFSORT.1  ;  'refresh'
+   'locate :0 forward half'      ;  say ring.0() -1 'file(s) in ring'
+

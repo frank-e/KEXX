@@ -1,0 +1,75 @@
+'set novalue on'        /* force KEXX 5.0 and its SIGNAL ON NOVALUE  */
+
+/* Usage:      [macro] XDIR [filespecs]                              */
+/* Example:    XDIR *.CMD C:\*.CMD                                   */
+/* History:    This version is based on MANYFILE.KEX 5.0 (May 1992). */
+/*    1998:    Corrected "do -1" error if the Kedit ring is already  */
+/*             full.  Skip matching files already in the Kedit ring. */
+/*             Support blanks in file names and paths (like DIR).    */
+/*    2002:    Show last error message in alert box (e.g. an invalid */
+/*             HPFS fileid caused by insufficient DIRFORMat limits). */
+/* See also:   KHELP DIRFORM, KHELP RING, KHELP NBFILE, KHELP MEMORY */
+/* Requires:   Kedit 5.0                     (Frank Ellermann, 2002) */
+
+/* XDIR adds all matching files to the Kedit ring, i.e. edits them.  */
+/* Specify files in the same way as for Kedit's DIR command, without */
+/* given files all files in the current directory are added.         */
+
+/* DOS notes:  The Kedit ring is limited to 20 files with Kedit 5.0, */
+/* and XDIR is forced to ignore more matching files.  One ring slot  */
+/* is reserved for later DIR commands.  About 2 KB of ISA memory are */
+/* also reserved, use the ISA initialization option to increase the  */
+/* ISA size, e.g. SET KEDIT=ISA 20 ... globally.                     */
+
+   'nomsg query attributes'   ;  N = lastmsg.1()   /* get attributes */
+   'dir' arg(1) '(noprof'           /* get user's files in a DIR.DIR */
+   if rc <> 0 then exit rc          /* simple exit, later use QUIT() */
+   XDIR = fileid.1()          ;  'set' N           /* path DIR.DIR   */
+   'nomsg all /<dir>'
+   if rc = 0 then do                /* skip directories in DIR.DIR   */
+      'delete all'            ;  'all'
+      if size.1() = 0 then exit QUIT( XDIR, '/No files found/' )
+   end
+
+   'locate :1' ;  'extract /RING/'  /* match DIR.DIR against ring:   */
+   do N = 1 to RING.0               /* strip Kedit ring infos at end */
+      RING.N = subword( RING.N, 1, words( RING.N ) - 4 )
+   end
+   do until focuseof()                             /* loop DIR.DIR   */
+      NEXT = dirfileid.1() ;  'n'   ;  'refresh'   /* next DIR.DIR   */
+      do N = 1 to RING.0
+         if abbrev( NEXT, RING.N ) then do         /* lost trailing  */
+            'up'  ;  'del' ;  leave                /* skip matching  */
+         end                        /* if ISA allows it, duplicates  */
+      end                           /* in DIR.DIR are also skipped:  */
+      if opmode.1() = 'REAL' & memory.3() < 2 then iterate
+      N = RING.0 + 1 ;  RING.N = NEXT  ;   RING.0 = N
+   end                                             /* got a new NEXT */
+
+   'locate :1' ;  drop RING.        /* back to first line of DIR.DIR */
+   N = nbfile.2() - nbfile.1()      /* check N remaining ring slots  */
+   if size.1() > N then do          /* more matches than free slots: */
+      MSG = size.1() 'new matches, but'
+      if N = 0 then  MSG = MSG 'no files' ;  else  MSG = MSG 'only' N
+      MSG = delimit( MSG 'can be edited additionally' )
+      if N = 0 then exit QUIT( XDIR, MSG )         /* no free slots  */
+      'dialog' MSG 'OKCANCEL title' delimit( 'XDIR' )
+      if DIALOG.2 = 'CANCEL' then exit QUIT( XDIR )
+   end
+
+   do while focuseof() = 0 & nbfile.1() < nbfile.2()
+      if opmode.1() = 'REAL' & memory.3() < 3 then /* reserve 2K ISA */
+         exit QUIT( XDIR, delimit( 'Aborting: ISA nearly full' ))
+      NEXT = dirfileid.1() ;  'next'               /* next DIR.DIR   */
+      'kedit "' || NEXT || '" (nodefext'           /* kedit "next"   */
+      if rc <> 0 then exit QUIT( XDIR, delimit( lastmsg.1()))
+      'kedit "' || XDIR || '" (noprof'             /* edit DIR.DIR   */
+   end
+   exit QUIT( XDIR )                               /* we are ready   */
+
+QUIT: procedure                     /* common exit w/ error handling */
+   parse arg XDIR, ERROR   ;  'kedit "' || XDIR || '" (noprof'
+   if rc = 0 & ring.0() > 1 then 'qquit'
+   say 'XDIR:' ring.0() 'files currently edited'
+   if ERROR <> '' then 'alert' ERROR 'title' delimit( 'XDIR' )
+   return ERROR <> ''

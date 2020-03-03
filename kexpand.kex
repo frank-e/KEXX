@@ -1,0 +1,449 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] KEXPAND [category] abbreviation         */
+/*                Category can be DEFine, EXTract, Locate, MACRO, */
+/*                MODify, Query, Set, or SOS.  Without a category */
+/*                commands, implicit LOCATE, implicit MACRO, and  */
+/*                implicit SET operands are expanded.             */
+/* Return codes:  Invalid expansions for the actual Kedit version */
+/*                are shown, but trigger SOS ERRORBEEP.           */
+/*                 98   KEXPAND must not be longer than 500 lines */
+/*                  5   missing, extraneous, or invalid arguments */
+/*                  4   unexpected quiet Query X for X <> 'Point' */
+/*                  3   KEXPAND 0 or KEXPAND 1 list for delimit() */
+/*                  2   unsupported operand for specified command */
+/*                  1   unknown command (KeditW 1.5 is unknown)   */
+/*                  0     valid command (KeditW 1.0 or Kedit 5.0) */
+/*                 -1           Kedit found no macro KEXPAND.KEX  */
+/*                 -2   invalid command (KeditW 1.0 in Kedit 5.0) */
+/*                 -4     valid SET operand (depends on version)  */
+/*                 -6   invalid SET for the current Kedit version */
+/*                 -8     valid MODify / Query / EXTtract operand */
+/*                -10   invalid MODify etc. for the Kedit version */
+/*                -12     valid SOS command for the Kedit version */
+/*                -14   invalid SOS command for the Kedit version */
+/*                -16     valid Locate target class or qualifier  */
+/*                -18   invalid Locate (i.e. Regexp in Kedit 5.0) */
+/*                -20     valid builtin implicit MACRO, e.g., INS */
+/*                -22   invalid MACRO, see KeditW 1.0 BUILTIN.KML */
+/*                -24     valid KEXX function, e.g., BUTTON1()    */
+/*                -26   invalid KEXX function requires KeditW 1.0 */
+/* History:       KEXPAND and KEXPATH are former integral parts   */
+/*                of KEX.KEX, KHELP.KEX, and TRACE.KEX.  Because  */
+/*                KEDIT 5.0 DOS restricts the size of macros to   */
+/*                500 lines KEXPATH and KEXPAND are now separate  */
+/*                files.  This size limit still affects KEXPAND,  */
+/*                therefore most of its usage info is contained   */
+/*                in the far shorter KEXPATH.KEX.                 */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   ACK = EXPAND( SANITIZE( arg( 1 )))
+   if ACK <= 0 then  do                   /* command was expanded */
+      if ACK // 4 = -2  then  'sos errorbeep'
+      exit ACK                            /* beeps if unsupported */
+   end                                    /* for command line use */
+
+   R = word( arg( 1 ), words( arg( 1 )))  /* R is right hand side */
+   if words( arg( 1 )) > 1 then  do       /* show invalid operand */
+      call EXPANDERR R                    ;  exit 2
+   end
+   if pos( '(', R ) > 1 then  do          /* => ANYKEXX() message */
+      R = ':' translate( left( R, pos( '(', R ))) || ')'
+      'emsg' substr( lastmsg.1(), pos( 'Error', lastmsg.1())) || R
+      exit 2
+   end
+   'emsg Error 21: Invalid command:' R    ;  exit 1
+
+EXPAND:     procedure   /* --- expand (most) abbreviated commands */
+   ISKEDIT = ( 'KEDIT' = version.1())     ;  NAK = 1
+   parse arg L R                          ;  ACK = 0
+   if R = ''            then  do          /* check Kedit commands */
+      if COMMAND( L )   then  return ACK  /*  0: a common command */
+      if ISKEDIT        then  ACK = -2    /* -2: KeditW in Kedit5 */
+      if WINDOWS( L )   then  return ACK  ;  else  ACK = -16
+      if MANYLOC( L )   then  return ACK  ;  R = 'MACRO'
+      if ISKEDIT        then  ACK = -22   ;  else  ACK = -20
+      if WINKMAC( R L ) then  return ACK  ;  else  ACK = -20
+      if MANYMAC( R L ) then  return ACK  /* -20: implicit MACROs */
+      R = L                               ;  L = 'Set'
+   end                                    /* -------------------- */
+   if sign( wordpos( L, 'EXTract MODify Query' ))  then  do
+      if ISKEDIT        then  ACK = -8    ;  else  ACK = -10
+      if KNEWMOD( L R ) then  return ACK  /* -8: good MOD operand */
+      ACK =  abs( ACK ) - 18              /* -10: unavailable MOD */
+      if WINKMOD( L R ) then  return ACK  ;  else  ACK = -8
+      if MACRING( L R ) then  return ACK  /* -8: Q MACRO + Q RING */
+      if MANYMOD( L R ) then  return ACK  /* -8: good checked MOD */
+   end                                    /* -------------------- */
+   if sign( wordpos( L, 'EXTract MODify Query Set' )) then  do
+      if ISKEDIT        then  ACK = -4    ;  else  ACK = -6
+      if KNEWSET( L R ) then  return ACK  /* -4: good SET operand */
+      ACK =  abs( ACK ) - 10              /* -6:  unavailable SET */
+      if WINKSET( L R ) then  return ACK  ;  else  ACK = -4
+      if MANYSET( L R ) then  return ACK  /* -4: good checked SET */
+   end                                    /* -------------------- */
+   if L = 'SOS'         then  do
+      if ISKEDIT        then  ACK = -12   ;  else  ACK = -14
+      if KNEWSOS( R )   then  return ACK  /* -12:   supported SOS */
+      ACK =  abs( ACK ) - 26              /* -14: unavailable SOS */
+      if WINKSOS( R )   then  return ACK  ;  else  ACK = -12
+      if MANYSOS( R )   then  return ACK  /* -12: common SOS arg. */
+   end                                    /* -------------------- */
+   if L = 'Locate'      then  do          /* -18: unavailable LOC */
+      if ISKEDIT        then  ACK = -18   ;  else  ACK = -16
+      if WINKLOC( R )   then  return ACK  ;  else  ACK = -16
+      if WORDLOC( R )   then  return ACK  /* -16: common LOC arg. */
+      if MANYLOC( R )   then  return ACK  /* -16: single char LOC */
+   end                                    /* -------------------- */
+   if sign( wordpos( L, 'DEFine MACRO' )) then  do
+      ACK = -20                           /* here 1st any version */
+      if MANYMAC( L R ) then  return ACK  /* -20: implicit MACROs */
+      if MANYBUT( L R ) then  return ACK  /* -20: builtin non-key */
+      if ALLKEYS( L R ) then  return ACK  /* -20: builtin keys    */
+      if ISKEDIT        then  ACK = -22   /* then only KeditW 1.0 */
+      if WINKMAC( L R ) then  return ACK  /*      implicit MACROs */
+      if WINKBUT( L R ) then  return ACK  /*      builtin non-key */
+      if WINKEYS( L R ) then  return ACK  /*      builtin keys    */
+      ACK =  abs( ACK ) - 42              /* -22: unavailable MAC */
+      if KNEWEYS( L R ) then  return ACK  ;  else  ACK = -22
+      if NONKEYS( L R ) then  return ACK  /*  bad A+ESC and A+TAB */
+   end                                    /* -------------------- */
+   if L = 'KEXX'        then  do
+      ACK = -24                           /* here 1st any version */
+      if ANYKEXX( R )   then  return ACK  /* -24: known functions */
+      if ISKEDIT        then  ACK = -26   ;  else  ACK = -24
+      if WINKEXX( R )   then  return ACK  /* -26: only KeditW 1.0 */
+   end                                    /* -------------------- */
+   return NAK                             /*   1: unknown command */
+
+SANITIZE:   procedure   /* --- check arguments, expand first word */
+   parse upper source . . SRC             ;  L = SOURCELINE()
+   if L > 500  then  exit UNEXPECTED( 98, L 'lines for Kedit 5.0' )
+   W = words( arg( 1 ))                   /* L <= 500 for Kedit 5 */
+   if W = 0 | W > 2  then  do             /* different EXPANDERRs */
+      A = SRC 'expects one or two arguments'
+      exit max( 5, EXPANDERR( subword( 'on err', 1, W ), A ))
+   end                                    /* use rc < 5 elsewhere */
+   R = word( arg( 1 ), W )                ;  parse arg T .
+   if W = 1 & ( R = 0 | R = 1 )  then  do /* KEXPANDed delimiters */
+      say 'delimiters' DELIMITS( R = 1 )  ;  exit 3
+   end
+   if R <> '(' then  parse var R L '(' A  ;  else  A = ''
+   if W = 1 & R <> L & abbrev( ')', A )   then  return 'KEXX' L
+
+   A = 'DEFine|EXTract|Locate|MACRO|MODify|Query|Set|SOS'
+   L = MATCH( T, translate( A, " ", "|" ))
+   SPECIAL = '= ? & * .' DELIMITS( 2 )    /* use fixed delimiters */
+   if datatype( R, 'M' ) = 0 & wordpos( R, SPECIAL ) = 0 then  do
+      if L <> 'MACRO' & L <> 'DEFine'     /* any char. for MACROs */
+         then  exit max( 5, EXPANDERR( R, SRC 'expects letters' ))
+   end                  /* Locate syntax too complex in 500 lines */
+   if W = 2 & L = '' then  exit max( 5, EXPANDERR( T, 'use' A ))
+   if W = 2 then  return L R              ;  else  return R
+
+EXPANDERR:  procedure   /* --- abuse ARROW or LOCATE to force ERR */
+   OPD = translate( arg( 1 ))             ;  L = 'arrow'
+   if sign( wordpos( OPD, 'ON OFF' ))  then  L = 'locate'
+   if arg( 2 ) <> '' then  L = 'nomsg' L  ;  'command' L arg( 1 )
+   if rc = 0         then  exit UNEXPECTED( rc, L arg( 1 ))
+   if arg( 2 ) =  '' then  return rc      /* expect forced error  */
+   L = space( lastmsg.1())                ;  OPD = rc
+   'emsg' L '(' || arg( 2 ) || ')'        ;  return OPD
+
+COMMAND:    procedure   /* --- most Kedit 5 + KeditW 1.0 commands */
+   S =   'Add           ALERT          ALL            Alter       '
+   S = S 'BAckward      Bottom         CANCEL         CAppend     '
+   S = S 'CDelete       CEnter         CFirst         CLAst       '
+   S = S 'Change        CHDir          CHDRive        CInsert     '
+   S = S 'CLocate       CMATCH         CMSG           COMMAND     '
+   S = S 'COMPress      COpy           COUnt          COVerlay    '
+   S = S 'CReplace      CURsor         DEBUG          DEFine      '
+   S = S 'DELete        DIALOG         DIR            DIRAppend   '
+   S = S 'DIRSORT       DMSG           DOS            DOSNowait   '
+   S = S 'DOSQuiet      Down           DUPlicate      EDITV       '
+   if KNOW1( MATCH( arg( 1 ), space( S )))   then  return 1
+   S =   'EMSG          ERASE          EXPand         EXTract     '
+   S = S 'FILE          FFile          FILLbox        Find        '
+   S = S 'FINDUp        FUp            FLOW           FOrward     '
+   S = S 'GET           HELP           HEXType        HIT         '
+   S = S 'IMMediate     Input          Join           Kedit       '
+   S = S 'KHELP         LEft           LEFTAdjust     LESS        '
+   S = S 'Locate        LOCK           LOWercase      LPrefix     '
+   S = S 'MACRO         MACROS         MARK           MErge       '
+   S = S 'MODify        MORE           MOve           MSG         '
+   S = S 'Next          NFind          NFINDUp        NFUp        '
+   if KNOW1( MATCH( arg( 1 ), space( S )))   then  return 1
+   S =   'NOMSG         Overlay        OVERLAYBox     PREServe    '
+   S = S 'PRint         PURge          PUT            PUTD        '
+   S = S 'PUTD          Query          QUIT           QQuit       '
+   S = S 'READV         RECover        REDO           REFRESH     '
+   S = S 'REName        REPEat         Replace        RESet       '
+   S = S 'RESTore       RGTLEFT        RIght          RIGHTAdjust '
+   S = S 'SAVE          SSave          SCHange        Set         '
+   S = S 'SHift         SORT           SOS            SPlit       '
+   S = S 'SPLTJOIN      STATus         SYNEX          TAG         '
+   S = S 'TEXT          TFind          TOP            UNDO        '
+   S = S 'UNLOCK        Up             UPPercase      Xedit       '
+   S = S '&             ?              =                          '
+   return KNOW1( MATCH( arg( 1 ), space( S )))
+
+WINDOWS:    procedure   /* --- KeditW 1.0 commands excl. new SET  */
+   S =   'ANSITOOEM     CLIPboard      EXTEND         INIUTIL     '
+   S = S 'OEMTOANSI     POPUP          SHOWDLG        WINdow      '
+   S = S 'WINEXEC       WINHELP        WMSG                       '
+   return KNOW1( MATCH( arg( 1 ), space( S )))
+
+KNEWSET:    procedure   /* --- Kedit5 SET not supported by KeditW */
+   S =   'BLINK         BORDer         CURSORSHape    EAPreserve  '
+   S = S 'FCASE         LOGO           MOUSE          MOUSEBAR    '
+   S = S 'MOUSETEXT     PSCReen        RETRace        REXXIO      '
+   S = S 'SHIFTState    SWAP           SYSRC          TOPVIEW     '
+   return KNOWS( arg( 1 ), space( S ))    /* MOUSETEXT is special */
+
+WINKSET:    procedure   /* --- KeditW SET not supported by Kedit5 */
+   S =   'AUTOIndent    BOUNDMark      COLMark        COLORING    '
+   S = S 'CURRBox       CURSORSIze     CURSORType     DEFPROFile  '
+   S = S 'DOCSIZing     ECOLOR         FILEOPEN       INISAVE     '
+   S = S 'INITIALDIR    INITIALDOCsize INITIALFRAMEsize           '
+   S = S 'INITIALINSert INITIALWidth   INSTANCE       INTERFACE   '
+   S = S 'INTERNATional KEYSTYLE       MARKSTYLE      OFPW        '
+   S = S 'OPENFilter    QUICKFIND      RECENTFiles    TOOLBAR     '
+   S = S 'TOOLButton    TOOLSet        TRANSLATEIn    TRANSLATEOut'
+   S = S 'WINMARgin  '  /* Kedit 5 supports Q/EXT/MOD DEFPROFile: */
+   return KNOWS( arg( 1 ), space( S ))    /* match MANYMOD before */
+
+KNEWMOD:    procedure   /* --- additional Kedit 5 QUERY / EXTRACT */
+   S =   'FOCUS         ISA            REXXversion                '
+   return KNOWS( arg( 1 ), space( S ))
+
+WINKMOD:    procedure   /* --- additional KeditW  QUERY / EXTRACT */
+   parse arg L R                          /* MODify STARTUP error */
+   S =   'POOLSTAT      STARTUP        UNIQueid                   '
+   if L = 'MODify' & translate( R ) = 'STARTUP'    then  return 0
+   return KNOW2( L, MATCH( R, space( S )))
+
+WORDLOC:    procedure   /* --- common LOC classes and qualifiers: */
+   S =   'ALL           ALTered        BLAnk          BLOCK       '
+   S = S 'CHAnged       NEW            PARAgraph      Prefix      '
+   S = S 'SELect        Suffix         Word                       '
+   return KNOW2( 'Locate', MATCH( arg( 1 ), space( S )))
+
+MANYLOC:    procedure   /* --- implicit LOC for fixed delimiters: */
+   return KNOW2( 'Locate', MATCH( arg( 1 ), '* .' DELIMITS( 2 )))
+
+WINKLOC: return KNOW2( 'Locate', MATCH( arg( 1 ), 'Regexp' ))
+KNEWSOS: return KNOW2( 'SOS',    MATCH( arg( 1 ), 'ABORT'  ))
+
+WINKSOS:    procedure   /* --- additional KeditW 1.0 SOS operands */
+   S =   'ASSERT        DELSEL         GPF            QUICKFINDACT'
+   S = S 'QUICKFINDB    QUICKFINDf                                '
+   return KNOW2( 'SOS', MATCH( arg( 1 ), space( S )))
+
+MANYSOS:    procedure   /* --- Kedit 5 or KeditW 1.0 SOS operands */
+   S =   'ADDline       Alarm          BEEP           BLANKDown   '
+   S = S 'BLANKUp       BLOCKEnd       BLOCKStart     BOTTOMEdge  '
+   S = S 'CDn           CHECK          CLeft          CRight      '
+   S = S 'CUp           CURRent        CURSORAdjust   DELBAck     '
+   S = S 'DELBEGin      DELChar        DELEnd         DELLine     '
+   S = S 'DELWord       DOPREfix       ENDChar        ENDWord     '
+   S = S 'ERRORBEEP     EXecute        FIRSTCHar      FIRSTCOl    '
+   S = S 'INSTAB        LEFTEdge       LINEAdd        LINEDel     '
+   if KNOW2( 'SOS', MATCH( arg( 1 ), space( S )))  then  return 1
+   S =   'MAKECURR      MARGINL        MARGINR        MOUSEBEEP   '
+   S = S 'PARINDent     PREfix         QCmnd          RESTORE     '
+   S = S 'RESTORECol    RESTORELine    RETRIEVEb      RETRIEVEF   '
+   S = S 'RIGHTEdge     SAVE           SAVECol        SAVELine    '
+   S = S 'SETCOLPtr     SETLeftm       SETTAB         STARTWord   '
+   S = S 'TABB          TABCmd         TABCMDB        TABCMDF     '
+   S = S 'TABf          TABFIELDB      TABFIELDf      TABWORDB    '
+   S = S 'TABWORDf      TOPEdge                                   '
+   return KNOW2( 'SOS', MATCH( arg( 1 ), space( S )))
+
+WINKMAC:    procedure   /* --- treat ALT and INISET as WIN macros */
+   S =   'ALT           BUTTONXDBLCLK  INISET         PARENTDIR   '
+   return KNOWS( arg( 1 ), space( S ))    /* INISET *not* builtin */
+
+MANYBUT:    procedure   /* --- builtin macros excl. 14 MOUSEBAR_* */
+   S =   'BUTTON1DBLCLK BUTTON1DOWN    BUTTON2DBLCLK  BUTTON2DOWN '
+   return KNOWS( arg( 1 ), space( S ))    /* no IMPMACRO ON macro */
+
+WINKBUT:    procedure   /* --- new, excl. 43 MENU_*_* + 35 TOOL_* */
+   S =   'BUTTON2POPUP  PROMPT_FILLBOX                            '
+   return KNOWS( arg( 1 ), space( S ))    /* no IMPMACRO ON macro */
+
+MANYMAC:    procedure   /* --- Keys etc. (matched AFTER commands) */
+   S =   'ASCII         BUTTONXDOWN'   KEYNAME( 1 )
+   X =   'E G H M P T V W Y Z'            /* no truncated command */
+   do N = 1 to words( X )                 /* single letter macros */
+      if SETERR( word( X, N ))   then  S = S word( X, N )
+   end
+   return KNOWS( arg( 1 ), space( S ))    /* builtin AND implicit */
+
+WINKEXX:    procedure   /* --- new KeditW 1.0 KEXX 5.50 functions */
+   S =   'ALTKEY        ANSILOWER      ANSITOOEM      ANSIUPPER   '
+   S = S 'CHARIN        CHAROUT        CHARS          CLASSIC     '
+   S = S 'CLIPTEXT      CMDSEL         CUA            DATECONV    '
+   S = S 'DELSEL        DIGITS         DOSDIR         DOSDIRCLOSE '
+   S = S 'DOSDIRPOS     FORM           FORMAT         FUZZ        '
+   S = S 'LINEIN        LINEOUT        LINES          OEMFONT     '
+   S = S 'OEMTOANSI     RANDOM         SHOWPRINTDLG   TRUNC       '
+   S = S 'UNTITLED                                                '
+   if MATCH( arg( 1 ), space( S )) = ''   then  return 0
+   return KNOW1( translate( arg( 1 )) || '()' )
+
+ANYKEXX:    procedure   /* --- check any available KEXX functions */
+   'extract /BEEP'                        ;  'beep off'
+   'nomsg immediate call' arg( 1 )        ;  R = rc
+   'refresh'                              ;  'beep' BEEP.1
+   if R = 0    then  return KNOW1( translate( arg( 1 )) || '()' )
+   if R = 98   then  do                   /* IMM error 111 or 112 */
+      if wordpos( '112:', lastmsg.1()) > 0   then  return 0
+      if wordpos( '111:', lastmsg.1()) > 0   then  do
+         if sign( pos( '.', arg( 1 )))       then  return 0
+         'msg' /* clear IMM Error 111: */ ;  'refresh'
+         return KNOW1( translate( arg( 1 )) || '()' )
+      end               /* Kedit 5.0 SL3+ has CLASSIC() and CUA() */
+   end
+   exit UNEXPECTED( R, 'IMM call' arg( 1 ))
+
+ALLKEYS:    return MONKEYS( arg( 1 ), 0 ) /* excl. A-ESC or A-TAB */
+WINKEYS:    return MONKEYS( arg( 1 ), 1 ) /* (subtle differences) */
+MONKEYS:    procedure   /* --- common keys incl. Alt, Ctrl, Shift */
+   parse arg L R, WINKEYS              ;  R = translate( R )
+   ACS = 'ALT- CTRL- SHIFT-'           ;  X = right( R, 1 )
+   if WINKEYS  then  R = translate( R, '-', '+' )
+   R = overlay( X, R, length( R ))     ;  X = 'A- C- S-'
+   do until ACS = ''                      /* long to short prefix */
+      parse var ACS LONG ACS           ;  parse var R R (LONG) S
+      if S <> ''  then  R = R || left( LONG, 1 ) || '-' || S
+   end
+   if sign( wordpos( left( R, 2 ), X ))   then  parse var R ACS 3 R
+   if WINKEYS & ACS <> '' then  do        /* move prefix into ACS */
+      if ACS <> 'C-' then  X = 'C-'    ;  else  X = 'A- S-'
+      if sign( wordpos( left( R, 2 ), X ))   then  do
+         if X = 'C-' then  ACS = ACS || 'C-'
+                     else  ACS = left( R, 2 ) || 'C-'
+         R = substr( R, 3 )               /* KeditW 1.0 READV KEY */
+      end                                 /* prefix A-C- or S-C-  */
+   end                                    /* -------------------- */
+   R = MATCH( R, KEYNAME( 0 ))         ;  X = 'ESC SPACE STAR'
+   if ACS = '' | R = ''    then  return KNOW2( L, R )
+   S = 'BKSP ENTER MINUS NUMENTER PLUS SLASH'
+   if WINKEYS  then  do                   /* C-0 ... C-9 C-= okay */
+      if ACS = 'C-' | ACS = 'S-C-'  then  X = X "' , . / ; `"
+      if ACS = 'A-' | ACS = 'A-C-'  then  X = 'ESC STAR'
+   end                                    /* A-SPACE or A-C-SPACE */
+   else  if ACS = 'C-'  then  X = X "0 1 3 4 5 7 8 9 ' , . / ; ` ="
+   if ACS = 'A-' | ACS = 'A-C-'     then  X = X 'CENTER TAB'
+   if ACS = 'A-' & WINKEYS = 0 & 0  then  X = 'SPACE CENTER'
+   if ACS = 'S-'                    then  X = X S
+   if MATCH( R, X ) = ''   then  return KNOW2( L, ACS || R )
+   return 0             /* use & 1 above for Kedit 5 A-ESC, A-TAB */
+
+KNEWEYS:    return NONKEYS( arg( 1 ), '-' )
+NONKEYS:    procedure   /* --- match invalid A+ESC or A+TAB keys: */
+   parse arg L R, X                    ;  R = translate( R )
+   if X = ''   then  X = '+'              /* A-ESC + A-TAB if DOS */
+   if abbrev( R, 'ALT' || X ) then  R = 'A-' || substr( R, 5 )
+   if abbrev( R, 'A'   || X ) then  R = 'A-' || substr( R, 3 )
+   return KNOW2( L, MATCH( R, 'A-ESC A-TAB' ))
+
+MACRING:    procedure   /* --- match MACRO + RING before MANYMOD: */
+   parse arg L R     ;  R = MATCH( R, 'MACRO RING' )
+   if L = 'MODify'   &  R = 'RING'     then  return 0
+   if L = 'EXTract'  &  R = 'MACRO'    then  return 0
+   if L = 'Set'   then  return 0       ;  return KNOW2( L, R )
+
+MANYMOD:    procedure   /* --- common MOD operands in any version */
+   parse arg L R
+   CMD = cmdline.3() ;  'sos save'     ;  'nomsg modify' R
+   if rc <> 0  then  S = ''            ;  else  do
+      S = translate( R )                  /* not minimal abbrev.: */
+      S = S || substr( word( cmdline.3(), 2 ), 1 + length( S ))
+   end
+   'cmsg' CMD        ;  'sos restore'  ;  return KNOW2( L, S )
+
+MANYSET:    procedure   /* --- common SET operands in any version */
+   parse arg L R     ;  if SETERR( R ) then  return 0
+   ERR = lastmsg.1() ;  'nomsg query' R   /* Query Point can fail */
+   OPD = lastmsg.1()                      /* -------------------- */
+   if       rc = 0 & ERR <> OPD  then  OPD = word( OPD, 1 )
+   else  if rc = 0 & ERR == OPD  then  OPD = MATCH( R, 'Point' )
+   else  if rc = 5   then  do             /* KeditW 1.0 Error 213 */
+      ERR = MATCH( R, 'MOUSETEXT SCReen' )
+      if ERR > '' then  OPD = ERR         /* known KeditW 1.0 213 */
+                  else  parse var OPD "Error 213: 'QUERY " OPD "'"
+   end                                    /* -------------------- */
+   else  OPD = ''    ;  if OPD <> ''   then  return KNOW2( L, OPD )
+   exit UNEXPECTED( rc, 'QUERY' R )       /* => bug or KeditW 1.5 */
+
+SETERR:     procedure   /* --- expect SET X error 1 or 3 for rc 5 */
+   'nomsg set' arg( 1 )
+   if rc =  5  then  return abbrev( lastmsg.1(), 'Error 1:' )
+   exit UNEXPECTED( rc, 'SET' arg( 1 ))   /* => bug or KeditW 1.5 */
+
+UNEXPECTED: return UNEXPECT.2( arg( 1 ), arg( 2 ), sigl )
+UNEXPECT.2: procedure   /* --- KEXPAND bug for KeditW 1.5 feature */
+   parse upper source . . ALERT.2      ;  ERR = arg( 1 )
+   ALERT.2 = delimit( ALERT.2 ' line' arg( 3 ) 'unexpected rc' ERR )
+   ALERT.1 = 'command:' arg( 2 ) d2c( 10 ) || 'lastmsg:' lastmsg.1()
+   ALERT.1 = delimit( translate( ALERT.1, d2c( 128 ), d2c( 127 )))
+   FIX = subword( 'fixed', 1, 'KEDIT' <> version.1())
+   'alert' ALERT.1 'title' ALERT.2 FIX ;  exit max( 4, ERR )
+
+DELIMITS:   procedure   /* --- delimiters used as implicit Locate */
+   S = ''                              ;  D = delimit( S )
+   do while D <> ''
+      S = S right( D, 1 )              ;  D = delimit( S )
+   end
+   D = xrange( d2c( 128 ), d2c( 31 ))     /* control or non-ASCII */
+   if sign( arg( 1 ))   then  do          /* replace "*~" by "|&" */
+      if pos( '|', S ) = 0 then  S = S '|'
+      if pos( '&', S ) = 0 then  S = S '&'
+      D = D || '*~'                       /* erroneous delimiters */
+   end                  /* controls (excluding NUL) actually work */
+   if arg( 1 ) = 2      then  do          /* add non-ASCII + CTLs */
+      do D = 128 to 255 ;  S = S d2c( D ) ;  end
+      do D =   1 to  31 ;  S = S d2c( D ) ;  end
+      D = d2c( 0 ) || '*~'                /* erroneous delimiters */
+   end
+   return space( translate( S, left( '', length( D )), D ))
+
+KEYNAME:    procedure   /* --- 0: all names, 1: letters (plural)  */
+   S =   'BKSP          CENTER         CURD           CURL        '
+   S = S 'CURR          CURU           DEL            END         '
+   S = S 'ENTER         ESC            HOME           INS         '
+   S = S 'MINUS         NUMENTER       PGDN           PGUP        '
+   S = S 'PLUS          SLASH          SPACE          STAR        '
+   S = S 'TAB  '     ;  if arg( 1 ) then  return space( S )
+   if arg( 1 ) then  return space( S )    /* keys for IMPMACRO ON */
+   S = S 'F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12  0 1 2 3 4 5 6 7'
+   S = S '8 9 A B C D E F G H I J K L M N O P Q R S T U V W X Y Z'
+   S = S "' , - . / ; = [ \ ] `"       ;  return space( S )
+
+KNOWS:      procedure   /* --- for command L match operand R in S */
+   parse arg L R, S  ;  return KNOW2( L, MATCH( R, S ))
+
+KNOW2:      procedure   /* --- show command if arg( 2 ) not empty */
+   if arg( 2 ) = ''  then  return 0    ;  'msg' arg( 1 ) arg( 2 )
+   return 1                               /* retrieved as LASTMSG */
+
+KNOW1:      procedure   /* --- show command if arg( 1 ) not empty */
+   if arg( 1 ) = ''  then  return 0    ;  'msg' arg( 1 ) ;  return 1
+
+MATCH:      procedure   /* --- find abbreviation in list of words */
+   DEBUG = debugging.1()               ;  'debugging off'
+   MATCH = MAT.H( arg( 1 ), arg( 2 ))  ;  'debugging' DEBUG
+   return MATCH                           /***** trusted code *****/
+MAT.H:      procedure   /* --- find abbreviation in list of words */
+   parse arg U, S                      ;  U = translate( U )
+   do while S <> ''
+      parse var S X S                  ;  T = translate( X )
+      if abbrev( T, U ) then  do
+         if datatype( substr( X, length( U ) + 1, 1 ), 'U' ) = 0
+            then  return X                /* else abbr. too short */
+      end                                 /* upper case indicates */
+   end                                    /* a minimal truncation */
+   return S
+
+SOURCELINE: if arg() then  return sigl ;  return SOURCELINE( . )

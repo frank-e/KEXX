@@ -1,0 +1,102 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] MONO [mono]                             */
+/* Example:       MONO                          set colour scheme */
+/*                MONO mono                     uses MONitor MONO */
+/*                'macro' monitor.1()           profile use case  */
+/* Purpose:       'macro' monitor.1()   selects automatically the */
+/*                best colour scheme in the DOS + OS/2 version of */
+/*                Kedit (i.e. MONO.KEX or COLOR.KEX).  For KeditW */
+/*                macro WINDOWS.KEX supports this old catch 22.   */
+/*                MONITOR MONO and MACRO MONO still work, but are */
+/*                not designed for KeditW syntax COLORING.        */
+/* Caveats:       Kedit 5.0 does not support colour GREY, it only */
+/*                offers GRAy with some KeditW incompatibilities  */
+/*                discussed in macro COLOR.KEX.                   */
+/*                Macro MONO.KEX automatically sets MONitor COLOR */
+/*                for gray scale summing on legacy CGA monitors.  */
+/*                To disable this feature specify argument MONO.  */
+/* Colours:       Real MONO monitors have no colours, Kedit knows */
+/*                three shorthands:                               */
+/*                     1 Underline (= NOBlink Low BLUe  ON BLAck) */
+/*                     7 NORmal    (= NOBlink Low White ON BLAck) */
+/*                   112 REVerse   (= NOBlink Low BLAck ON White) */
+/*                These shorthands can be combined with modifiers */
+/*                such as BLInking, BOLD, BRIght, High, or LIGHT. */
+/*                Low, NOBlink, Nohigh, or (only KeditW 1.0) DARK */
+/*                and DK also work, but would be redundant.       */
+/* Attributes:    12 attributes are not used for MONITOR WINDOWS, */
+/*                otherwise KeditW uses five "C...." attributes:  */
+/*                 2 Curline        (replaced by color currbox)   */
+/*                 4 Cblock         (replaced by color currbox)   */
+/*                13 Ctofeof        (replaced by color currbox)   */
+/*                16 Statarea       (status line color is fixed)  */
+/*                17 Divider        (n/a for Windows)             */
+/*                18 Scrollbar      (n/a for Windows scrollbars)  */
+/*                19 Sliders        (n/a for Windows scrollbars)  */
+/*                20 Mousebar       (n/a for the bottom toolbar)  */
+/*                22 Chighlight     (replaced by color currbox)   */
+/*                24 Cthighlight    (replaced by color currbox)   */
+/*                25 Dialog         (n/a for Windows message box) */
+/*                26 Alert          (n/a for Windows message box) */
+/* See also:      MONITOR.KEX, INITIAL.KEX, COLOR.KEX, COLOR2.KEX */
+/*                WINDOWS.KEX (for KeditW), KHELP MONITOR         */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   if arg()                   then  'command MONITOR' arg( 1 )
+                              else  'command MONITOR COLOR'
+   if rc <> 0                 then  exit rc
+   if version.1() <> 'KEDIT'  then  do
+      S =   '240 128 128  48 128 111  63 111 111 128 111 111 111'
+      S = S '111 111 111 111 111 111 111 176 128  48 240 111  63'
+      'set coloring off'   ;  'set attributes' S 224 246 248 248
+      exit rc                    /* ...syntax COLORING won't work */
+   end
+
+   'BLINK   off'                 /* allow INTENS globally */
+   'BORDER  112'                 /* corresponds to BGEDIT */
+
+   FGEDIT = 'black on'           /* foreground input area */
+   FGHIGH = FGEDIT               /* foreground input tags */
+   BGLINE = 'cyan'               /* background input line */
+   BGEDIT = 'white'              /* background input area */
+   INTENS = 'blinking'           /* background bold */
+
+   'COLOR Filearea'    INTENS FGEDIT BGEDIT  /* attributes.1  240 */
+   'COLOR Cthighlight' INTENS FGEDIT BGEDIT  /* attributes.24 240 */
+   'COLOR Highlight'   INTENS FGHIGH BGLINE  /* attributes.21 176 */
+   'COLOR Cblock'             FGHIGH BGLINE  /* attributes.4   48 */
+   'COLOR Thighlight'         FGEDIT BGLINE  /* attributes.23  48 */
+   'COLOR Pending'            FGEDIT BGEDIT  /* attributes.10 112 */
+   'COLOR Block'              FGEDIT BGEDIT  /* attributes.3  112 */
+   'COLOR Chighlight'         FGHIGH BGEDIT  /* attributes.22 112 */
+   'COLOR Curline'            FGEDIT BGEDIT  /* attributes.2  112 */
+   'COLOR Cmdline'            FGEDIT BGEDIT  /* attributes.5  112 */
+
+   FGINFO = 'bold white on'      /* foreground other area */
+   BGINFO = 'brown'              /* background info areas */
+   ALERT  = FGINFO BGLINE        /* messages */
+   STATUS = FGINFO BGINFO        /* status area */
+   HELPER = STATUS               /* misc. info  */
+   MOUSE  = STATUS               /* mouse areas */
+
+   'COLOR Idline'    STATUS                  /* attributes.6  111 */
+   'COLOR Scale'     STATUS                  /* attributes.11 111 */
+   'COLOR Ctofeof'   STATUS                  /* attributes.13 111 */
+   'COLOR Tabline'   STATUS                  /* attributes.14 111 */
+   'COLOR Statarea'  STATUS                  /* attributes.16 111 */
+   'COLOR Divider'   STATUS                  /* attributes.17 111 */
+   'COLOR Dialog'    STATUS                  /* attributes.25 111 */
+
+   'COLOR Arrow'     HELPER                  /* attributes.8  111 */
+   'COLOR Prefix'    HELPER                  /* attributes.9  111 */
+   'COLOR Tofeof'    HELPER                  /* attributes.12 111 */
+   'COLOR Shadow'    HELPER                  /* attributes.15 111 */
+
+   'COLOR Scrollbar' MOUSE                   /* attributes.18 111 */
+   'COLOR Slider'    MOUSE                   /* attributes.19 111 */
+   'COLOR Mousebar'  MOUSE                   /* attributes.20 111 */
+
+   'COLOR Msgline'   ALERT                   /* attributes.7   63 */
+   'COLOR Alert'     ALERT                   /* attributes.26  63 */
+

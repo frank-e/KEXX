@@ -1,0 +1,226 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] UTF [hex. UTF32-BE or UTF16-BE string]  */
+/* Examples:      UTF FEFF FFFD           shows EFBBBF EFBFBD     */
+/*                UTF 0020 D800 DC00      shows 20 F0B98080       */
+/*                UTF                     RESERved msgline OFF    */
+/* Purpose:       UTF converts a string of hex. UTF-32 or UTF-16  */
+/*                words to UTF-8 and displays the hex. result in  */
+/*                a reserved message line.  The result converted  */
+/*                back to hex. UTF16-BE is also shown allowing a  */
+/*                quick plausibility test.                        */
+/*                                                                */
+/*                FFFD indicates input errors, e.g. UTF 123456 78 */
+/*                results in "F4A39196 78 (FFFD 0078)" with the   */
+/*                dubious F4A39196 substituted by FFFD.  To force */
+/*                CESU use 0D800..0DFFF instead of D800..DFFF.    */
+/*                                                                */
+/*                Called without argument UTF clears the msgline. */
+/* See also:      KHELP RESER, KHELP MSGLINE                      */
+/*                <URL:http://purl.net/xyzzy/kex/utf.kex>         */
+/*                <URL:http://purl.net/xyzzy/src/bocu.cmd>        */
+/* Requires:      Kedit 5.0, REXX         (Frank Ellermann, 2006) */
+
+   SRC = translate( strip( arg( 1 )))
+   DST = ''
+
+   do while SRC <> ''
+      parse var SRC TOP SRC
+      if length( TOP ) <= 4   then  do
+         TOP = right( TOP, 4, 0 )
+         if 'D800' <= TOP & TOP < 'DC00'  then  do
+            parse var SRC NXT SRC
+            TOP = TOP || right( NXT, 4, 0 )
+         end
+         TOP = UTF16I( x2c( TOP ))
+         'dmsg' c2x( TOP )
+      end
+      else  TOP = x2c( right( TOP, 8, 0 ))
+
+      DST = DST c2x( UTF32I( TOP ))
+   end
+   do N = 1 to words( DST )
+      SRC = SRC c2x( UTF16O( UTF32O( x2c( word( DST, N )))))
+   end
+   if DST = '' then  DST = 'OFF' ;  else  do
+      SRC = '(' || strip( SRC ) || ')'
+      DST = subword( color.1( 'msgline' ), 2 ) || DST SRC
+   end
+   'RESERve' msgline.2() DST     ;  exit rc
+
+UTF32I:  procedure               /* UTF-32BE to UTF-8 encoder     */
+   parse arg SRC                 ;  DST = ''
+
+   do while 4 <= length( SRC )   /* split next UTF-32BE from SRC  */
+      parse var SRC CHR 5 SRC    ;  CHR = c2d( CHR )
+
+      if CHR <= 127  then  do
+         DST = DST || d2c( CHR ) ;  iterate
+      end
+
+      BIN = reverse( x2b( d2x( CHR )))
+      CHR = ''
+
+      do LEN = 2 until verify( substr( BIN, 8 - LEN ), 0 ) = 0
+         CHR = CHR || left( BIN, 6, 0 ) || 01
+         BIN = substr( BIN, 7 )
+      end LEN
+
+      BIN = CHR || left( BIN, 8 - LEN, 0 ) || copies( 1, LEN )
+      DST = DST || x2c( b2x( reverse( BIN )))
+   end
+   if sign( length( SRC )) then  DST = DST || SUB
+   return DST
+
+UTF32O:  procedure               /* UTF-8 to UTF-32BE decoder     */
+   U.2 = xrange( x2c( '80' ), x2c( 'BF' ))
+   SUB = x2c( '0000FFFD' )       ;  DST = ''
+   parse arg SRC                 ;  LOS = length( SRC )
+
+   do while LOS > 0
+      parse var SRC LB 2 SRC     ;  LOS = LOS - 1
+      LB = c2d( LB )             ;  TOP = 0
+
+      if LB < 128 then  do
+         DST = DST || x2c( d2x( LB, 8 ))  ;  iterate
+      end
+
+      if LOS > 0  then  TOP = c2d( left( SRC, 1 )) % 16
+      if       LB < 192             then  LEN = -0 /* trail bytes */
+      else if  LB < 194             then  LEN = -1 /* bad C0 + C1 */
+      else if  LB < 224             then  LEN = +1
+      else if  LB = 224 & TOP =  8  then  LEN = -2 /* E08x is bad */
+      else if  LB = 224 & TOP =  9  then  LEN = -2 /* E09x is bad */
+      else if  LB = 237 & TOP = 10  then  LEN = -2 /* EDAx is bad */
+      else if  LB = 237 & TOP = 11  then  LEN = -2 /* EDBx is bad */
+      else if  LB < 240             then  LEN = +2
+      else if  LB = 240 & TOP =  8  then  LEN = -3 /* F08x is bad */
+      else if  LB < 244             then  LEN = +3
+      else if  LB = 244 & TOP =  8  then  LEN = +3 /* F48x is ok. */
+      else if  LB < 248             then  LEN = -3 /* bad F4 - F7 */
+      else if  LB < 252             then  LEN = -4 /* bad F8 - FB */
+      else if  LB < 254             then  LEN = -5 /* bad FC + FD */
+      else                                LEN = -0 /* bad FE + FF */
+
+      BAD = ( LEN <= 0 )         ;  LEN = abs( LEN )
+      if LOS < LEN   then  do
+         BAD = 1                 ;  LEN = LOS
+      end
+
+      TOP = left( SRC, LEN )     ;  SRC = substr( SRC, LEN + 1 )
+      TMP = verify( TOP, U.2 )   ;  LOS = LOS - LEN
+      if TMP > 0  then  do       /* eat plausible trailing bytes: */
+         BAD = 1                 ;  SRC = substr( TOP, TMP ) || SRC
+         LOS = length( SRC )     /* but keep possible valid input */
+      end                        /* bytes for the next iteration  */
+
+      if BAD = 0  then  do       /* at this point input is valid: */
+         LB  = x2b( d2x( LB ))   ;  LEN = verify( LB, 1 ) - 2
+         LB  = copies( 0, LEN ) || right( LB, 6 - LEN )
+
+         do until TOP == ''
+            TMP = x2b( c2x( left( TOP, 1 )))
+            LB  = LB || right( TMP, 6 )
+            TOP = substr( TOP, 2 )
+         end
+
+         TOP = b2x( strip( LB, 'L', 0 ))
+         DST = DST || x2c( right( TOP, 8, 0 ))
+      end
+      else  DST = DST || SUB
+   end
+   return DST
+
+UTF16I:  procedure               /* UTF-16BE to UTF-32BE decoder  */
+   parse arg SRC                 ;  LO = x2d( 'D800' )
+   DST = ''                      ;  HI = x2d( 'DC00' )
+
+   do while 2 <= length( SRC )   /* next UTF-16 or low surrogate  */
+      parse var SRC L 3 SRC      ;  L = c2d( L )
+      if       LO     > L  then  DST = DST || x2c( d2x( L, 8 ))
+      else if  57344 <= L  then  DST = DST || x2c( d2x( L, 8 ))
+      else if  HI    <= L  then  DST = DST || x2c( '0000FFFD' )
+      else if  length( SRC ) < 2 then  SRC = '?'
+      else do                    /* length < 2: no high surrogate */
+            L = L - LO + 64      ;  parse var SRC R 3 SRC
+            R = c2d( R ) - HI
+            if 0 <= R & R < 57344 - HI
+               then  DST = DST || x2c( d2x( L * 1024 + R, 8 ))
+               else  DST = DST || x2c( '0000FFFD' )
+      end
+   end
+   if sign( length( SRC )) then  DST = DST || x2c( '0000FFFD' )
+   return DST
+
+UTF16O:  procedure               /* UTF-32BE to UTF-16BE encoder  */
+   parse arg SRC                 ;  LO = x2d( 'D800' )
+   DST = ''                      ;  HI = x2d( 'DC00' )
+
+   do while 4 <= length( SRC )   /* split next UTF-32BE from SRC  */
+      parse var SRC L 3 R 5 SRC  ;  L = c2d( L ) - 1
+
+      if L < 0 | 15 < L then  do
+         if 15 < L      then  R = x2c( 'FFFD' )
+         DST = DST || R          ;  iterate
+      end
+      R = c2d( R )               ;  L = L * 64 + R % 1024
+      R = R // 1024              ;  L = x2c( d2x( LO + L, 4 ))
+      R = x2c( d2x( HI + R, 4 )) ;  DST = DST || L || R
+   end
+   if sign( length( SRC )) then  DST = DST || x2c( 'FFFD' )
+   return DST
+
+X2B:     procedure               /* KeditW has no X2B and no REXX */
+   SRC = translate( space( arg( 1 ), 0 ))
+   if length( SRC ) // 2   then  SRC = 0 || SRC
+   DST = ''
+
+   do until SRC == ''
+      parse var SRC TOP 2 SRC
+      if       TOP = 0     then  DST = DST || 0000
+      else if  TOP = 1     then  DST = DST || 0001
+      else if  TOP = 2     then  DST = DST || 0010
+      else if  TOP = 3     then  DST = DST || 0011
+      else if  TOP = 4     then  DST = DST || 0100
+      else if  TOP = 5     then  DST = DST || 0101
+      else if  TOP = 6     then  DST = DST || 0110
+      else if  TOP = 7     then  DST = DST || 0111
+      else if  TOP = 8     then  DST = DST || 1000
+      else if  TOP = 9     then  DST = DST || 1001
+      else if  TOP = 'A'   then  DST = DST || 1010
+      else if  TOP = 'B'   then  DST = DST || 1011
+      else if  TOP = 'C'   then  DST = DST || 1100
+      else if  TOP = 'D'   then  DST = DST || 1101
+      else if  TOP = 'E'   then  DST = DST || 1110
+      else if  TOP = 'F'   then  DST = DST || 1111
+      else do  'emsg toast'   ;  exit 1   ;  end
+   end
+   return DST
+
+B2X:     procedure               /* KeditW has no B2X and no REXX */
+   SRC = translate( space( arg( 1 ), 0 ))
+   TOP = length( SRC ) // 8      ;  DST = ''
+   if sign( TOP ) then  SRC = copies( 0, 8 - TOP ) || SRC
+
+   do until SRC == ''
+      parse var SRC TOP 5 SRC
+      if       TOP = '0000'   then  DST = DST || 0
+      else if  TOP = '0001'   then  DST = DST || 1
+      else if  TOP = '0010'   then  DST = DST || 2
+      else if  TOP = '0011'   then  DST = DST || 3
+      else if  TOP = '0100'   then  DST = DST || 4
+      else if  TOP = '0101'   then  DST = DST || 5
+      else if  TOP = '0110'   then  DST = DST || 6
+      else if  TOP = '0111'   then  DST = DST || 7
+      else if  TOP = '1000'   then  DST = DST || 8
+      else if  TOP = '1001'   then  DST = DST || 9
+      else if  TOP = '1010'   then  DST = DST || 'A'
+      else if  TOP = '1011'   then  DST = DST || 'B'
+      else if  TOP = '1100'   then  DST = DST || 'C'
+      else if  TOP = '1101'   then  DST = DST || 'D'
+      else if  TOP = '1110'   then  DST = DST || 'E'
+      else if  TOP = '1111'   then  DST = DST || 'F'
+      else do  'emsg toast'   ;  exit 1   ;  end
+   end
+   return DST
+

@@ -1,0 +1,30 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         MACRO DO [n|*|action]                           */
+/* Example:       MACRO DO [n|*]             => DOwn [n|*]        */
+/*                MACRO DO action            => not yet defined   */
+/* Synonym:       SYNonym DO macro DO                             */
+/*                The minimal truncation of command DOwn is "D".  */
+/*                Macro DO runs command  DOwn [n|*]  for numeric, */
+/*                empty, or "*" arguments avoiding conflicts with */
+/*                DOwn after an optional "SYNonym DO macro DO".   */
+/*                Macro DO n  for n <= 0 or a non-integer n shows */
+/*                intentionally the same error as command DOwn n. */
+/* Bugs:          Many good names are taken, and DO is very close */
+/*                to the unrelated command DOS.  However, the DO  */
+/*                truncation of DOwn is arguably worse.           */
+/* Purpose:       The former macro XC.KEX and an old macro DO.KEX */
+/*                were combined into a new EX KEX.  At the moment */
+/*                DO.KEX is a placeholder and used for temporary  */
+/*                tests.                                          */
+/* See also:      KHELP Down, KHELP SYNonym, macro EX.KEX         */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   ARG = strip( arg( 1 ))                 /* DO command DOwn ARG: */
+   if datatype( ARG, 'n' ) | abbrev( '*', ARG ) then  do
+      'command DOwn' ARG               ;  exit rc
+   end                                    /* -------------------- */
+
+/* --- specify action below, ARG is not empty, no number, no star */
+
+   exit 4

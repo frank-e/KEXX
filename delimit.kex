@@ -1,0 +1,217 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] DELIMIT                                 */
+/* Purpose:       DELIMIT analyzes delimit() results.  There are  */
+/*                25 builtin delimit() characters in Kedit 5 and  */
+/*                KeditW 1.0.  23 delimiters work as expected in  */
+/*                explicit Locate commands.  The two delimiters   */
+/*                '=' and '?' require an explicit Locate command. */
+/*                The other 21 (of 23 working) delimiters would   */
+/*                also work as implicit Locate commands.          */
+/*                As shipped up to Kedit 5.0 patch level D4 (DOS) */
+/*                or P4 (OS/2) two delimit() characters cannot be */
+/*                used as target delimiters for Locate etc., i.e. */
+/*                'Locate *' and 'Locate ~' fail.  For some other */
+/*                commands such as DIALOG or ALERT '*' or '~' can */
+/*                be used as delimiters, but not generally.       */
+/*                In addition to these 23+2 delimit() characters  */
+/*                161 other characters can be used as delimiters: */
+/*                31 controls d2c(1) up to d2c(31), 128 non-ASCII */
+/*                octets, i.e. 8bit characters, and '&' or '|'.   */
+/*                This suggests a straight forward patch for the  */
+/*                delimit() function; replace two bad '*' and '~' */
+/*                delimiters by '&' and '|'.  Clearly '&' and '|' */
+/*                are used to combine targets X & Y or X | Y, and */
+/*                combinations like Locate |foo| | |x| & &y&  are */
+/*                hard to read.  But unlike '*' and '~' they work */
+/*                as expected.                                    */
+/*                For a binary patched by macro DELIMIT 22 "good" */
+/*                and 3 "ugly" '=', '?', and '&' are reported.    */
+/*                For manually patched binaries the results could */
+/*                be different.                                   */
+/* Patch:         The default is to report delimiters (no patch). */
+/*                For the optional patch HEXE.KEX and KEXPATH.KEX */
+/*                are required.  The optional patch also requires */
+/*                window width 76 or more for HEXE LRECL 24, this */
+/*                allows to patch delimiters spread over at most  */
+/*                two lines, i.e. binary records.  A "hot patch"  */
+/*                replaces a running KEDIT or KEDITW.EXE as found */
+/*                in the undocumented startup.1() or in the PATH, */
+/*                restart KEDIT(W) after a hot patch.             */
+/*                The default is to save a patched binary in the  */
+/*                directory of KEDIT as KEDIT.BIN or KEDITW.BIN.  */
+/* Caveats:       There should be *two* occurrences of delimiters */
+/*                in Kedit 5.0 for DOS, and both will be patched. */
+/*                This macro was not tested with KeditW 1.5.  The */
+/*                patch strategy is known to work with Kedit 5.0  */
+/*                D1, D3, P3, D4, or P4; and with KeditW 1.0 W1.  */
+/* Requires:      HEXE.KEX and KEXPATH.KEX for an optional patch, */
+/*                Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   S = ' '                             ;  D = delimit( S )
+   do while D <> ''
+      S = S right( D, 1 )              ;  D = delimit( S )
+   end
+
+   D = space( S )                      ;  G = ''
+   L = words( D )                      ;  B = ''
+   S = line.1()                        ;  U = ''
+   do N = 1 to L                          /* Good, Bad, Ugly loop */
+      W = word( D, N )
+      if datatype( W, 'A' ) | W = '*' | W = '.' then  do
+         B = B W  ;  iterate              /* letter, digit, *, .  */
+      end                                 /* -------------------- */
+      'nomsg locate' W                    /* try W as L delimiter */
+      if rc > 2                                 then  do
+         B = B W  ;  iterate              /* bad locate delimiter */
+      end                                 /* -------------------- */
+      if W = '=' | W = '&' | W = '?'            then  do
+         U = U W  ;  iterate              /* ugly, no implicit L  */
+      end                                 /* -------------------- */
+      'nomsg' W                           /* try W as implicit L  */
+      if rc > 2                                 then  do
+         U = U W  ;  iterate              /* ugly, no implicit L  */
+      end                                 /* -------------------- */
+       G = G W                            /* PASS, good delimiter */
+   end
+   'locate :' || S                        /* restore old position */
+
+   S = 'explicit Locate'               ;  W = words( U )
+   if W > 1    then  S = d2c( 10 ) || U 'need an'   S
+               else  S = d2c( 10 ) || U 'needs an'  S
+   if W > 0    then  S = 'and' W 'ugly delimiters:' S
+               else  S = 'delimiters'
+   S = words( G ) 'good' S             ;  G = space( G U )
+
+   U = 'wrong:' || d2c( 10 ) || B      ;  W = words( B )
+   if W > 1    then  U = 'results are' U 'do'    'not work with'
+               else  U = 'result is'   U 'does'  'not work with'
+   U = W 'delimit()' U 'Locate' || d2c( 10 )
+   if W > 0    then  S = S || d2c( 10 ) || d2c( 10 ) || U
+
+   U = 2 - sign( wordpos( '|', D )) - sign( wordpos( '&', D ))
+   if W <> 0 & U <> 0 & L <= 25  then  do /* need free '|' or '&' */
+      U = centre( 'You can patch' subword( B, 1, U ) 'now', 32 )
+      S = S d2c( 10 ) || U             ;  'sos errorbeep'
+      U = 'YesNo DEFBUTTON 2'             /* DEFault do not patch */
+   end                                    /* limit 25 for visible */
+   else  U = ''                           /* LRECL 24 patch       */
+   if L > 25   then say L 'delimiters' space( D, 0 )
+               else say L 'delimiters' D
+
+   if version.1() <> 'KEDIT'  then  U = U 'FIXED'
+      else  S = translate( S, d2c( 0 ), d2c( 32 ))
+   parse upper source . . DIALOG.2        /* ASCII 28 = delimiter */
+   DIALOG.1 = d2c( 28 ) || translate( S,, d2c( 28 )) || d2c( 28 )
+   DIALOG.2 = delimit( DIALOG.2 'results' )
+   'dialog' DIALOG.1 'title' DIALOG.2 U
+
+   say lastmsg.1()                        /* -------------------- */
+   if DIALOG.2 = 'NO'   then  do          /* demo of a bad target */
+      U = subword( D, 1, wordpos( word( B, 1 ), D ) - 1 )
+      parse var U U '"' W
+      U = strip( U ) '"' || "'" '"' || strip( W )
+      U = "imm say delimit( 'emsg test" U || '" )'
+      'cmsg' U "; 'cmsg Locate' lastmsg.1()"
+   end
+   if DIALOG.2 <> 'YES' then  exit rc     /* -------------------- */
+
+   /* --- part 2: prepare patch for KEDITW or KEDIT binary ------ */
+   do N = 1 to 2 while words( G ) < words( D )
+      W = word( '| &', N )                /* use free '|' and '&' */
+      if wordpos( W, G ) = 0  then  G = G W
+   end
+   D = space( D, 0 )                      /* old (bad) delimiters */
+   G = space( G, 0 )                      /* patch new delimiters */
+
+   'nomsg extract /STARTUP'            ;  W = ''
+   if rc = 0   then  if STARTUP.0 > 0  then  W = STARTUP.1
+   if W = ''   then  do                   /* STARTUP.1 not found, */
+      W = 'KEDIT'                         /* normal for Kedit 5.0 */
+      if version.1() <> W  then  W = W || 'W'
+      W = W || '.EXE'
+      'nomsg macro kexpath' delimit( W, dosenv( 'PATH' ))
+      if rc <> 0  then  do
+         if rc < 0   then  'emsg macro KEXPATH required'
+                     else  'emsg' W 'not found in PATH'
+         exit 4                           /* no effect unexpected */
+      end
+      W = lastmsg.1() || W                /* binary Kedit(W) path */
+   end
+   if lscreen.2() < 76  then  do          /* patch needs LRECL 24 */
+      'emsg please arrange window width 76 or more to patch' W
+      exit 4                              /* for lscreen width 76 */
+   end                                    /*  HEXE shows LRECL 24 */
+
+   'nomsg macro hexe' W                   /* start to edit binary */
+   if rc <> 0 | ( rc = 0 & size.1() = 0 ) then  do
+      S = rc
+      if S = 0 & ring.0() > 0 then  'nomsg quit'
+      if S < 0 then  'emsg macro HEXE required to patch' W
+               else  'emsg macro HEXE cannot load' W
+      say lastmsg.1()                  ;  exit max( S, 4 )
+   end
+   S =     ( L - 1 <=    lrecl.1()) & ( lrecl.1() <= trunc.1())
+   S = S & (     1  =     zone.1()) & (  zone.2() =  lrecl.1())
+   S = S & (  'OFF' =   tabsin.1()) & (   'ALLOW' =  eofin.1())
+   S = S & (  'OFF' =  tabsout.1()) & (    'NONE' =  eolin.1())
+   S = S & (   'ON' = trailing.1()) & ( 'VARYING' =  recfm.1())
+   S = S & ( 'NONE' =   eolout.1()) & (    'NONE' = eofout.1())
+   if S = 0 then  do
+      'emsg assertion failed, unexpected macro HEXE setting(s)'
+      exit 4                              /* patch would not work */
+   end                                    /* for invalid settings */
+
+   /* --- part 3: patch the running KEDITW or KEDIT binary ------ */
+   'msgline on -2 5'                   ;  'wrap off'
+   U = 0                               ;  'highlight altered'
+   P = right( G, 1 )                   ;  X = left( D, L % 2 )
+   R = P || right( D, L % 2 ) || P     ;  N = P || X || P '|' R
+   'nomsg locate :0' N                    /* locate left or right */
+   do while rc = 0                        /* half, good delimiter */
+      S = curline.3()                  ;  'set point .0'
+      if sign( pos( X, S ))   then  do    /* begin in this line L */
+         L = S                         ;  'Down'
+         S = curline.3()               ;  'Up'
+      end                                 /*  rest in next line S */
+      else  do                            /*  rest in this line S */
+        'Up'                           ;  L = curline.3()
+      end                                 /* begin in last line L */
+      P = pos( D, L || S )
+      if P = 0 then  'locate .0'       ;  else do
+         T = left(   L || S, P - 1 ) || G /* replace G delimiters */
+         R = substr( L || S, P + length( D ))
+         if abbrev( T, L, 1 ) = 0   then  do
+            'R' left( T, length( L ))  ;  if rc <> 0  then  exit rc
+         end                              /* begin in last line L */
+         T = T || R                    ;  'Down'
+         'R' right( T, length( S ))    ;  if rc <> 0  then  exit rc
+         say 'old' L || S              ;  U = U + 1
+         say 'new' T                   ;  'set point .' || U
+      end                                 /* -------------------- */
+      'nomsg locate' N                    /* find next occurrence */
+   end
+
+   if U = 0 then  do                      /* if nothing happened: */
+      U = 'wrong directory: found no bad delimiters in' W
+      'quit'                           ;  'emsg' U
+      exit 4                              /* no effect unexpected */
+   end                                    /* -------------------- */
+   if U = 1 then  S = 'One occurrence of' D 'patched'
+            else  S =  U 'occurrences of' D 'patched'
+   parse upper source . . DIALOG.2     ;  'locate .1'
+   DIALOG.2 = delimit( DIALOG.2 'patch' )
+   S = S || d2c( 10 ) || 'Do you have a copy of' W '?'
+   DIALOG.1 = d2c( 28 ) || translate( S,, d2c( 28 )) || d2c( 28 )
+   U = 'YesNo DEFBUTTON 2'                /* ASCII 28 = delimiter */
+   if version.1() <> 'KEDIT'  then  U = U 'FIXED'
+   'dialog' DIALOG.1 'title' DIALOG.2 U   /* YES: hot patch Kedit */
+
+   if DIALOG.2 <> 'YES' then  'ft BIN' ;  U = fileid.1()
+   if rc = 0   then  'file'
+   if rc = 0   then  do
+      if W = U then  say 'please exit and restart patched' U
+               else  say 'patch saved as' U
+   end
+   exit rc
+

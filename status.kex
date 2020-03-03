@@ -1,0 +1,137 @@
+'set novalue on'  /* force KEXX 5.0 and its way of SIGNAL ON NOVALUE */
+
+/* usage:       macro status                                         */
+/* example:     define A-F10 macro status                            */
+/* requires:    Kedit 5.0                 (by Frank Ellermann, 1998) */
+
+/* displays unusual and/or dangerous settings (mini status) in a few */
+/* message lines - instead of the full screen shown by Kedit command */
+/* status, where it's difficult to spot any unusual settings.  Some  */
+/* obvious settings like ARROW, PREFIX, SCALE, etc. are not checked. */
+
+/* I consider other settings like BACKUP TEMP (set in my PROFILE) as */
+/* defaults, and STATUS reports only BACKUP KEEP or OFF.  Some of my */
+/* settings like TABSIN TABQUOTE are still reported, because this is */
+/* a critical value.  You can simply change the "expected" settings. */
+
+/* Currently expected values not corresponding to Kedit's defaults:  */
+/* BACKUP TEMP                   - keep *.BAK until SAVE successful  */
+/* REPROF ON                     - apply PROFILE on all loaded files */
+/* SHARING DENYWRITE DENYWRITE   - allow read access by other tasks  */
+
+/* Update 2008:  Additionally trunc.1() = lrecl.1() < width.1() is   */
+/* accepted for BINARY.KEX or similar cases with eolin.1() = 'NONE'. */
+/* The unusual lrecl.1() and eolin.1() are then anyway reported, and */
+/* a corresponding trunc.1() report is a distraction.  For binaries  */
+/* the default trunc.1() = width.1() > lrecl.1() would be dangerous, */
+/* therefore trunc.1() ) > lrecl.1() is reported for eolin.1() NONE. */
+
+/* Likewise eolin.1() = eolout.1() is perfectly sound for all files  */
+/* and not more reported.  EOLIN CR or EOLIN LF actually also permit */
+/* CRLF.  The default EOLIN CRORLF allows CR, LF, or CRLF.           */
+
+/* Update 2010:  For eolout.1() = 'NONE' expect eofout.1() = 'NONE'  */
+/* suited for binaries.  For KeditW 1.0 report OEM if oemfont() = 1. */
+/* For KEDIT 5 show the free ISA memory.3() if it does not cause an  */
+/* output line wrap.  The free ISA memory should be not shown under  */
+/* OS/2, hopefully the opmode.1() test is good enough.               */
+
+   M = '' ; L = min( trunc.1(), lrecl.1() )
+   if zone.1() <> 1 | zone.2() <> L then  do
+      if zone.2() = width.1()
+         then  M = M || TOKEN( 'zone' zone.1() '*' )
+         else  M = M || TOKEN( 'zone' zone.1() zone.2())
+   end
+   if range.1() <> 1 | range.2() <> size.1() then  do
+      if       range.1() = 1
+         then  M = M || TOKEN( 'range -* :' || range.2() )
+      else  if range.2() = size.1()
+         then  M = M || TOKEN( 'range :' || range.1() '*' )
+      else     M = M || TOKEN( 'range :' || range.1() ':' || range.2())
+   end
+
+   if sign( pos( left( margins.3(), 1 ), '+-' ))
+      then  interpret 'L = margins.1()' margins.3()
+      else  L = margins.3()               /* 'sos parindent' column: */
+   if wordwrap.1() <> 'OFF' | 1 <> margins.1() | L <> margins.1()
+      then  M = M || TOKEN(  'mar' margins.1() margins.2() margins.3())
+
+   if arbchar.1() <> 'OFF'                /* although I have ARB ON  */
+      then  M = M || TOKEN(  'arb' arbchar.1() arbchar.2() arbchar.3())
+   if case.2() <> 'IGNORE' | case.3() <> 'RESPECT'
+      then  M = M || TOKEN( 'case' case.1() case.2() case.3())
+   if opsys.1() <> 'DOS'                  /* default: fcase LOWER    */
+      then  M = M || FIRST( 'fcase', 'ASIS' )
+   if sharing.1() <> 'DENYWRITE' | sharing.2() <> 'DENYWRITE'
+      then  M = M || TOKEN( 'sharing' sharing.1() sharing.2())
+
+   /* add to msg, if setting <> expected default or usual preference */
+   M = M || FIRST( 'wordwrap' , 'OFF'     )
+   M = M || FIRST( 'var'      , 'OFF'     )  /* although I prefer ON */
+   M = M || FIRST( 'scope'    , 'DISPLAY' )
+   M = M || FIRST( 'shadow'   , 'ON'      )
+   M = M || FIRST( 'word'     , 'NONBLANK')
+   M = M || FIRST( 'defext'   , 'OFF'     )
+   M = M || FIRST( 'tabsin'   , 'OFF'     )  /* I set TABSI TABQUOTE */
+   if eolin.1() <> eolout.1()                /* otherwise EOLIN okay */
+      then  M = M || FIRST( 'eolin' , 'CRORLF' )
+   M = M || FIRST( 'eofin'    , 'ALLOW'   )  /* PREXX *.rex: PREVENT */
+   M = M || FIRST( 'tabsout'  , 'OFF'     )  /* UNIX sccs:  TABSO ON */
+   M = M || FIRST( 'eolout'   , 'CRLF'    )  /* although I prefer LF */
+   if eolout.1() <> 'NONE'                   /* DOS   *.bat: EOLEOF  */
+      then  M = M || FIRST( 'eofout', 'EOL'  )
+      else  M = M || FIRST( 'eofout', 'NONE' )
+   M = M || FIRST( 'trailing' , 'OFF'     )
+   if version.1() <> 'KEDIT'  then  do       /* only for KeditW 1.0: */
+      M = M || FIRST( 'translatein' , 'NONE' )
+      M = M || FIRST( 'translateout', 'NONE' )
+      if oemfont()   then  M = M 'OEM'       /* ideally should show  */
+   end                                       /* Windows OEMCP or ACP */
+   if eolin.1() = 'NONE'                     /* accept trunc = lrecl */
+      then  M = M || FIRST( 'trunc' , lrecl.1())
+      else  M = M || FIRST( 'trunc' , width.1())
+   M = M || FIRST( 'lrecl'    , width.1() )
+   M = M || FIRST( 'recfm'    , 'VARYING' )
+   M = M || FIRST( 'backup'   , 'TEMP'    )  /* default: BACKUP OFF  */
+   M = M || FIRST( 'autosave' , 'OFF'     )
+   M = M || FIRST( 'undoing'  , 'ON'      )
+   M = M || FIRST( 'timecheck', 'ON'      )
+   M = M || FIRST( 'reprof'   , 'ON'      )  /* default: REPROF OFF  */
+   M = M || FIRST( 'syn'      , 'ON'      )
+   M = M || FIRST( 'impmacro' , 'ON'      )
+   M = M || FIRST( 'eap'      , 'ON'      )  /* Ext. Attr. Preserve  */
+   M = M || FIRST( 'efileid'  , fileid.1())  /* maybe skip this test */
+
+   if tabline.1() = 'OFF'  then  do       /* otherwise TABS obvious  */
+      T = tabs.1()
+      if words( T ) < 32 | word( T, 1 ) <> 1
+         then  I = 0
+         else  I = word( T, 2 ) - 1       /* check TABS INCR value:  */
+      do L = 2 while L < words( T ) & I <> 0
+         if I <> word( T, L + 1 ) - word( T, L )   then  I = 0
+      end
+      if I <> 0 & I <> 8   then  M = M || TOKEN( 'tabs INCR' I )
+      if I = 0 then  do                   /* show unusual tabs scale */
+         'scale on' tabline.2()  ;  'tabline on'
+         M = M || TOKEN( 'scale ON' ) || TOKEN( 'tabl ON' )
+      end                                 /* how to switch OFF later */
+   end
+   if opmode.1() = 'REAL' | opmode.1() = 'WINDOWS' then  do
+      L = M || TOKEN( 'mem' memory.3())   /* DOS KEDIT: free ISA mem */
+      if length( L ) <= lscreen.2() then  M = L
+   end                                    /* skip if line too long   */
+
+   do L = 2 while L <= words( M )         /* break long message line */
+      if length( subword( M, 1, L )) <= lscreen.2()   then  iterate
+      say translate( subword( M, 1, L - 1 ), ' ', d2c( 0 ))
+      M = subword( M, L )                 /* no break within a TOKEN */
+   end                                    /* save spaces as d2c( 0 ) */
+   if M <> ''  then  say strip( translate( M, ' ', d2c( 0 )))
+   exit 0                                 /* users expect rc = 0     */
+
+FIRST:  procedure /* ----------------------------------------------- */
+   interpret 'VALUE =' arg( 1 ) || '.1()' /* get function.1() value  */
+   if VALUE == arg( 2 ) then  return ''   /* usual value, no message */
+   return TOKEN( arg( 1 ) VALUE )         /* found an unusual value  */
+
+TOKEN:  return ' ' space( arg( 1 ), 1, d2c( 0 ))

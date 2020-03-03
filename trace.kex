@@ -1,0 +1,221 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] TRACE [mac [args]]                      */
+/* Example:       TRACE TEST                 => debug TEST.KEX    */
+/*                TRACE TEST ME              => debug TEST ME     */
+/*                TRACE /+I TEST             => debug /+I TEST    */
+/*                TRACE HOME                 => debug key HOME    */
+/*                TRACE C-HOME               => debug key C-HOME  */
+/*                TRACE                      => ask for debug key */
+/* Option:        DEFine C-D 'macro TRACE'   => get a C-Debug key */
+/* Purpose:       manage DEBUGGING ON and DEBUGGING OFF,          */
+/*                manage DOS environment SET RXTRACE=ON and OFF,  */
+/*                manage DEFINE MACro and PURGE MACro if needed,  */
+/*                manage DEBUG START MACro and DEBUG STOP MACro,  */
+/*                and in between DEBUG MACro ARGS or wait for a   */
+/*                key MACro to be pressed.  The special trick is  */
+/*                to DEFINE (and later PURGE) the debugged macro  */
+/*                because this is the only way to debug a macro   */
+/*                calling itself recursively (e.g. KCOMPARE.KEX)  */
+/*                without modifying its code.                     */
+/* Details:       TRACE detects already DEFINEd macros, too often */
+/*                I forgot to PURGE (or reDEFINE) an edited macro */
+/*                and DEBUGged an obsolete in-memory version.     */
+/*                TRACE also detects a DEFINEd key and processes  */
+/*                keyboard input until the key is pressed.        */
+/* Caveats:    -  TRACE ALT cannot wait for a pressed ALT because */
+/*                READV KEY does not support this KeditW 1.0 key. */
+/*             -  TRACE of upper case characters requires prefix  */
+/*                S-x, SHIFT-x, or (in KeditW 1.0) S+x, SHIFT+x.  */
+/*             -  TRACE does not support blanks in MACro names,   */
+/*                jokes like TRACE .. for ...KEX (on HPFS) work.  */
+/* Requires:      Kedit 5.0 or Keditw 1.0, macro KEXPATH.KEX      */
+/*                                        (Frank Ellermann, 2008) */
+
+   'extract /DEBUGGING/LASTMSG'        ;  parse source . . TRACE
+   parse arg MAC ARG                   ;  OPT = ''
+   if MAC <> '/' & abbrev( MAC, '/' )  then  parse arg OPT MAC ARG
+
+   if MAC = '' then  do                /* ask for a key to debug: */
+      say 'press the key to debug'     ;  'readv key'
+      if rc <> 0  then  exit rc        ;  'nomsg msg' LASTMSG.1
+      if words( READV.1 ) > 1 then  call WARNING TRACE OPT READV.1
+      'macro' TRACE OPT READV.1        ;  exit rc
+   end                                 /* ----------------------- */
+
+   OPT = translate( substr( OPT, 2 ))  /* initial /-trace setting */
+   TMP = DEBUGSET( 'on', DEBUGGING.2 OPT )
+   if TMP <> 0    then  exit TMP       /* invalid /-trace setting */
+   TMP = debugging.3()                 /* confirm unusual setting */
+   if TMP <> OPT  then  do             /* (unless explicitly set) */
+      if GARLIC() then  do             /* no trace +A +R +L +I +C */
+         call WARNING 'debugging on' DEBUGGING.2 TMP
+      end                              /* +O and O are pointless, */
+   end                                 /* +E & +F not interactive */
+
+   if rexx.0() > 0 then do             /* external REXX processor */
+      OPT = dosenv( 'RXTRACE' )        ;  ENV = "'environment'"
+      if opsys.1() = 'OS/2'   then  ENV = "'os2environment'"
+      if length( OPT ) <> 2            /* if not ON or Quercus ?x */
+         then  "imm /**/ call value 'RXTRACE', 'ON'," ENV
+      ENV = "'RXTRACE', '" || OPT || "'," ENV
+   end                                 /* RXTRACE reset when DONE */
+
+   'nomsg debug start' MAC             /* rc = 0 if macro defined */
+
+   if rc = 0   then  do                /* defined, could be a key */
+      if ARG = '' then  KEY = MONKEYS( MAC )
+                  else  KEY = ''       /* ARG given, direct DEBUG */
+      if KEY = '' then  do
+         'dmsg debugging defined' MAC  ;  'nomsg msg' LASTMSG.1
+         'debug' MAC ARG               /* ARG given, or not a key */
+         exit DONE( 1, rc )            /* reset DEBUG environment */
+      end
+
+      'sos save'     ;  CMD = cmdline.3()
+      'nomsg mod macro' KEY            /* rc = 0: one liner macro */
+      if rc = 0   then  do             /* builtin key macros like */
+         'nomsg q macro' KEY           /* s-1 'text !' cannot be  */
+         'define' KEY lastmsg.1()      /* debugged without DEFine */
+      end
+      'cmsg' CMD     ;  'sos restore'  /* resets old command line */
+      'dmsg to debug key press' KEY    ;  'nomsg msg' LASTMSG.1
+      do until READV.1 = KEY | 'ALT' = KEY
+         'readv key' ;  'macro' READV.1
+      end                              /* wait for exit from KEY  */
+      exit DONE( 1, rc )               /* all defined macros done */
+   end                                 /* ----------------------- */
+
+   KEY = SEARCH( MAC )                 /* MACro.kex in MACROPATH, */
+   if KEY > '' then  'define' KEY      /* found: temporary DEFINE */
+   else  if length( MAC ) = 1 then  do /* not found: report alias */
+      AKA =                 '!@#$%^&*()<>?{|}+_":~'
+      AKA = translate( MAC, "1234567890,./[\]=-';`", AKA )
+      if MAC <> AKA        then  AKA = 's-' || AKA
+      if MAC << ' '        then  AKA = 'c-' || d2c( 64 + c2d( MAC ))
+      if MAC = d2c( 127 )  then  AKA = 'c-bksp' /* aka ^? in UNIX */
+      if MAC = d2c(   0 )  then  AKA = 'c-2'    /* aka ^@ KEYB US */
+      if MAC = d2c(   6 )  then  AKA = 'c-6'    /* aka ^^ KEYB US */
+      if MAC = d2c(  31 )  then  AKA = 'c--'    /* aka ^_ KEYB US */
+      if MAC = d2c(  32 )  then  AKA = 'space'  /* JFTR, not here */
+      if MAC <> AKA  then  do          /* too late to adjust MAC: */
+         'cmsg' TRACE strip( translate( AKA ) ARG )
+         exit DONE( 0, -1, 'Use' cmdline.3() 'for key' MAC )
+      end
+   end
+   if KEY = '' then  exit DONE( 0, -1, 'Macro not found:' MAC )
+
+   'nomsg msg' LASTMSG.1               /* restore last message    */
+   'debug' MAC ARG                     ;  exit DONE( 0, rc )
+
+DONE:                   /* --- resets MAC and DEBUGGING.1 at exit */
+   if rexx.0() > 0   then  "imm /**/ call trace 'O'; call value" ENV
+   if sign( wordpos( arg( 2 ), '94 95 97 98' )) | GARLIC()  then  do
+      'dmsg press any key to continue' ;  'readv key'
+   end                                 /* read last debug message */
+
+   TMP = DEBUGSET( DEBUGGING.1, DEBUGGING.2 DEBUGGING.3 )
+   if arg( 1 ) then  'debug stop' MAC  ;  else  'nomsg purge' MAC
+   if arg() = 2   then  say MAC ARG 'terminated (RC' arg( 2 ) || ')'
+                  else  'emsg' arg( 3 )
+   return arg( 2 )
+
+GARLIC:     return wordpos( debugging.3(), '+A +R +L +I +C' ) == 0
+
+DEBUGSET:   procedure   /* --- protect Kedit 5.00 cursor position */
+   K = ( 'KEDIT' = version.1())        ;  parse arg NEW, OPT
+   K = K & translate( NEW ) <> debugging.1()
+
+   if K then   if command()   then  'sos savecol cd'
+                              else  'cursor home'  /* to cmdline  */
+   'set debugging' NEW OPT             ;  NEW = rc
+   if K then   if command()   then  'cursor home'  /* adjust home */
+                              else  'sos tabcmd restorecol'
+   return NEW                          /* 0 or error (if bad OPT) */
+
+SEARCH:     procedure   /* --- search macro in whatever MACROPATH */
+   arg FILE             /* see also SEARCH procedure in KHELP.KEX */
+   if right( FILE, 4 ) <> '.KEX' then  FILE = FILE || '.KEX'
+   if translate( FILE ) = 'KEXPATH.KEX'   /* this might not work: */
+      then  call WARNING 'KEXPATH used to find KEXPATH.KEX'
+   if pos( '\', FILE ) > 0 | pos( ':', FILE ) = 2  then  do
+      LAST = lastpos( '\', FILE ) + 1  ;  if LAST = 1 then  LAST = 3
+      parse var FILE PATH =(LAST) FILE    /* split PATH from id.  */
+      'nomsg macro KEXPATH' delimit( FILE, PATH )
+      if rc = 0   then  return lastmsg.1() || FILE
+      if rc > 0   then  return WARNING( PATH || FILE 'not found' )
+      return WARNING( lastmsg.1() '- install required KEXPATH.KEX' )
+   end
+
+   'nomsg macro KEXPATH'               ;  PATH = directory.1()
+   if rc = 0   then  PATH = PATH || ';' || lastmsg.1()
+   if 0 <= rc  then  do
+      'nomsg macro KEXPATH' delimit( FILE, PATH )
+      if rc = 0   then  return lastmsg.1() || FILE
+                  else  return ''         /* no error, can be key */
+   end
+   return WARNING( lastmsg.1() '- install required KEXPATH.KEX' )
+
+WARNING:    procedure   /* --- support early exit 1 for bad macro */
+   parse upper source . . ALERT.2
+   ALERT.2 = ALERT.2 'warning: OK to continue anyway'
+   ALERT.1 = centre( arg( 1 ), max( 50, length( arg( 1 ))))
+   ALERT.0 = 'OKCANCEL DEFBUTTON 2'
+   'alert' delimit( ALERT.1 ) 'title' delimit( ALERT.2 ) ALERT.0
+   if ALERT.2 <> 'OK'   then  exit 1   ;  else  return ''
+
+/* -------------------------------------------------------------- */
+/* variant of a <http://purl.net/xyzzy/kex/kexpand.kex> procedure */
+
+MONKEYS:    procedure   /* --- return "classic" internal KEY name */
+   arg R             ;  WINKEYS = ( 'KEDIT' <> version.1())
+   ACS = 'ALT- CTRL- SHIFT-'           ;  X = right( R, 1 )
+   if WINKEYS  then  R = translate( R, '-', '+' )
+   R = overlay( X, R, length( R ))     ;  X = 'A- C- S-'
+   do until ACS = ''                      /* long to short prefix */
+      parse var ACS LONG ACS           ;  parse var R R (LONG) S
+      if S <> ''  then  R = R || left( LONG, 1 ) || '-' || S
+   end
+   if sign( wordpos( left( R, 2 ), X ))   then  parse var R ACS 3 R
+   if WINKEYS & ACS <> ''  then  do       /* move prefix into ACS */
+      if ACS <> 'C-' then  X = 'C-'    ;  else  X = 'A- S-'
+      if sign( wordpos( left( R, 2 ), X ))   then  do
+         if X = 'C-' then  ACS = ACS || 'C-'
+                     else  ACS = left( R, 2 ) || 'C-'
+         R = substr( R, 3 )               /* KeditW 1.0 READV KEY */
+      end                                 /* prefix A-C- or S-C-  */
+   end                                    /* -------------------- */
+   if wordpos( R, KEYNAME( 0 )) = 0 then  return ''
+   if ACS = '' then  do
+      if length( R ) > 1            then  return R
+      if datatype( R, 'M' ) = 0     then  return R
+      if datatype( arg( 1 ), 'L' )  then  return R
+                                    else  return ''
+   end                                    /* expect S- upper case */
+   X = 'ESC SPACE STAR'                   /* ACS prefix exclusion */
+   S = 'BKSP ENTER MINUS NUMENTER PLUS SLASH'
+   if WINKEYS  then  do                   /* C-0 ... C-9 C-= okay */
+      if ACS = 'C-' | ACS = 'S-C-'  then  X = X "' , . / ; `"
+      if ACS = 'A-' | ACS = 'A-C-'  then  X = 'ESC STAR'
+   end                                    /* A-SPACE or A-C-SPACE */
+   else  if ACS = 'C-'  then  X = X "0 1 3 4 5 7 8 9 ' , . / ; ` ="
+   if ACS = 'A-' | ACS = 'A-C-'     then  X = X 'CENTER TAB'
+   if ACS = 'A-' & WINKEYS = 0 & 1  then  X = 'SPACE CENTER'
+   if ACS = 'S-'                    then  X = X S
+   if sign( wordpos( R, X ))        then  return ''
+   return ACS || R      /* use & 1 above for Kedit 5 A-ESC, A-TAB */
+
+/* -------------------------------------------------------------- */
+/* procedure copied from <http://purl.net/xyzzy/kex/kexpand.kex>  */
+
+KEYNAME:    procedure   /* --- 0: all names, 1: letters (plural)  */
+   S =   'BKSP          CENTER         CURD           CURL        '
+   S = S 'CURR          CURU           DEL            END         '
+   S = S 'ENTER         ESC            HOME           INS         '
+   S = S 'MINUS         NUMENTER       PGDN           PGUP        '
+   S = S 'PLUS          SLASH          SPACE          STAR        '
+   S = S 'TAB  '     ;  if arg( 1 ) then  return space( S )
+   S = S 'F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12  0 1 2 3 4 5 6 7'
+   S = S '8 9 A B C D E F G H I J K L M N O P Q R S T U V W X Y Z'
+   S = S "' , - . / ; = [ \ ] `"       ;  return space( S )
+

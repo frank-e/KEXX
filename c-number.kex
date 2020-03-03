@@ -1,0 +1,25 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         DEFine macro C-N 'macro C-NUMBER'               */
+/* Purpose:       This macro is used internally by INITIAL.KML to */
+/*                minimize the macrospace size (DOS KEDIT 5 ISA). */
+/* C-M mnemonic:  C-Number, CouNt string length with the focus in */
+/*                a 'string' or "string" of the current line.     */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2010) */
+
+   parse source . . THIS   ;  C = curline.3()
+   if arg() = 0   then  do
+      'macro' THIS '"'     ;  O = ', focus' length( focusword.2())
+      M = rc
+      'macro' THIS "'"     ;  P = ', alpha' length( focusword.1())
+      N = rc               ;  Q = ', strip'
+      Q = Q length( strip( curline.3())) || ', length' length.1()
+      say 'strings: "' || M || '",' "'" || N || "'" || O || P || Q
+      exit
+   end
+   L = left( C, pos( arg( 1 ), C, column.1()))
+   if length( L ) = pos( arg( 1 ), L ) then  exit 0   ;  else  N = 0
+   do M = 1 to length( L ) - 1
+      if substr( L, length( L ) - M, 1 ) = arg( 1 )   then  exit N
+      N = N + 1
+   end

@@ -1,0 +1,325 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         MACRO COLOR [ [field] [setting] | * ]           */
+/* Option:        SYNonym COLOR MACRO COLOR                       */
+/* Examples:      MACRO COLOR a h            SET COLOR Alert High */
+/*                MACRO COLOR arrow blue     SET COLOR ARROW BLUe */
+/*                MACRO COLOR arrow          decode ARROW colour  */
+/*                MACRO COLOR red on white   decode RED ON WHITE  */
+/*                MACRO COLOR nob h b on m   decode NOB H B ON M  */
+/*                MACRO COLOR nob            show NOBlink formula */
+/*                MACRO COLOR 123            decode 0 <= x <= 255 */
+/*                MACRO COLOR *              decode 30 attributes */
+/*                MACRO COLOR default        decode 30 defaults   */
+/*                MACRO COLOR                set colour scheme    */
+/*                'macro' monitor.1()        profile use case     */
+/* History:       'macro' monitor.1()   selects automatically the */
+/*                best colour scheme in the DOS + OS/2 version of */
+/*                Kedit (i.e. MONO.KEX or COLOR.KEX).  For KeditW */
+/*                macro WINDOWS.KEX supports this old catch 22.   */
+/*                MONITOR COLOR and MACRO COLOR still work, but   */
+/*                are not designed for KeditW syntax COLORING.    */
+/* Modifiers:     The Kedit 5 and KeditW 1.0 colour names are not */
+/*                identical.  KeditW introduced the new modifier  */
+/*                DARK alias DK, in essence the same as "Nohigh". */
+/*                Excluding yellow Kedit 5 interprets unmodified  */
+/*                colour names as implicitly "Low" or "Nohigh".   */
+/*                KeditW interprets unmodified colour names as    */
+/*                implicitly "BRIght", "BOLD", "High", or "LIGHT" */
+/*                unless the colour is BLACK.                     */
+/*                Modifier    Alias       Effect                  */
+/*                   BRIght   BOLD LIGHT  High   [KeditW default] */
+/*                   DARK     DK          Nohigh [KeditW only]    */
+/*                   Low                  Nohigh [Kedit5 default] */
+/*                   High                 8 + x // 8 +16*(x % 16) */
+/*                   Nohigh                   x // 8 +16*(x % 16) */
+/*                   BLInking             x // 128 + 128          */
+/*                   NOBlink              x // 128                */
+/*                The High and Nohigh formulae are applicable for */
+/*                standalone and foreground uses.  In combination */
+/*                with backgrounds as in  COLOR field x ON HIGH y */
+/*                High and DARK work like BLInking and NOBlink.   */
+/*                Multiple modifiers as in COLOR ARROW N H L BOLD */
+/*                are allowed, for conflicting modifiers the last */
+/*                wins.  If MACRO COLOR is used as a "decoder" it */
+/*                reports the formulae only for single modifiers. */
+/*                The result for multiple modifiers without field */
+/*                or colour is misleading, it shows the effect on */
+/*                the actual COLOR ARROW plus multiple modifiers. */
+/* Compatibility: Kedit 5 does not accept any combinations using  */
+/*                'ON NOBlink', 'ON Nohigh', 'ON BLInking', and   */
+/*                'ON Low'.  Kedit 5 also does not support 'DARK' */
+/*                or 'DK' anywhere.  MACRO COLOR n  for a number  */
+/*                0 <= n <= 255 shows a non-numerical setting for */
+/*                Kedit 5.0 also supported by KeditW 1.0.         */
+/* Colours:       The somewhat unintuitive Kedit 5.0 colour names */
+/*                were significantly simplified in KeditW 1.0:    */
+/*                  OLD foreground    OLD background  NEW FG + BG */
+/*                 0 BLAck           0 BLAck              BLAck   */
+/*                 1 BLUe           16 BLUe          DARK BLUe    */
+/*                 2 Green          32 Green         DARK Green   */
+/*                 3 Cyan           48 Cyan          DARK Cyan    */
+/*                 4 Red            64 Red           DARK Red     */
+/*                 5 Magenta        80 Magenta       DARK Magenta */
+/*                 6 Brown          96 Brown         DARK Yellow  */
+/*                 7 White         112 White         DARK GRAy    */
+/*                 8 GRAy          128 BRIght BLAck       GRAy    */
+/*                 9 LIGHT BLUe    144 BRIght BLUe        BLUe    */
+/*                10 LIGHT Green   160 BRIght Green       Green   */
+/*                11 LIGHT Cyan    176 BRIght Cyan        Cyan    */
+/*                12 LIGHT Red     192 BRIght Red         Red     */
+/*                13 LIGHT Magenta 208 BRIght Magenta     Magenta */
+/*                14 Yellow        224 BRIght Brown       Yellow  */
+/*                15 BRIght White  240 BRIght White       White   */
+/* Caveats:       The KeditW scheme is simpler, but unfortunately */
+/*                also visually incompatible with the old scheme, */
+/*                GRAy and DARK GRAy numbers have to be swapped:  */
+/*                   OLD Foreground             NEW Foreground    */
+/*                     7 White            \/      8 GRAy          */
+/*                     8 GRAy             /\      7 DARK GRAy     */
+/*                   OLD Background             NEW Background    */
+/*                   112 White            \/    128 GRAy          */
+/*                   128 BLInking BLAck   /\    112 DARK GRAy     */
+/*                MACRO COLOR *  and  MACRO COLOR name  show both */
+/*                new and old ATTRibutes values if different.     */
+/*                To find a compatible non-numerical setting use  */
+/*                MACRO COLOR n  for numbers 0 <= n <= 255.       */
+/*                For Kedit 5 field 'a' is the minimal truncation */
+/*                of 'alert', but for KeditW 1.0. 'a' is 'arrow'. */
+/* Attributes:    12 attributes are not used for MONITOR WINDOWS, */
+/*                otherwise KeditW uses five "C...." attributes:  */
+/*                 2 Curline        (replaced by color currbox)   */
+/*                 4 Cblock         (replaced by color currbox)   */
+/*                13 Ctofeof        (replaced by color currbox)   */
+/*                16 Statarea       (status line color is fixed)  */
+/*                17 Divider        (n/a for Windows)             */
+/*                18 Scrollbar      (n/a for Windows scrollbars)  */
+/*                19 Sliders        (n/a for Windows scrollbars)  */
+/*                20 Mousebar       (n/a for the bottom toolbar)  */
+/*                22 Chighlight     (replaced by color currbox)   */
+/*                24 Cthighlight    (replaced by color currbox)   */
+/*                25 Dialog         (n/a for Windows message box) */
+/*                26 Alert          (n/a for Windows message box) */
+/*                Four attributes are only supported by KeditW    */
+/*                and not shown by MACRO COLOR * (or DEFAULT) in  */
+/*                Kedit 5.0 if its output fits into 26..30 lines: */
+/*                27 TOOLTIP        (toolbutton tooltip colour)   */
+/*                28 CURRBOX        (current line box foreground) */
+/*                29 BOUNDMARK      (boundary markers foreground) */
+/*                30 COLMARK        (  column markers foreground) */
+/* Related:       The Kedit 5.0 BORDER foreground colour uses the */
+/*                Kedit 5.0 colour names or numbers, interpreting */
+/*                BORDER 0 as "keep border as is".  The Kedit 5.0 */
+/*                KHELP.PRO-file uses the Kedit 5 colour numbers. */
+/* See also:      MONITOR.KEX, INITIAL.KEX, MONO.KEX, COLOR2.KEX, */
+/*                WINDOWS.KEX (for KeditW), KHELP COLOR           */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
+
+   if arg( 1 ) = ''  then  exit SCHEME()  /* set our COLOR scheme */
+   if arg( 1 ) = '*' then  exit CURRENT() /* decode 30 attributes */
+
+   C = 'BLInking BOLD BRIght DEFAULT High LIGHT Low NOBlink Nohigh'
+   if version.1() <> 'KEDIT'  then  C = C 'DARK DK'
+   R = MATCH( strip( arg( 1 )), C )       /* -------------------- */
+   if R <> ''  then  do                   /* decode a standalone  */
+      C = 'x // 8 + 16 * ( x % 16 )'      /* modifier or DEFAULTs */
+      if       R = 'DEFAULT'  then  exit DEFAULT()
+      else  if R = 'BLInking' then  C = 'x // 128 + 128'
+      else  if R = 'NOBlink'  then  C = 'x // 128'
+      else  if sign( wordpos( R, 'Low Nohigh' ))   then  nop
+      else  if sign( wordpos( R, 'DARK DK' )) = 0  then  C = '8 +' C
+      else                          C = C '[only KeditW]'
+      say 'COLOR field' R ' sets' C 'for a field with ATTRibute x'
+      exit 0
+   end                                    /* -------------------- */
+
+   'nomsg query color' word( arg( 1 ), 1 )
+   if rc <> 0  then  QUERY = arg( 1 )  ;  else  do
+      if words( arg( 1 )) > 1 then  do    /* set colour for field */
+         'color' arg( 1 )              ;  exit rc
+      end                                 /* -------------------- */
+      QUERY = subword( lastmsg.1(), 3 )   /* decode field colour  */
+   end                                    /* or the given colour: */
+
+   C = color.1( 'arrow' )              ;  'color arrow' QUERY
+   R = rc   ;  A = attributes.8()      ;  'color' C
+   if R <> 0   then  exit R               /* error for bad colour */
+
+   K = 'KEDIT'                         ;  C = COLOUR( A )
+   if version.1() = K   then  OTHER = 'KeditW'
+                        else  OTHER = 'Kedit5'
+   if A <> C            then  A = A '(' || OTHER C || ')'
+
+   if words( QUERY ) = 1   then  do       /* -------------------- */
+      C =   'BLAck BLUe Green Cyan Red Magenta Yellow White'
+      C = C 'Brown GRAy GREY NORmal REVerse Underline'
+      if datatype( QUERY, 'w' )  then  do /* translate the number */
+         R = QUERY                     ;  QUERY = 'ON'
+         if R < 128  then     NOB = 1  ;  else  do
+            R = R // 128   ;  NOB = 0  ;  QUERY = 'ON BRIght'
+         end                              /* use compatible names */
+         K = R // 16                   ;  R = ( R - K ) % 16
+         QUERY = QUERY word( C, R + 1 );  R = K // 8
+         if K < 8 then  QUERY = 'Low'  word( C, R + 1 ) QUERY
+                  else  QUERY = 'BOLD' word( C, R + 1 ) QUERY
+         if NOB   then  QUERY = 'NOBlink' QUERY
+      end                                 /* -------------------- */
+      else  do                            /* expand a colour name */
+         R = MATCH( strip( QUERY ), C )
+         if R <> ''  then  QUERY = R
+                     else 'emsg you found a bug in MACRO COLOR'
+         if R ='GREY'   then  A = A OTHER 'supports only GRAy'
+      end                                 /* -------------------- */
+   end
+   say '"' || QUERY || '" is' A        ;  exit 0
+
+MATCH:      procedure   /* --- find abbreviation in list of words */
+   DEBUG = debugging.1()               ;  'debugging off'
+   MATCH = MAT.H( arg( 1 ), arg( 2 ))  ;  'debugging' DEBUG
+   return MATCH                           /***** trusted code *****/
+MAT.H:      procedure   /* --- find abbreviation in list of words */
+   parse arg U, S                      ;  U = translate( U )
+   do while S <> ''
+      parse var S X S                  ;  T = translate( X )
+      if abbrev( T, U ) then  do
+         if datatype( substr( X, length( U ) + 1, 1 ), 'U' ) = 0
+            then  return X                /* else abbr. too short */
+      end                                 /* upper case indicates */
+   end                                    /* a minimal truncation */
+   return S
+
+DEFAULT:    procedure   /* --- decode MONITOR.1() default colours */
+   'nomsg query attributes'            ;  X = lastmsg.1()
+   'monitor' monitor.1()               ;  R = CURRENT()
+   'set' X                             ;  return R
+
+CURRENT:    procedure   /* --- decode 26 or 30 current attributes */
+   'extract /ATTRibutes/MSGLINE/LSCREEN'
+   S =   'Alert      arrow    block    BOUNDMARK  Cblock    COLMARK'
+   S = S 'Chighlight cmdline  Cthighlight Ctofeof Curline   CURRBOX'
+   S = S 'Dialog     Divider  filearea highlight  idline    msgline'
+   S = S 'Mousebar   pending  prefix   scale      Scrollbar shadow'
+   S = S 'Slider     Statarea tabline  thighlight tofeof    TOOLTIP'
+   K = ( 'KEDIT' <> version.1())       ;  OTHER = 'KeditW'
+   if K  then  do                         /* calibrate S+1 "msg": */
+      'win max frame'                  ;  'win max'
+      'msgline on 1' words( S )        ;  OTHER = 'Kedit5'
+   end
+   do W = 0 to 15 until 0 <= UNUSED       /* -------------------- */
+      UNUSED = W + 16 * W                 /* get an unused colour */
+      do J = 1 to ATTRIBUTES.0            /* pair for the scanner */
+         if ATTRIBUTES.J  <> UNUSED then  iterate
+         UNUSED = -1                   ;  leave
+      end                                 /* if all "X on X" used */
+   end                                    /* give up: fatal error */
+   if UNUSED < 0  then  return -3         /* -------------------- */
+   do W = 1 to words( S )
+      X = word( S, W )                 ;  R = 'color' left( X, 11 )
+      if datatype( X, 'U' ) <= K then  do
+         C = color.1( X )              ;  'color' X UNUSED
+         R = R 'sets ATTRibutes.'         /* scan all attributes  */
+         do J = 1 to ATTRIBUTES.0         /* to detect anomalies: */
+            interpret 'A = attributes.' || J || '()'
+            if A <> ATTRIBUTES.J then  do
+               R = R || left( J, 2 ) '=' right( ATTRIBUTES.J, 3 )
+               A = right( COLOUR( ATTRIBUTES.J ), 3 )
+               if A <> ATTRIBUTES.J
+                  then  R = R '(' || OTHER A || ')'
+                  else  R = R copies( ' ', 11 + K )
+            end
+         end
+         if datatype( X, 'L' ) + datatype( X, 'U' ) < K  then  do
+            if abbrev( X, 'C' )  then  R = R 'if MONITOR COLOR'
+                                 else  R = R 'unused'
+         end                              /* similar MONITOR MONO */
+         'color' C                     ;  say R
+      end
+      else  if words( S ) < LSCREEN.1 | LSCREEN.1 <= 26
+               then  say R 'unavailable in' version.1() version.2()
+   end                                    /* else use good fit 28 */
+   A = ''                                 /* and omit ATTR 27..30 */
+   say 'LASTMSG contains equivalent' OTHER 'attributes'
+   do J = 1 to 26                         /* 31 messages shown in */
+      A = A COLOUR( ATTRIBUTES.J )        /* KeditW scrolling box */
+   end                                    /* for MSGLINE ON 1 30. */
+   if K  then  do                         /* KeditW has no query  */
+      R = 0                               /* for the WIN setting: */
+      do while lscreen.1() <> LSCREEN.1 | lscreen.2() <> LSCREEN.2
+         R = R + 1                           /* 0: not MAX in MAX */
+         if R = 1 then  'win restore frame'  /* 1: MAX in RESTORE */
+         if R = 2 then  'win restore'        /* 2: RESTORE both   */
+         if R = 3 then  'win max frame'      /* 3: RESTORE in MAX */
+         if R = 3 then  'win restore'        /* 2 might satisfy 3 */
+         if R = 4 then  'emsg macro COLOR cannot restore LSCREEN'
+         if R = 4 then  leave             /* this must not happen */
+      end
+      'msgline' MSGLINE.1 MSGLINE.2 MSGLINE.3 MSGLINE.4
+   end
+   else  A = A 224 246 248 248            /* add 4 KeditW dummies */
+   'nomsg msg attributes' || A         ;  return 0
+
+COLOUR:     procedure   /* --- swap GRAY and DARK GRAY numbers in */
+   arg C                         /* attribute for the other Kedit */
+   if       112 <= C & C < 128   then  C = C + 16
+   else if  128 <= C & C < 144   then  C = C - 16
+   if       C // 16 = 7          then  C = C + 1
+   else if  C // 16 = 8          then  C = C - 1
+   return C
+
+KEDITW:     procedure   /* --- use the numerical Kedit 5.0 scheme */
+   S =   '128 240 185 160 240  31  79 143 143 176  31 143  31'
+   S = S ' 31 143  31  31  63  63  63 137 185 160 128  31  79'
+   'set coloring off'   ;  'set attributes' S 224 246 248 248
+   return rc                     /* ...syntax COLORING won't work */
+
+SCHEME:     procedure   /* --- use the new (2006) Kedit 5 scheme  */
+   'MONITOR color'               /* MONITOR resets Kedit defaults */
+   if version.1() <> 'KEDIT'  then  return KEDITW()
+   'BLINK   off'                 /* allow INTENS globally */
+   'BORDER  48'                  /* corresponds to BGLINE */
+
+   FGEDIT = 'black on'           /* foreground input area */
+   FGHIGH = 'bold blue on'       /* foreground input tags */
+   BGLINE = 'cyan'               /* background input line */
+   BGEDIT = 'white'              /* background input area */
+   INTENS = 'blinking'           /* background bold */
+
+   'COLOR Filearea'           FGEDIT BGEDIT  /* attributes.1  112 */
+   'COLOR Cthighlight'        FGEDIT BGEDIT  /* attributes.24 112 */
+   'COLOR Highlight'          FGHIGH BGEDIT  /* attributes.21 121 */
+   'COLOR Cblock'      INTENS FGEDIT 'green' /* attributes.4  160 */
+   'COLOR Thighlight'  INTENS FGEDIT 'green' /* attributes.23 160 */
+   'COLOR Pending'     INTENS FGEDIT BGLINE  /* attributes.10 176 */
+   'COLOR Block'       INTENS FGHIGH BGLINE  /* attributes.3  185 */
+   'COLOR Chighlight'  INTENS FGHIGH BGLINE  /* attributes.22 185 */
+   'COLOR Curline'     INTENS FGEDIT BGEDIT  /* attributes.2  240 */
+   'COLOR Cmdline'     INTENS FGEDIT BGEDIT  /* attributes.5  240 */
+
+   FGINFO = 'bold white on'      /* foreground other area */
+   BGINFO = 'blue'               /* background info areas */
+   ALERT  = FGINFO 'red'         /* messages */
+   STATUS = FGINFO BGINFO        /* status area */
+   HELPER = FGINFO BGEDIT        /* misc. info  */
+   MOUSE  = FGINFO BGLINE        /* mouse areas */
+
+   'COLOR Idline'    STATUS                  /* attributes.6   31 */
+   'COLOR Scale'     STATUS                  /* attributes.11  31 */
+   'COLOR Ctofeof'   STATUS                  /* attributes.13  31 */
+   'COLOR Tabline'   STATUS                  /* attributes.14  31 */
+   'COLOR Statarea'  STATUS                  /* attributes.16  31 */
+   'COLOR Divider'   STATUS                  /* attributes.17  31 */
+   'COLOR Dialog'    STATUS                  /* attributes.25  31 */
+
+   'COLOR Arrow'     HELPER                  /* attributes.8  127 */
+   'COLOR Prefix'    HELPER                  /* attributes.9  127 */
+   'COLOR Tofeof'    HELPER                  /* attributes.12 127 */
+   'COLOR Shadow'    HELPER                  /* attributes.15 127 */
+
+   'COLOR Scrollbar' MOUSE                   /* attributes.18  63 */
+   'COLOR Slider'    MOUSE                   /* attributes.19  63 */
+   'COLOR Mousebar'  MOUSE                   /* attributes.20  63 */
+
+   'COLOR Msgline'   ALERT                   /* attributes.7   79 */
+   'COLOR Alert'     ALERT                   /* attributes.26  79 */
+   return 0
+
