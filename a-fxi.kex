@@ -1,0 +1,36 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         DEFine macro A-F11 'macro A-FXI'                */
+/* Purpose:       This macro is used internally by INITIAL.KML to */
+/*                minimize the macrospace size (DOS KEDIT 5 ISA). */
+/* A-F11 comment: (try to) toggle 25/28/43/22 lines               */
+/*                The MODE command depends on the DOS version,    */
+/*                5.00 is supposed to be W2K (Windows NT 5.00).   */
+/*                22 lines is a W2K feature, the cursor ends up   */
+/*                in an "improper position" (Kedit 5 error 38).   */
+/*                Ignore the 'cursor home' hack for Kedit 5 D1,   */
+/*                it works to some degree for 25 28 43 50 lines.  */
+/* Requires:      <http://purl.net/xyzzy/kex/cursorsh.kex>,       */
+/*                Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2010) */
+
+   if version.1() = 'KEDIT'   then  do
+      R = pscreen.1()   ;  C = 25 28 43
+      if opsys.1() = 'DOS' & opsys.2() = '5.0'
+         then  C = C 22 ;  else C = C 50 25
+      'cursor column'   ;  'cursor home'     ;  'cursor home'
+      do N = 1 to words( C ) - 1
+         if R <= word( C, N ) then  do
+            L = word( C, N + 1 )
+            if L = 22   then  do
+               'dosq mode con lines=' || L
+               'pscreen' L 'preset'
+            end
+            else  'pscreen' L 'reset'
+            if rc = 0   then  leave
+         end
+      end
+      'cursor home'     ;  'cursor home'     ;  'cursor home'
+      'macro cursorsh'  ;  'query pscreen'   ;  exit
+   end
+   R = lscreen.1()   ;  C = lscreen.2()      ;  'win max'
+   if lscreen.1() = R & lscreen.2() = C   then  'win restore'

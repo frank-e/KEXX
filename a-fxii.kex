@@ -1,0 +1,56 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         DEFine macro A-F12 'macro A-FXII'               */
+/* Purpose:       This macro is used internally by INITIAL.KML to */
+/*                minimize the macrospace size (DOS KEDIT 5 ISA). */
+/* A-F12 comment: toggle hex., binary, and the normal defprof.1() */
+/*                views.  REPROF OFF ignored, if your defprof.1() */
+/*                works only for initialization fix it like this: */
+/*                   IF initial() = 0 THEN EXIT                   */
+/* See also:      BINARY, HEXA, HEXE, and UNIX.KEX explain how to */
+/*                preserve the position in different views as far */
+/*                as KEDIT supports this.                         */
+/* Requires:      <http://purl.net/xyzzy/kex/binary.kex>,         */
+/*                <http://purl.net/xyzzy/kex/hexa.kex>,           */
+/*                <http://purl.net/xyzzy/kex/hexe.kex>,           */
+/*                Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2010) */
+
+   parse source . . THIS
+   if arg() = 0   then  do
+      if eolout.1() = 'NONE'  then  do
+         if       lrecl.1() = 24 then  'macro hexa'
+         else  if lrecl.1() > 32 then  'macro hexe'
+         else  'macro' THIS defprofile.1()
+      end
+      else     'macro binary'
+      exit rc
+   end
+   'extract /FEXT/FILEID'
+   if dir() | alt()  then  do
+      'emsg save' FILEID.1 'first, this file has to be reloaded'
+      'cmsg save'                      ;  exit 12
+   end
+   if FEXT.1 = 'BAK' then  'fext TMP'  ;  else  'fext BAK'
+   if rc <> 0        then  exit rc     ;  FILEID.0 = fileid.1()
+   Q = eolout.1() <> 'NONE'         /* text EOL at length.1() + 1 */
+   Q = max( 0, -1 + min( column.1(), Q + length.1()))
+   R = max( 0, -1 + min(   line.1(),       size.1()))
+   if eolout.1() = 'NONE'           /* position or binary offset, */
+      then Q = R * lrecl.1() + Q    /* binary offsets start at 0, */
+      else Q = ( R + 1 ) ( Q + 1 )  /* but positions start at 1 1 */
+
+   'kedit "' || FILEID.1 || '" (PROFile' arg( 1 ) || ')'
+   if rc <> 0  then  do
+      R = rc      ;  'fext' FEXT.2     ;  exit R
+   end
+   'kedit "' || FILEID.0 || '" (NEW)'  ;  'quit'
+   'kedit "' || FILEID.1 || '" (NEW)'  ;  'locate :1'
+   if datatype( Q, 'w' )   then  do
+      do until Q < 0 | rc <> 0
+         R = length.1() + 2 - ( 'CRLF' <> eolout.1())
+         Q = Q - R                     ;  'next'
+      end
+      Q = ( line.1() - 1 ) ( Q + R + 1 )
+   end
+   'locate :' || word( Q, 1 ) 'clocate :' || word( Q, 2 )
+   exit 0
