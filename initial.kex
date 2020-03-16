@@ -135,6 +135,8 @@
       'autocolor .REXG REXX'     /* ooRexx GUI                    */
       'autocolor .REXP REXX'     /* ooRexx RexxPaws               */
       'autocolor .REXX REXX'     /* Regina                        */
+      'autocolor .THE  REXX'     /* THE macro, same idea as .KEX  */
+      'autocolor .TLD  kLD'      /* THE Language Definition       */
       rc = Q( 'parser BATCH BATCH.KLD' )
       if rc = 0   then  do
          'autocolor .BAT BATCH'  /* ignore few PC DOS 7 REXX .bat */
