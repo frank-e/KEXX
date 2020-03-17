@@ -37,17 +37,18 @@
 /*                does not work, RxHelp uses BROWSER = 'FIREFOX'  */
 /*                in these cases.  Replace FIREFOX by the browser */
 /*                normally used to 'start' URLs, e.g., IEXPLORE.  */
-/* ToDo:          ooREXX 4.1.x HTML books                         */
 /* Updated 2012:  KeditW 1.6.1 returns full names in opsys.1(),   */
 /*                e.g., "WINDOWS 7" instead of "WINDOWS".  This   */
 /*                script assumes that opsys.2() = 7 is only used  */
 /*                for DOS, this will fail miserably for Win NT 7. */
 /* Updated 2017:  Clearer ooRexx 6.0.4 reference manual entries.  */
+/* Updated 2020:  Added ooRexx 4.2 chapter 11 condition keywords. */
 /* Requires:      HELPMSG.EXE if running under OS/2 or MDOS       */
 /*                DOSREXX.INF if running under PC DOS 7.x         */
-/*                ooREXX 4.01 HTML  if running under NT or NTVDM, */
-/*                FIREFOX for file:///somewhere/file.htm#fragment */
-/* Requires:      Kedit 5.0 or KeditW 1.x (Frank Ellermann, 2011) */
+/*                ooREXX 4.2.0 HTML if running under NT or NTVDM, */
+/*                with "startable" file:///some/file.htm#fragment */
+/*                URLs on Windows NT, see procedure BROWSE below. */
+/* Requires:      Kedit 5.0 or KeditW 1.x (Frank Ellermann, 2020) */
 
    TOPIC = space( arg( 1 ))      ;  VER = 20          /* OS/2 2.x */
    if TOPIC = '' & command() = 0 then  TOPIC = focusword.1()
@@ -133,6 +134,11 @@ OOREXX:  procedure                  /* -------------------------- */
       then  return BROWSE( URL || 'instrc.html#keyAddress' )
    if N > 1
       then  return BROWSE( URL || 'key' || word( T, N ) || '.html' )
+
+   T =   'ANY ERROR FAILURE HALT LOSTDIGITS NOMETHOD NOSTRING'
+   T = T 'NOTREADY NOVALUE ON OFF SYNTAX USER'
+   N = wordpos( TOPIC, translate( T ))
+   if N > 0 then  return BROWSE( URL || 'condtra.html' )
 
    T.1   = '::ATTRIBUTE  dire.html#attrd'
    T.2   = '::CLASS      clasdi.html'
