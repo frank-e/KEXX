@@ -129,11 +129,15 @@ REGUTIL: procedure               /* Not needed for ooRexx > 6.03  */
 /* condition ERROR() ends with exit 1.                            */
 
 PERROR:  return sign( ERROUT( arg( 1 ) || x2c( 0D0A )))
-ERROUT:  procedure               /* Kedit KEXX 5.xy not supported */
-   parse version . V .           ;  signal off notready
-   if 6 <= V & V < 7 then  return charout( 'STDERR:'  , arg( 1 ))
-   if V == 5.00      then  return charout( '<STDERR>' , arg( 1 ))
-   return charout( '/dev/con', arg( 1 ))              /* Quercus  */
+ERROUT:  procedure
+   parse version S V .           ;  signal off notready
+   select
+      when  6 <= V & V < 7 then  S = 'STDERR:'        /* (o)oRexx */
+      when  S == 'REXXSAA' then  S = 'STDERR:'        /* IBM Rexx */
+      when  V == 5.00      then  S = '<STDERR>'       /* Regina   */
+      otherwise                  S = '/dev/con'       /* Quercus  */
+   end                           /* Kedit KEXX 5.xy not supported */
+   return charout( S, arg( 1 ))
 
 ERROR:                           /* trace off, save result + sigl */
    ERROR.3 = trace( 'o' )        ;  ERROR.1 = value( 'result' )
