@@ -42,7 +42,8 @@
 /*                script assumes that opsys.2() = 7 is only used  */
 /*                for DOS, this will fail miserably for Win NT 7. */
 /* Updated 2017:  Clearer ooRexx 6.0.4 reference manual entries.  */
-/* Updated 2020:  Added ooRexx 4.2 chapter 11 condition keywords. */
+/* Updated 2020:  Added ooRexx 4.2 chapter 11 condition keywords, */
+/*                fixed lookup of :: and . topics (no operators). */
 /* Requires:      HELPMSG.EXE if running under OS/2 or MDOS       */
 /*                DOSREXX.INF if running under PC DOS 7.x         */
 /*                ooREXX 4.2.0 HTML if running under NT or NTVDM, */
@@ -64,7 +65,6 @@ OOREXX:  procedure                  /* -------------------------- */
    arg TOPIC                        ;  parse source . . SRC
 
    URL = 'file:///C:/etc/bin/Rexx/ooREXX%204.2.0/rexxref/'
-   if TOPIC <= '@'   then  return BROWSE( URL || 'ix01.html' )
 
    T =   'Abbrev Abs Address Arg B2x Beep Bitand Bitor'
    T = T 'Bitxor C2d C2x Center Changestr Charin Charout'
@@ -176,6 +176,7 @@ OOREXX:  procedure                  /* -------------------------- */
          then  return BROWSE( URL || word( T.N, 2 ))
    end N
 
+   if TOPIC <= '@'   then  return BROWSE( URL || 'ix01.html' )
    'emsg' SRC 'knows no "' || TOPIC || '" for' URL
    return 4
 
