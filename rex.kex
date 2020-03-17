@@ -74,6 +74,22 @@ DIRTREE:                         /* return number of found files: */
       then  return value( DIRTREE.. || 0 )
       else  exit ERROR( 'SysFileTree failed near line' sigl )
 
+/* ----------------------------- (wrap address SYSTEM 2020-03-17) */
+/* Regina uses an intuitive address SYSTEM for internal commands, */
+/* redirections, and pipes.  Regina uses address CMD for external */
+/* commands, roughly that is an address SYSTEM 'start ... /WAIT'. */
+/* An ooRexx address CMD corresponds to Regina address SYSTEM, on */
+/* Windows ooRexx RexxUtil has RxWinExec() for external commands. */
+
+SYSTEM:  procedure expose rc
+   parse version S V .           ;  call on FAILURE   name ERROR
+   if ( V == 5.00 ) | ( 6 <= V & V < 7 )  then  do
+      if V = 5 then  address SYSTEM arg( 1 )          /* Regina   */
+               else  address CMD    arg( 1 )          /* (o)oRexx */
+      return .RS < 0                                  /* 1: fail  */
+   end                           /* Kedit KEXX 5.xy not supported */
+   exit ERROR( 'Please edit procedure SYSTEM() for' S V )
+
 /* ----------------------------- (RXQUEUE portability 2020-03-14) */
 /* ooRexx 6.04 does not yet support ADDRESS ... WITH, otherwise   */
 /* the same syntax could get the command output in a REXX stem    */
@@ -113,15 +129,11 @@ REGUTIL: procedure               /* Not needed for ooRexx > 6.03  */
 /* condition ERROR() ends with exit 1.                            */
 
 PERROR:  return sign( ERROUT( arg( 1 ) || x2c( 0D0A )))
-ERROUT:  procedure
-   parse version S V .           ;  signal off notready
-   select
-      when  6 <= V & V < 7 then  S = 'STDERR:'        /* (o)oRexx */
-      when  S == 'REXXSAA' then  S = 'STDERR:'        /* IBM Rexx */
-      when  V == 5.00      then  S = '<STDERR>'       /* Regina   */
-      otherwise                  S = '/dev/con'       /* Quercus  */
-   end                           /* Kedit KEXX 5.xy not supported */
-   return charout( S, arg( 1 ))
+ERROUT:  procedure               /* Kedit KEXX 5.xy not supported */
+   parse version . V .           ;  signal off notready
+   if 6 <= V & V < 7 then  return charout( 'STDERR:'  , arg( 1 ))
+   if V == 5.00      then  return charout( '<STDERR>' , arg( 1 ))
+   return charout( '/dev/con', arg( 1 ))              /* Quercus  */
 
 ERROR:                           /* trace off, save result + sigl */
    ERROR.3 = trace( 'o' )        ;  ERROR.1 = value( 'result' )
