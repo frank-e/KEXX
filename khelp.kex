@@ -30,14 +30,14 @@
 /*                INITIAL.KML with comments above the definition  */
 /*                not shown by a QUERY MACRO, MACROS, or DEFINE.  */
 /* See also:      <URL:http://purl.net/xyzzy/xedit.htm>           */
-/*                <URL:http://purl.net/xyzzy/kex/kex.kex>         */
-/*                <URL:http://purl.net/xyzzy/kex/kexpand.kex>     */
-/*                <URL:http://purl.net/xyzzy/kex/kexpath.kex>     */
+/*                Macros kex.kex, kexpand.kex, and kexpath.kex in */
+/*                <URL:https://github.com/frank-e/KEXX>           */
+/*                2011-11-14 kex.kex, kexpand.kex, kexpath.kex in */
+/*                <URL:http://purl.net/xyzzy/kex/index.html>      */
 /* Requires:      macros KEXPAND.KEX and KEXPATH.KEX              */
 /*                Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2008) */
 /*                KeditW32 1.6 (work in progress, 1.5 not tested) */
 
-/* BASE           insert <base href="URL" /> in local XHTML copy  */
 /* BINARY         edit binaries using LRECL based on window width */
 /* BOX            draw BOXes (9 styles, use keypad or box block)  */
 /* BOXFILL        fill marked box (sample macro)                  */
@@ -63,7 +63,6 @@
 /* HEX          * show visible ASCII char.s (overload SET HEX)    */
 /* HEXA           hex. editor (like HEXE but using current MODE)  */
 /* HEXE           hex. editor (show and maybe even patch binary)  */
-/* HREF           convert URL (focus word) to dummy XHTML link    */
 /* HTM            edit *.htm or *.html in homepage directory      */
 /* INISAVE      * INIUTIL CONVERT SETTINGS if no argument given   */
 /* INISET         saved INIUTIL CONVERT SETTINGS output as backup */
@@ -99,8 +98,6 @@
 /* Query operand  expands operand for KHELP QUERY/EXTRACT operand */
 /* QX             simplified XQ.KEX and RELOAD.KEX samples macros */
 /* RANGE        * support RANGE ALL in addition to RANGE BLOCK    */
-/* REXX           edit REXX script or copy REXXTRAP.CMD stuff     */
-/* REXXTRAP       update REXXTRAP.CMD functions in *.CMD scripts  */
 /* RING         * DIR currently edited files TAGging modified     */
 /* RW             force write access on edited read-only file     */
 /* RXHELP         REXX context help (OS/2, MDOS, PC DOS 7, PREXX) */
@@ -115,18 +112,14 @@
 /* TIME         * show elapsed time for specified command         */
 /* TRACE        * DEBUG manager (keys, debugging, RXTRACE, etc.)  */
 /* TREE           corrected sample supporting long and HPFS id.s  */
-/* UNBLANK        get rid of blank lines with even line numbers   */
-/* UNESCAPE       experimental: JavaScript decoder                */
 /* UNIX           raw text mode based on EOLIN LF etc. settings   */
 /* UNTITLED       shorthand / emulation of KeditW 'x (untitled)'  */
 /* UTF            hex. UTF-32 or UTF-16 to hex. UTF-8 and UTF-16  */
-/* VI             Windows:  Kedit 8+3 file name of long file name */
 /* WINDOWS        KeditW: could be called by  'macro' monitor.1() */
 /* WINHELP      * DIR.DIR list *.HLP for KeditW command WINHELP   */
 /* WINK           status of ?-C-keys, or map A-C-keys to A-keys   */
 /* WMSG         * emulates KeditW 1.0 command WMSG with a DIALOG  */
 /* WO             locate word in any edited file (uses LOCUS.kex) */
-/* X-WIKI         profile for text/x-wiki translates UTF-8 to NCR */
 /* XD             update file listing, can be used in makefiles   */
 /* XDIR           MANYFILE clone (corrected)                      */
 /* XHTML          convert plain text (codepage 850) to XHTML 1.0  */
@@ -136,7 +129,6 @@
 /* XPM            check, simplify, or convert XPM2 & XPM3 images  */
 /* XTREE          DIR all subdirecories TAGging empty directories */
 /* XX             XEDIT file with name completion (DIR ambiguous) */
-/* ZIP            edit preselected files (e.g. here: ZIP manuals) */
 /* ZOO            absolute ZOne Offset navigation, e.g., binaries */
 /* ::             INITIAL.KML header                              */
 /* :              accelerate KHELP TARGETS                        */
@@ -161,40 +153,36 @@
 /* -X same as +X, but there is also an entry in the Kedit manual  */
 /*  0 temporarily disabled or reserved topics result in a WARNING */
 
-   S =   space( '+5 ::           +1 BASE         +1 BINARY       ' )
-   S = S space( '+1 BOX          +3 BOXFILL      +1 CDD          ' )
-   S = S space( '+1 CDEFG        +1 CHANGES      +1 CLIPS        ' )
-   S = S space( '-1 CMATCH       -1 COLOR        +4 COLOR2       ' )
-   S = S space( '+1 COUNTS       -1 CURSORSH     +5 DAY          ' )
-   S = S space( '-1 DELIMIT      -1 DO           +5 DOSX         ' )
-   S = S space( '+1 EURO         -1 EX           -1 EXTRACT      ' )
-   S = S space( '+1 FEATURES     -1 FMODE        -1 HEX          ' )
-   S = S space( '+1 HEXA         +1 HEXE         +1 HTM          ' )
-   S = S space( '-1 INISAVE      +4 INISET       -1 INITIAL      ' )
-   S = S space( '+1 INT          +1 KC           +1 KEX          ' )
-   S = S space( '+1 KEXPAND      +1 KEXPATH      +1 KEYDIFF      ' )
-   S = S space( '+1 KEYMAP       -1 KHELP        +1 KHELPADD     ' )
-   S = S space( '+9 KTAGS        -1 LASTKEY      -5 LASTMSG      ' )
-   S = S space( '-1 LASTRC       +1 LESSMORE     +1 LOCUS        ' )
-   S = S space( '+1 LONGEST      -3 MEMORY       -1 MONITOR      ' )
-   S = S space( '+1 MONO         -1 MSGLINE      +1 MUSTARD      ' )
-   S = S space( '+5 NAME         +1 NBSP         +1 NETSCAPE     ' )
-   S = S space( '+6 OEMKEY       -1 PARSER       -3 PROFILE      ' )
-   S = S space( '+1 QX           -1 RANGE        -1 REXX         ' )
-   S = S space( '+1 REXXTRAP     -1 RING         +1 RW           ' )
+   S =   space( '+5 ::           +1 BINARY       +1 BOX          ' )
+   S = S space( '+3 BOXFILL      +1 CDD          +1 CDEFG        ' )
+   S = S space( '+1 CHANGES      +1 CLIPS        -1 CMATCH       ' )
+   S = S space( '-1 COLOR        +4 COLOR2       +1 COUNTS       ' )
+   S = S space( '-1 CURSORSH     +5 DAY          -1 DELIMIT      ' )
+   S = S space( '-1 DO           +5 DOSX         +1 EURO         ' )
+   S = S space( '-1 EX           -1 EXTRACT      +1 FEATURES     ' )
+   S = S space( '-1 FMODE        -1 HEX          +1 HEXA         ' )
+   S = S space( '+1 HEXE         +1 HTM          -1 INISAVE      ' )
+   S = S space( '+4 INISET       -1 INITIAL      +1 INT          ' )
+   S = S space( '+1 KC           +1 KEX          +1 KEXPAND      ' )
+   S = S space( '+1 KEXPATH      +1 KEYDIFF      +1 KEYMAP       ' )
+   S = S space( '-1 KHELP        +1 KHELPADD     +9 KTAGS        ' )
+   S = S space( '-1 LASTKEY      -5 LASTMSG      -1 LASTRC       ' )
+   S = S space( '+1 LESSMORE     +1 LOCUS        +1 LONGEST      ' )
+   S = S space( '-3 MEMORY       -1 MONITOR      +1 MONO         ' )
+   S = S space( '-1 MSGLINE      +1 MUSTARD      +5 NAME         ' )
+   S = S space( '+1 NBSP         +1 NETSCAPE     +6 OEMKEY       ' )
+   S = S space( '-1 PARSER       -3 PROFILE      +1 QX           ' )
+   S = S space( '-1 RANGE        -1 RING         +1 RW           ' )
    S = S space( '+1 RXHELP       +4 S-STAR       -5 SAY          ' )
    S = S space( '+3 SEQBOX       +5 START        -1 STATUS       ' )
    S = S space( '+1 TALL         -1 TIME         -1 TRACE        ' )
-   S = S space( '+1 TREE         +1 UNBLANK      +1 UNESCAPE     ' )
-   S = S space( '+1 UNIX         +5 UNTITLED     +1 UTF          ' )
-   S = S space( '+1 VI           +1 WINDOWS      -1 WINHELP      ' )
+   S = S space( '+1 TREE         +1 UNIX         +5 UNTITLED     ' )
+   S = S space( '+1 UTF          +1 WINDOWS      -1 WINHELP      ' )
    S = S space( '+1 WINK         -1 WMSG         +5 WO           ' )
-   S = S space( '+1 X-WIKI       +1 XD           +1 XDIR         ' )
-   S = S space( '+1 XHTML        +5 XID          +1 XLAT         ' )
-   S = S space( '+1 XMLCHECK     +1 XPM          +1 XTREE        ' )
-   S = S space( '+1 XX           +1 ZIP          +1 ZOO          ' )
-   S = S space( ' 0 [TEST]                                       ' )
-
+   S = S space( '+1 XD           +1 XDIR         +1 XHTML        ' )
+   S = S space( '+5 XID          +1 XLAT         +1 XMLCHECK     ' )
+   S = S space( '+1 XPM          +1 XTREE        +1 XX           ' )
+   S = S space( '+1 ZOO           0 [TEST]                       ' )
 
    X = translate( space( arg( 1 )))    ;  N = 0
    if datatype( X, 'W' ) = 0  then  N = wordpos( X, S ) - 1
