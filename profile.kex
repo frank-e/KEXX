@@ -11,7 +11,7 @@ if datatype( INITIAL.0, 'w' ) then  do N = 1 to INITIAL.0
    'set' INITIAL.N   ;  if rc <> 0  then  exit rc
 end
 
-do ;  if TYPE( 'LUA' ) | REXX()  then  do
+do ;  if TYPE( 'LUA MD' ) | REXX()  then  do
       'eolout lf'    ;  'tabs incr 3'
    end                        /* UNIX lineends, EOF = LF */
 else  if TYPE( 'ASM INC S SH NMK DIFF' ) | FCIV()  then  do
