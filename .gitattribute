@@ -1,8 +1,11 @@
-*.kex text eol=lf linguist-language=REXX
-*.kml text eol=lf linguist-language=REXX
-*.kld text eol=lf
-*.md  text eol=lf
-*.pro text eol=crlf
-*.rex text eol=lf
-*.wh  text eol=lf
+*.kex  text eol=lf linguist-language=REXX
+*.kml  text eol=lf linguist-language=REXX
+*.kld  text eol=lf
+*.rex  text eol=lf
+*.cmd  text eol=crlf
+*.pro  text eol=crlf
+*.wh   text eol=lf
+*.htm  text eol=lf
+*.html text eol=lf
+*.md   text eol=lf
 *.zip -text

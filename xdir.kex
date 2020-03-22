@@ -2,16 +2,18 @@
 
 /* Usage:      [macro] XDIR [filespecs]                              */
 /* Example:    XDIR *.CMD C:\*.CMD                                   */
+/*             XDIR *.rex*          (.rex, .rexh, .rexp, .rexx, ...) */
 /* History:    This version is based on MANYFILE.KEX 5.0 (May 1992). */
 /*    1998:    Corrected "do -1" error if the Kedit ring is already  */
 /*             full.  Skip matching files already in the Kedit ring. */
 /*             Support blanks in file names and paths (like DIR).    */
 /*    2002:    Show last error message in alert box (e.g. an invalid */
 /*             HPFS fileid caused by insufficient DIRFORMat limits). */
+/*    2020:    Added KeditW32, KeditW 1.0 not tested.                */
 /* See also:   KHELP DIRFORM, KHELP RING, KHELP NBFILE, KHELP MEMORY */
-/* Requires:   Kedit 5.0                     (Frank Ellermann, 2002) */
+/* Requires:   Kedit 5.0 or KeditW32 1.6.x   (Frank Ellermann, 2020) */
 
-/* XDIR adds all matching files to the Kedit ring, i.e. edits them.  */
+/* XDIR adds all matching files to the Kedit ring, i.e., edits them. */
 /* Specify files in the same way as for Kedit's DIR command, without */
 /* given files all files in the current directory are added.         */
 
