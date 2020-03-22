@@ -1,0 +1,2247 @@
+abort		whelp clib abort
+abs		whelp clib abs
+access		whelp clib "access, _access, _waccess"
+_access		whelp clib "access, _access, _waccess"
+acos		whelp clib acos
+acosh		whelp clib acosh
+alloca		whelp clib alloca
+_amblksiz		whelp clib "Global Data"
+_arc_w		whelp clib "_arc, _arc_w, _arc_wxy"
+_arc_wxy		whelp clib "_arc, _arc_w, _arc_wxy"
+_arc		whelp clib "_arc, _arc_w, _arc_wxy"
+__argc		whelp clib "Global Data"
+__argv		whelp clib "Global Data"
+asctime		whelp clib "asctime Functions"
+_asctime		whelp clib "asctime Functions"
+asin		whelp clib asin
+asinh		whelp clib asinh
+assert		whelp clib assert
+atan		whelp clib atan
+atan2		whelp clib atan2
+atanh		whelp clib atanh
+atexit		whelp clib atexit
+atof		whelp clib "atof, _wtof"
+atoi		whelp clib "atoi, _wtoi"
+atol		whelp clib "atol, _wtol"
+_atouni		whelp clib _atouni
+_bcalloc		whelp clib "calloc Functions"
+bcmp		whelp clib bcmp
+bcopy		whelp clib bcopy
+bdos		whelp clib bdos
+_beginthread		whelp clib _beginthread
+_bexpand		whelp clib "_expand Functions"
+_bfree		whelp clib "free Functions"
+_bfreeseg		whelp clib _bfreeseg
+_bgetcmd		whelp clib _bgetcmd
+_bheapchk		whelp clib "_heapchk Functions"
+_bheapmin		whelp clib "_heapmin Functions"
+_bheapseg		whelp clib _bheapseg
+_bheapset		whelp clib "_heapset Functions"
+_bheapshrink		whelp clib "_heapshrink Functions"
+_bheapwalk		whelp clib "_heapwalk Functions"
+_bios_disk		whelp clib _bios_disk
+_bios_equiplist		whelp clib _bios_equiplist
+_bios_keybrd		whelp clib _bios_keybrd
+_bios_memsize		whelp clib _bios_memsize
+_bios_printer		whelp clib _bios_printer
+_bios_serialcom		whelp clib _bios_serialcom
+_bios_timeofday		whelp clib _bios_timeofday
+_bmalloc		whelp clib "malloc Functions"
+_bmsize		whelp clib "_msize Functions"
+_bprintf		whelp clib "_bprintf, _bwprintf"
+_breakoff		whelp clib "break Functions"
+_breakon		whelp clib "break Functions"
+_brealloc		whelp clib "realloc Functions"
+bsearch		whelp clib bsearch
+_bwprintf		whelp clib "_bprintf, _bwprintf"
+bzero		whelp clib bzero
+cabs		whelp clib cabs
+calloc		whelp clib "calloc Functions"
+ceil		whelp clib ceil
+cgets		whelp clib cgets
+_chain_intr		whelp clib _chain_intr
+chdir		whelp clib "chdir, _wchdir"
+chmod		whelp clib "chmod, _wchmod"
+chsize		whelp clib chsize
+_clear87		whelp clib _clear87
+clearenv		whelp clib clearenv
+clearerr		whelp clib clearerr
+_clearscreen		whelp clib _clearscreen
+clock		whelp clib clock
+close		whelp clib "close, _close"
+_close		whelp clib "close, _close"
+closedir		whelp clib "closedir, _wclosedir"
+_cmdname		whelp clib _cmdname
+_control87		whelp clib _control87
+_controlfp		whelp clib _controlfp
+cos		whelp clib cos
+cosh		whelp clib cosh
+cprintf		whelp clib cprintf
+cputs		whelp clib cputs
+creat		whelp clib "creat, _wcreat"
+cscanf		whelp clib cscanf
+ctime		whelp clib "ctime Functions"
+_ctime		whelp clib "ctime Functions"
+cwait		whelp clib cwait
+daylight		whelp clib "Global Data"
+delay		whelp clib delay
+_dieeetomsbin		whelp clib _dieeetomsbin
+difftime		whelp clib difftime
+_disable		whelp clib _disable
+_displaycursor		whelp clib _displaycursor
+div		whelp clib div
+_dmsbintoieee		whelp clib _dmsbintoieee
+_dos_allocmem		whelp clib _dos_allocmem
+_dos_close		whelp clib _dos_close
+_dos_commit		whelp clib _dos_commit
+_dos_creat		whelp clib _dos_creat
+_dos_creatnew		whelp clib _dos_creatnew
+_dos_findclose		whelp clib "_dos_find Functions"
+_dos_findfirst		whelp clib "_dos_find Functions"
+_dos_findnext		whelp clib "_dos_find Functions"
+_dos_freemem		whelp clib _dos_freemem
+_dos_getdate		whelp clib _dos_getdate
+_dos_getdiskfree		whelp clib _dos_getdiskfree
+_dos_getdrive		whelp clib _dos_getdrive
+_dos_getfileattr		whelp clib _dos_getfileattr
+_dos_getftime		whelp clib _dos_getftime
+_dos_gettime		whelp clib _dos_gettime
+_dos_getvect		whelp clib _dos_getvect
+_dos_keep		whelp clib _dos_keep
+_dos_open		whelp clib _dos_open
+_dos_read		whelp clib _dos_read
+_dos_setblock		whelp clib _dos_setblock
+_dos_setdate		whelp clib _dos_setdate
+_dos_setdrive		whelp clib _dos_setdrive
+_dos_setfileattr		whelp clib _dos_setfileattr
+_dos_setftime		whelp clib _dos_setftime
+_dos_settime		whelp clib _dos_settime
+_dos_setvect		whelp clib _dos_setvect
+_dos_write		whelp clib _dos_write
+_doserrno		whelp clib "Global Data"
+dosexterr		whelp clib dosexterr
+dup		whelp clib "dup, _dup"
+dup2		whelp clib dup2
+_dup		whelp clib "dup, _dup"
+_dwDeleteOnClose		whelp clib _dwDeleteOnClose
+_dwSetAboutDlg		whelp clib _dwSetAboutDlg
+_dwSetAppTitle		whelp clib _dwSetAppTitle
+_dwSetConTitle		whelp clib _dwSetConTitle
+_dwShutDown		whelp clib _dwShutDown
+_dwYield		whelp clib _dwYield
+ecvt		whelp clib "ecvt, _ecvt"
+_ecvt		whelp clib "ecvt, _ecvt"
+_ellipse_w		whelp clib "_ellipse, _ellipse_w, _ellipse_wxy"
+_ellipse_wxy		whelp clib "_ellipse, _ellipse_w, _ellipse_wxy"
+_ellipse		whelp clib "_ellipse, _ellipse_w, _ellipse_wxy"
+_enable		whelp clib _enable
+_endthread		whelp clib _endthread
+environ		whelp clib "Global Data"
+eof		whelp clib eof
+errno		whelp clib "Global Data"
+execl		whelp clib "exec Functions"
+execle		whelp clib "exec Functions"
+execle		whelp clib "exec Functions"
+execlpe		whelp clib "exec Functions"
+execv		whelp clib "exec Functions"
+execve		whelp clib "exec Functions"
+execvp		whelp clib "exec Functions"
+execvpe		whelp clib "exec Functions"
+exit		whelp clib exit
+_exit		whelp clib _exit
+exp		whelp clib exp
+_expand		whelp clib "_expand Functions"
+fabs		whelp clib fabs
+_fcalloc		whelp clib "calloc Functions"
+fclose		whelp clib fclose
+fcloseall		whelp clib fcloseall
+fcvt		whelp clib "fcvt, _fcvt, _wfcvt"
+_fcvt		whelp clib "fcvt, _fcvt, _wfcvt"
+fdopen		whelp clib "fdopen, _fdopen, _wfdopen"
+_fdopen		whelp clib "fdopen, _fdopen, _wfdopen"
+feof		whelp clib feof
+ferror		whelp clib ferror
+_fexpand		whelp clib "_expand Functions"
+fflush		whelp clib fflush
+_ffree		whelp clib "free Functions"
+fgetc		whelp clib "fgetc, fgetwc"
+fgetchar		whelp clib "fgetchar, _fgetchar, _fgetwchar"
+_fgetchar		whelp clib "fgetchar, _fgetchar, _fgetwchar"
+fgetpos		whelp clib fgetpos
+fgets		whelp clib "fgets, fgetws"
+fgetwc		whelp clib "fgetc, fgetwc"
+_fgetwchar		whelp clib "fgetchar, _fgetchar, _fgetwchar"
+fgetws		whelp clib "fgets, fgetws"
+_fheapchk		whelp clib "_heapchk Functions"
+_fheapgrow		whelp clib "_heapgrow Functions"
+_fheapmin		whelp clib "_heapmin Functions"
+_fheapset		whelp clib "_heapset Functions"
+_fheapshrink		whelp clib "_heapshrink Functions"
+_fheapwalk		whelp clib "_heapwalk Functions"
+_fieeetomsbin		whelp clib _fieeetomsbin
+filelength		whelp clib "filelength, _filelengthi64"
+_filelengthi64		whelp clib "filelength, _filelengthi64"
+_FILENAMEMAX		whelp clib FILENAME_MAX
+fileno		whelp clib fileno
+_findclose		whelp clib _findclose
+_findfirst		whelp clib "_findfirst, _findfirsti64, _wfindfirst, _wfindfirsti64"
+_findfirsti64		whelp clib "_findfirst, _findfirsti64, _wfindfirst, _wfindfirsti64"
+_findnext		whelp clib "_findnext, _findnexti64, _wfindnext, _wfindnexti64"
+_findnexti64		whelp clib "_findnext, _findnexti64, _wfindnext, _wfindnexti64"
+_finite		whelp clib _finite
+_floodfill_w		whelp clib "_floodfill, _floodfill_w"
+_floodfill		whelp clib "_floodfill, _floodfill_w"
+floor		whelp clib floor
+fltused_		whelp clib "Global Data"
+flushall		whelp clib flushall
+_fmalloc		whelp clib "malloc Functions"
+_fmbccmp		whelp clib "_mbccmp, _fmbccmp"
+_fmbccpy		whelp clib "_mbccpy, _fmbccpy"
+_fmbcicmp		whelp clib "_mbcicmp, _fmbcicmp"
+_fmbclen		whelp clib "_mbclen, _fmbclen"
+_fmbgetcode		whelp clib "_mbgetcode, _fmbgetcode"
+_fmblen		whelp clib "mblen, _fmblen"
+_fmbputchar		whelp clib "_mbputchar, _fmbputchar"
+_fmbrlen		whelp clib "mbrlen, _fmbrlen"
+_fmbrtowc		whelp clib "mbrtowc, _fmbrtowc"
+_fmbsbtype		whelp clib "_mbsbtype, _fmbsbtype"
+_fmbscat		whelp clib "strcat, _fstrcat, wcscat, _mbscat, _fmbscat"
+_fmbschr		whelp clib "strchr, _fstrchr, wcschr, _mbschr, _fmbschr"
+_fmbscmp		whelp clib "strcmp, _fstrcmp, wcscmp, _mbscmp, _fmbscmp"
+_fmbscpy		whelp clib "strcpy, _fstrcpy, wcscpy, _mbscpy, _fmbscpy"
+_fmbscspn		whelp clib "strcspn, _fstrcspn, wcscspn, _mbscspn, _fmbscspn"
+_fmbsdec		whelp clib "_strdec, _wcsdec, _mbsdec, _fmbsdec"
+_fmbsdup		whelp clib "strdup, _strdup, _fstrdup, _wcsdup, _mbsdup, _fmbsdup"
+_fmbsicmp		whelp clib "stricmp, _stricmp, _fstricmp, _wcsicmp, _mbsicmp, _fmbsicmp"
+_fmbsinc		whelp clib "_strinc, _wcsinc, _mbsinc, _fmbsinc"
+_fmbslen		whelp clib "strlen, _fstrlen, wcslen, _mbslen, _fmbslen"
+_fmbslwr		whelp clib "strlwr, _strlwr, _fstrlwr, _wcslwr, _mbslwr, _fmbslwr"
+_fmbsnbcat		whelp clib "_mbsnbcat, _fmbsnbcat"
+_fmbsnbcmp		whelp clib "_mbsnbcmp, _fmbsnbcmp"
+_fmbsnbcnt		whelp clib "_mbsnbcnt, _fmbsnbcnt, _strncnt, _wcsncnt"
+_fmbsnbcpy		whelp clib "_mbsnbcpy, _fmbsnbcpy"
+_fmbsnbicmp		whelp clib "_mbsnbicmp, _fmbsnbicmp"
+_fmbsnbset		whelp clib "_mbsnbset, _fmbsnbset"
+_fmbsncat		whelp clib "strncat, _fstrncat, wcsncat, _mbsncat, _fmbsncat"
+_fmbsnccnt		whelp clib "_mbsnccnt, _fmbsnccnt, _strncnt, _wcsncnt"
+_fmbsncmp		whelp clib "strncmp, _fstrncmp, wcsncmp, _mbsncmp, _fmbsncmp"
+_fmbsncpy		whelp clib "strncpy, _fstrncpy, wcsncpy, _mbsncpy, _fmbsncpy"
+_fmbsnextc		whelp clib "_mbsnextc, _fmbsnextc, _strnextc, _wcsnextc"
+_fmbsnicmp		whelp clib "strnicmp, _strnicmp, _fstrnicmp, _wcsnicmp, _mbsnicmp, _fmbsnicmp"
+_fmbsninc		whelp clib "_strninc, _wcsninc, _mbsninc, _fmbsninc"
+_fmbsnset		whelp clib "strnset, _strnset, _fstrnset, _wcsnset, _mbsnset, _fmbsnset"
+_fmbspbrk		whelp clib "strpbrk, _fstrpbrk, wcspbrk, _mbspbrk, _fmbspbrk"
+_fmbsrchr		whelp clib "strrchr, _fstrrchr, wcsrchr, _mbsrchr, _fmbsrchr"
+_fmbsrev		whelp clib "strrev, _strrev, _fstrrev, _wcsrev, _mbsrev, _fmbsrev"
+_fmbsrtowcs		whelp clib "mbsrtowcs, _fmbsrtowcs"
+_fmbsset		whelp clib "strset, _strset, _fstrset, _wcsset, _mbsset, _fmbsset"
+_fmbsspn		whelp clib "strspn, _fstrspn, wcsspn, _mbsspn, _fmbsspn"
+_fmbsspnp		whelp clib "strspnp, _strspnp, _fstrspnp, _wcsspnp, _mbsspnp, _fmbsspnp"
+_fmbsstr		whelp clib "strstr, _fstrstr, wcsstr, _mbsstr, _fmbsstr"
+_fmbstok		whelp clib "strtok, _fstrtok, wcstok, _mbstok, _fmbstok"
+_fmbstowcs		whelp clib "mbstowcs, _fmbstowcs"
+_fmbsupr		whelp clib "strupr, _strupr, _fstrupr, _wcsupr, _mbsupr, _fmbsupr"
+_fmbterm		whelp clib "_mbterm, _fmbterm"
+_fmbtowc		whelp clib "mbtowc, _fmbtowc"
+_fmbvtop		whelp clib "_mbvtop, _fmbvtop"
+_fmemccpy		whelp clib "memccpy, _fmemccpy"
+_fmemchr		whelp clib "memchr, _fmemchr"
+_fmemcmp		whelp clib "memcmp, _fmemcmp"
+_fmemcpy		whelp clib "memcpy, _fmemcpy"
+_fmemicmp		whelp clib "memicmp, _memicmp, _fmemicmp"
+_fmemmove		whelp clib "memmove, _fmemmove"
+_fmemset		whelp clib "memset, _fmemset"
+fmod		whelp clib fmod
+_fmode		whelp clib "Global Data"
+_fmsbintoieee		whelp clib _fmsbintoieee
+_fmsize		whelp clib "_msize Functions"
+fopen		whelp clib "fopen, _wfopen"
+_FPOFF		whelp clib FP_OFF
+_fpreset		whelp clib _fpreset
+fprintf		whelp clib "fprintf, fwprintf"
+_FPSEG		whelp clib FP_SEG
+fputc		whelp clib "fputc, fputwc"
+fputchar		whelp clib "fputchar, _fputchar, _fputwchar"
+_fputchar		whelp clib "fputchar, _fputchar, _fputwchar"
+fputs		whelp clib "fputs, fputws"
+fputwc		whelp clib "fputc, fputwc"
+_fputwchar		whelp clib "fputchar, _fputchar, _fputwchar"
+fputws		whelp clib "fputs, fputws"
+fread		whelp clib fread
+_frealloc		whelp clib "realloc Functions"
+free		whelp clib "free Functions"
+_freect		whelp clib _freect
+freopen		whelp clib "freopen, _wfreopen"
+frexp		whelp clib frexp
+fscanf		whelp clib "fscanf, fwscanf"
+fseek		whelp clib fseek
+fsetpos		whelp clib fsetpos
+_fsopen		whelp clib "_fsopen, _wfsopen"
+fstat		whelp clib "fstat, _fstat, _fstati64, _wfstat, _wfstati64"
+_fstat		whelp clib "fstat, _fstat, _fstati64, _wfstat, _wfstati64"
+_fstati64		whelp clib "fstat, _fstat, _fstati64, _wfstat, _wfstati64"
+_fstrcat		whelp clib "strcat, _fstrcat, wcscat, _mbscat, _fmbscat"
+_fstrchr		whelp clib "strchr, _fstrchr, wcschr, _mbschr, _fmbschr"
+_fstrcmp		whelp clib "strcmp, _fstrcmp, wcscmp, _mbscmp, _fmbscmp"
+_fstrcpy		whelp clib "strcpy, _fstrcpy, wcscpy, _mbscpy, _fmbscpy"
+_fstrcspn		whelp clib "strcspn, _fstrcspn, wcscspn, _mbscspn, _fmbscspn"
+_fstrdup		whelp clib "strdup, _strdup, _fstrdup, _wcsdup, _mbsdup, _fmbsdup"
+_fstricmp		whelp clib "stricmp, _stricmp, _fstricmp, _wcsicmp, _mbsicmp, _fmbsicmp"
+_fstrlen		whelp clib "strlen, _fstrlen, wcslen, _mbslen, _fmbslen"
+_fstrlwr		whelp clib "strlwr, _strlwr, _fstrlwr, _wcslwr, _mbslwr, _fmbslwr"
+_fstrncat		whelp clib "strncat, _fstrncat, wcsncat, _mbsncat, _fmbsncat"
+_fstrncmp		whelp clib "strncmp, _fstrncmp, wcsncmp, _mbsncmp, _fmbsncmp"
+_fstrncpy		whelp clib "strncpy, _fstrncpy, wcsncpy, _mbsncpy, _fmbsncpy"
+_fstrnicmp		whelp clib "strnicmp, _strnicmp, _fstrnicmp, _wcsnicmp, _mbsnicmp, _fmbsnicmp"
+_fstrnset		whelp clib "strnset, _strnset, _fstrnset, _wcsnset, _mbsnset, _fmbsnset"
+_fstrpbrk		whelp clib "strpbrk, _fstrpbrk, wcspbrk, _mbspbrk, _fmbspbrk"
+_fstrrchr		whelp clib "strrchr, _fstrrchr, wcsrchr, _mbsrchr, _fmbsrchr"
+_fstrrev		whelp clib "strrev, _strrev, _fstrrev, _wcsrev, _mbsrev, _fmbsrev"
+_fstrset		whelp clib "strset, _strset, _fstrset, _wcsset, _mbsset, _fmbsset"
+_fstrspn		whelp clib "strspn, _fstrspn, wcsspn, _mbsspn, _fmbsspn"
+_fstrspnp		whelp clib "strspnp, _strspnp, _fstrspnp, _wcsspnp, _mbsspnp, _fmbsspnp"
+_fstrstr		whelp clib "strstr, _fstrstr, wcsstr, _mbsstr, _fmbsstr"
+_fstrtok		whelp clib "strtok, _fstrtok, wcstok, _mbstok, _fmbstok"
+_fstrupr		whelp clib "strupr, _strupr, _fstrupr, _wcsupr, _mbsupr, _fmbsupr"
+fsync		whelp clib fsync
+ftell		whelp clib ftell
+ftime		whelp clib ftime
+_fullpath		whelp clib "_fullpath, _wfullpath"
+_fwcrtomb		whelp clib "wcrtomb, _fwcrtomb"
+_fwcsrtombs		whelp clib "wcsrtombs, _fwcsrtombs"
+_fwcstombs		whelp clib "wcstombs, _fwcstombs"
+_fwctomb		whelp clib "wctomb, _fwctomb"
+fwprintf		whelp clib "fprintf, fwprintf"
+fwrite		whelp clib fwrite
+fwscanf		whelp clib "fscanf, fwscanf"
+gcvt		whelp clib "gcvt, _gcvt, _wgcvt"
+_gcvt		whelp clib "gcvt, _gcvt, _wgcvt"
+_get_osfhandle		whelp clib _get_osfhandle
+_getactivepage		whelp clib _getactivepage
+_getarcinfo		whelp clib _getarcinfo
+_getbkcolor		whelp clib _getbkcolor
+getc		whelp clib "getc, getwc"
+getch		whelp clib getch
+getchar		whelp clib "getchar, getwchar"
+getche		whelp clib getche
+_getcliprgn		whelp clib _getcliprgn
+getcmd		whelp clib getcmd
+_getcolor		whelp clib _getcolor
+_getcurrentposition_w		whelp clib "_getcurrentposition, _getcurrentposition_w"
+_getcurrentposition		whelp clib "_getcurrentposition, _getcurrentposition_w"
+getcwd		whelp clib "getcwd, _wgetcwd"
+_getdcwd		whelp clib "_getdcwd, _wgetdcwd"
+_getdiskfree		whelp clib _getdiskfree
+_getdrive		whelp clib _getdrive
+getenv		whelp clib "getenv, _wgetenv"
+_getfillmask		whelp clib _getfillmask
+_getfontinfo		whelp clib _getfontinfo
+_getgtextextent		whelp clib _getgtextextent
+_getgtextvector		whelp clib _getgtextvector
+_getimage_w		whelp clib "_getimage, _getimage_w, _getimage_wxy"
+_getimage_wxy		whelp clib "_getimage, _getimage_w, _getimage_wxy"
+_getimage		whelp clib "_getimage, _getimage_w, _getimage_wxy"
+_getlinestyle		whelp clib _getlinestyle
+_getmbcp		whelp clib _getmbcp
+_getphyscoord		whelp clib _getphyscoord
+getpid		whelp clib getpid
+_getpixel_w		whelp clib "_getpixel, _getpixel_w"
+_getpixel		whelp clib "_getpixel, _getpixel_w"
+_getplotaction		whelp clib _getplotaction
+gets		whelp clib "gets, _getws"
+_gettextcolor		whelp clib _gettextcolor
+_gettextcursor		whelp clib _gettextcursor
+_gettextextent		whelp clib _gettextextent
+_gettextposition		whelp clib _gettextposition
+_gettextsettings		whelp clib _gettextsettings
+_gettextwindow		whelp clib _gettextwindow
+_getvideoconfig		whelp clib _getvideoconfig
+_getviewcoord_w		whelp clib "_getviewcoord, _getviewcoord_w, _getviewcoord_wxy"
+_getviewcoord_wxy		whelp clib "_getviewcoord, _getviewcoord_w, _getviewcoord_wxy"
+_getviewcoord		whelp clib "_getviewcoord, _getviewcoord_w, _getviewcoord_wxy"
+_getvisualpage		whelp clib _getvisualpage
+_getw		whelp clib _getw
+getwc		whelp clib "getc, getwc"
+getwchar		whelp clib "getchar, getwchar"
+_getwindowcoord		whelp clib _getwindowcoord
+_getws		whelp clib "gets, _getws"
+gmtime		whelp clib "gmtime Functions"
+_gmtime		whelp clib "gmtime Functions"
+_grow_handles		whelp clib _grow_handles
+_grstatus		whelp clib _grstatus
+_grtext_w		whelp clib "_grtext, _grtext_w"
+_grtext		whelp clib "_grtext, _grtext_w"
+halloc		whelp clib halloc
+_harderr		whelp clib "_harderr, _hardresume, _hardretn"
+_hardresume		whelp clib "_harderr, _hardresume, _hardretn"
+_hardretn		whelp clib "_harderr, _hardresume, _hardretn"
+_hdopen		whelp clib _hdopen
+_heapchk		whelp clib "_heapchk Functions"
+_heapenable		whelp clib _heapenable
+_heapgrow		whelp clib "_heapgrow Functions"
+_heapmin		whelp clib "_heapmin Functions"
+_heapset		whelp clib "_heapset Functions"
+_heapshrink		whelp clib "_heapshrink Functions"
+_heapwalk		whelp clib "_heapwalk Functions"
+hfree		whelp clib hfree
+hypot		whelp clib hypot
+_imagesize_w		whelp clib "_imagesize, _imagesize_w, _imagesize_wxy"
+_imagesize_wxy		whelp clib "_imagesize, _imagesize_w, _imagesize_wxy"
+_imagesize		whelp clib "_imagesize, _imagesize_w, _imagesize_wxy"
+inp		whelp clib inp
+inpd		whelp clib inpd
+inpw		whelp clib inpw
+int386		whelp clib int386
+int386x		whelp clib int386x
+int86		whelp clib int86
+int86x		whelp clib int86x
+intdos		whelp clib intdos
+intdosx		whelp clib intdosx
+intr		whelp clib intr
+isalnum		whelp clib "isalnum, iswalnum"
+isalpha		whelp clib "isalpha, iswalpha"
+isascii		whelp clib "isascii, __isascii, iswascii"
+__isascii		whelp clib "isascii, __isascii, iswascii"
+isatty		whelp clib isatty
+iscntrl		whelp clib "iscntrl, iswcntrl"
+__iscsym		whelp clib __iscsym
+__iscsymf		whelp clib __iscsymf
+isdigit		whelp clib "isdigit, iswdigit"
+isgraph		whelp clib "isgraph, iswgraph"
+isleadbyte		whelp clib isleadbyte
+islower		whelp clib "islower, iswlower"
+_ismbbalnum		whelp clib _ismbbalnum
+_ismbbalpha		whelp clib _ismbbalpha
+_ismbbgraph		whelp clib _ismbbgraph
+_ismbbkalnum		whelp clib _ismbbkalnum
+_ismbbkalpha		whelp clib _ismbbkalpha
+_ismbbkana		whelp clib _ismbbkana
+_ismbbkprint		whelp clib _ismbbkprint
+_ismbbkpunct		whelp clib _ismbbkpunct
+_ismbblead		whelp clib _ismbblead
+_ismbbprint		whelp clib _ismbbprint
+_ismbbpunct		whelp clib _ismbbpunct
+_ismbbtrail		whelp clib _ismbbtrail
+_ismbcalnum		whelp clib _ismbcalnum
+_ismbcalpha		whelp clib _ismbcalpha
+_ismbccntrl		whelp clib _ismbccntrl
+_ismbcdigit		whelp clib _ismbcdigit
+_ismbcgraph		whelp clib _ismbcgraph
+_ismbchira		whelp clib _ismbchira
+_ismbckata		whelp clib _ismbckata
+_ismbcl0		whelp clib _ismbcl0
+_ismbcl1		whelp clib _ismbcl1
+_ismbcl2		whelp clib _ismbcl2
+_ismbclegal		whelp clib _ismbclegal
+_ismbclower		whelp clib _ismbclower
+_ismbcprint		whelp clib _ismbcprint
+_ismbcpunct		whelp clib _ismbcpunct
+_ismbcspace		whelp clib _ismbcspace
+_ismbcsymbol		whelp clib _ismbcsymbol
+_ismbcupper		whelp clib _ismbcupper
+_ismbcxdigit		whelp clib _ismbcxdigit
+isprint		whelp clib "isprint, iswprint"
+ispunct		whelp clib "ispunct, iswpunct"
+isspace		whelp clib "isspace, iswspace"
+isupper		whelp clib "isupper, iswupper"
+iswalnum		whelp clib "isalnum, iswalnum"
+iswalpha		whelp clib "isalpha, iswalpha"
+iswascii		whelp clib "isascii, __isascii, iswascii"
+iswcntrl		whelp clib "iscntrl, iswcntrl"
+iswctype		whelp clib iswctype
+iswdigit		whelp clib "isdigit, iswdigit"
+iswgraph		whelp clib "isgraph, iswgraph"
+iswlower		whelp clib "islower, iswlower"
+iswprint		whelp clib "isprint, iswprint"
+iswpunct		whelp clib "ispunct, iswpunct"
+iswspace		whelp clib "isspace, iswspace"
+iswupper		whelp clib "isupper, iswupper"
+iswxdigit		whelp clib "isxdigit, iswxdigit"
+isxdigit		whelp clib "isxdigit, iswxdigit"
+itoa		whelp clib "itoa, _itoa, _itow"
+_itoa		whelp clib "itoa, _itoa, _itow"
+_itow		whelp clib "itoa, _itoa, _itow"
+j0		whelp clib "bessel Functions"
+j1		whelp clib "bessel Functions"
+jn		whelp clib "bessel Functions"
+kbhit		whelp clib kbhit
+labs		whelp clib labs
+ldexp		whelp clib ldexp
+ldiv		whelp clib ldiv
+lfind		whelp clib lfind
+_lineto_w		whelp clib "_lineto, _lineto_w"
+_lineto		whelp clib "_lineto, _lineto_w"
+localeconv		whelp clib localeconv
+localtime		whelp clib "localtime Functions"
+_localtime		whelp clib "localtime Functions"
+lock		whelp clib lock
+locking		whelp clib "locking, _locking"
+_locking		whelp clib "locking, _locking"
+log		whelp clib log
+log10		whelp clib log10
+log2		whelp clib log2
+longjmp		whelp clib longjmp
+_lrotl		whelp clib _lrotl
+_lrotr		whelp clib _lrotr
+lsearch		whelp clib lsearch
+lseek		whelp clib "lseek, _lseek, _lseeki64"
+_lseek		whelp clib "lseek, _lseek, _lseeki64"
+_lseeki64		whelp clib "lseek, _lseek, _lseeki64"
+ltoa		whelp clib "ltoa, _ltoa, _ltow"
+_ltoa		whelp clib "ltoa, _ltoa, _ltow"
+_ltow		whelp clib "ltoa, _ltoa, _ltow"
+_m_empty		whelp clib _m_empty
+_m_from_int		whelp clib _m_from_int
+_m_packssdw		whelp clib _m_packssdw
+_m_packsswb		whelp clib _m_packsswb
+_m_packuswb		whelp clib _m_packuswb
+_m_paddb		whelp clib _m_paddb
+_m_paddd		whelp clib _m_paddd
+_m_paddsb		whelp clib _m_paddsb
+_m_paddsw		whelp clib _m_paddsw
+_m_paddusb		whelp clib _m_paddusb
+_m_paddusw		whelp clib _m_paddusw
+_m_paddw		whelp clib _m_paddw
+_m_pand		whelp clib _m_pand
+_m_pandn		whelp clib _m_pandn
+_m_pcmpeqb		whelp clib _m_pcmpeqb
+_m_pcmpeqd		whelp clib _m_pcmpeqd
+_m_pcmpeqw		whelp clib _m_pcmpeqw
+_m_pcmpgtb		whelp clib _m_pcmpgtb
+_m_pcmpgtd		whelp clib _m_pcmpgtd
+_m_pcmpgtw		whelp clib _m_pcmpgtw
+_m_pmaddwd		whelp clib _m_pmaddwd
+_m_pmulhw		whelp clib _m_pmulhw
+_m_pmullw		whelp clib _m_pmullw
+_m_por		whelp clib _m_por
+_m_pslld		whelp clib _m_pslld
+_m_pslldi		whelp clib _m_pslldi
+_m_psllq		whelp clib _m_psllq
+_m_psllqi		whelp clib _m_psllqi
+_m_psllw		whelp clib _m_psllw
+_m_psllwi		whelp clib _m_psllwi
+_m_psrad		whelp clib _m_psrad
+_m_psradi		whelp clib _m_psradi
+_m_psraw		whelp clib _m_psraw
+_m_psrawi		whelp clib _m_psrawi
+_m_psrld		whelp clib _m_psrld
+_m_psrldi		whelp clib _m_psrldi
+_m_psrlq		whelp clib _m_psrlq
+_m_psrlqi		whelp clib _m_psrlqi
+_m_psrlw		whelp clib _m_psrlw
+_m_psrlwi		whelp clib _m_psrlwi
+_m_psubb		whelp clib _m_psubb
+_m_psubd		whelp clib _m_psubd
+_m_psubsb		whelp clib _m_psubsb
+_m_psubsw		whelp clib _m_psubsw
+_m_psubusb		whelp clib _m_psubusb
+_m_psubusw		whelp clib _m_psubusw
+_m_psubw		whelp clib _m_psubw
+_m_punpckhbw		whelp clib _m_punpckhbw
+_m_punpckhdq		whelp clib _m_punpckhdq
+_m_punpckhwd		whelp clib _m_punpckhwd
+_m_punpcklbw		whelp clib _m_punpcklbw
+_m_punpckldq		whelp clib _m_punpckldq
+_m_punpcklwd		whelp clib _m_punpcklwd
+_m_pxor		whelp clib _m_pxor
+_m_to_int		whelp clib _m_to_int
+main		whelp clib "main, wmain, WinMain, wWinMain"
+_makepath		whelp clib "_makepath, _wmakepath"
+malloc		whelp clib "malloc Functions"
+matherr		whelp clib matherr
+max		whelp clib max
+_MaxThreads		whelp clib "Global Data"
+_mbbtombc		whelp clib _mbbtombc
+_mbbtype		whelp clib _mbbtype
+_mbccmp		whelp clib "_mbccmp, _fmbccmp"
+_mbccpy		whelp clib "_mbccpy, _fmbccpy"
+_mbcicmp		whelp clib "_mbcicmp, _fmbcicmp"
+_mbcjistojms		whelp clib _mbcjistojms
+_mbcjmstojis		whelp clib _mbcjmstojis
+_mbclen		whelp clib "_mbclen, _fmbclen"
+_mbctohira		whelp clib _mbctohira
+_mbctokata		whelp clib _mbctokata
+_mbctolower		whelp clib _mbctolower
+_mbctombb		whelp clib _mbctombb
+_mbctoupper		whelp clib _mbctoupper
+_mbgetcode		whelp clib "_mbgetcode, _fmbgetcode"
+mblen		whelp clib "mblen, _fmblen"
+_mbputchar		whelp clib "_mbputchar, _fmbputchar"
+mbrlen		whelp clib "mbrlen, _fmbrlen"
+mbrtowc		whelp clib "mbrtowc, _fmbrtowc"
+_mbsbtype		whelp clib "_mbsbtype, _fmbsbtype"
+_mbscat		whelp clib "strcat, _fstrcat, wcscat, _mbscat, _fmbscat"
+_mbschr		whelp clib "strchr, _fstrchr, wcschr, _mbschr, _fmbschr"
+_mbscmp		whelp clib "strcmp, _fstrcmp, wcscmp, _mbscmp, _fmbscmp"
+_mbscoll		whelp clib "strcoll, wcscoll, _mbscoll"
+_mbscpy		whelp clib "strcpy, _fstrcpy, wcscpy, _mbscpy, _fmbscpy"
+_mbscspn		whelp clib "strcspn, _fstrcspn, wcscspn, _mbscspn, _fmbscspn"
+_mbsdec		whelp clib "_strdec, _wcsdec, _mbsdec, _fmbsdec"
+_mbsdup		whelp clib "strdup, _strdup, _fstrdup, _wcsdup, _mbsdup, _fmbsdup"
+_mbsicmp		whelp clib "stricmp, _stricmp, _fstricmp, _wcsicmp, _mbsicmp, _fmbsicmp"
+_mbsicoll		whelp clib "_stricoll, _wcsicoll, _mbsicoll"
+_mbsinc		whelp clib "_strinc, _wcsinc, _mbsinc, _fmbsinc"
+_mbslen		whelp clib "strlen, _fstrlen, wcslen, _mbslen, _fmbslen"
+_mbslwr		whelp clib "strlwr, _strlwr, _fstrlwr, _wcslwr, _mbslwr, _fmbslwr"
+_mbsnbcat		whelp clib "_mbsnbcat, _fmbsnbcat"
+_mbsnbcmp		whelp clib "_mbsnbcmp, _fmbsnbcmp"
+_mbsnbcnt		whelp clib "_mbsnbcnt, _fmbsnbcnt, _strncnt, _wcsncnt"
+_mbsnbcpy		whelp clib "_mbsnbcpy, _fmbsnbcpy"
+_mbsnbicmp		whelp clib "_mbsnbicmp, _fmbsnbicmp"
+_mbsnbset		whelp clib "_mbsnbset, _fmbsnbset"
+_mbsncat		whelp clib "strncat, _fstrncat, wcsncat, _mbsncat, _fmbsncat"
+_mbsnccnt		whelp clib "_mbsnccnt, _fmbsnccnt, _strncnt, _wcsncnt"
+_mbsncmp		whelp clib "strncmp, _fstrncmp, wcsncmp, _mbsncmp, _fmbsncmp"
+_mbsncoll		whelp clib "_strncoll, _wcsncoll, _mbsncoll"
+_mbsncpy		whelp clib "strncpy, _fstrncpy, wcsncpy, _mbsncpy, _fmbsncpy"
+_mbsnextc		whelp clib "_mbsnextc, _fmbsnextc, _strnextc, _wcsnextc"
+_mbsnicmp		whelp clib "strnicmp, _strnicmp, _fstrnicmp, _wcsnicmp, _mbsnicmp, _fmbsnicmp"
+_mbsnicoll		whelp clib "_strnicoll, _wcsnicoll, _mbsnicoll"
+_mbsninc		whelp clib "_strninc, _wcsninc, _mbsninc, _fmbsninc"
+_mbsnset		whelp clib "strnset, _strnset, _fstrnset, _wcsnset, _mbsnset, _fmbsnset"
+_mbspbrk		whelp clib "strpbrk, _fstrpbrk, wcspbrk, _mbspbrk, _fmbspbrk"
+_mbsrchr		whelp clib "strrchr, _fstrrchr, wcsrchr, _mbsrchr, _fmbsrchr"
+_mbsrev		whelp clib "strrev, _strrev, _fstrrev, _wcsrev, _mbsrev, _fmbsrev"
+mbsrtowcs		whelp clib "mbsrtowcs, _fmbsrtowcs"
+_mbsset		whelp clib "strset, _strset, _fstrset, _wcsset, _mbsset, _fmbsset"
+_mbsspn		whelp clib "strspn, _fstrspn, wcsspn, _mbsspn, _fmbsspn"
+_mbsspnp		whelp clib "strspnp, _strspnp, _fstrspnp, _wcsspnp, _mbsspnp, _fmbsspnp"
+_mbsstr		whelp clib "strstr, _fstrstr, wcsstr, _mbsstr, _fmbsstr"
+_mbstok		whelp clib "strtok, _fstrtok, wcstok, _mbstok, _fmbstok"
+mbstowcs		whelp clib "mbstowcs, _fmbstowcs"
+_mbsupr		whelp clib "strupr, _strupr, _fstrupr, _wcsupr, _mbsupr, _fmbsupr"
+_mbterm		whelp clib "_mbterm, _fmbterm"
+mbtowc		whelp clib "mbtowc, _fmbtowc"
+_mbvtop		whelp clib "_mbvtop, _fmbvtop"
+_memavl		whelp clib _memavl
+memccpy		whelp clib "memccpy, _fmemccpy"
+memchr		whelp clib "memchr, _fmemchr"
+memcmp		whelp clib "memcmp, _fmemcmp"
+memcpy		whelp clib "memcpy, _fmemcpy"
+memicmp		whelp clib "memicmp, _memicmp, _fmemicmp"
+_memicmp		whelp clib "memicmp, _memicmp, _fmemicmp"
+_memmax		whelp clib _memmax
+memmove		whelp clib "memmove, _fmemmove"
+memset		whelp clib "memset, _fmemset"
+min		whelp clib min
+_minreal_		whelp clib "Global Data"
+mkdir		whelp clib "mkdir, _mkdir, _wmkdir"
+_mkdir		whelp clib "mkdir, _mkdir, _wmkdir"
+_MKFP		whelp clib MK_FP
+_mktemp		whelp clib "_mktemp, _wmktemp"
+mktime		whelp clib mktime
+modf		whelp clib modf
+movedata		whelp clib movedata
+_moveto_w		whelp clib "_moveto, _moveto_w"
+_moveto		whelp clib "_moveto, _moveto_w"
+_msize		whelp clib "_msize Functions"
+_ncalloc		whelp clib "calloc Functions"
+_nexpand		whelp clib "_expand Functions"
+_nfree		whelp clib "free Functions"
+_nheapchk		whelp clib "_heapchk Functions"
+_nheapgrow		whelp clib "_heapgrow Functions"
+_nheapmin		whelp clib "_heapmin Functions"
+_nheapset		whelp clib "_heapset Functions"
+_nheapshrink		whelp clib "_heapshrink Functions"
+_nheapwalk		whelp clib "_heapwalk Functions"
+_nmalloc		whelp clib "malloc Functions"
+_nmsize		whelp clib "_msize Functions"
+nosound		whelp clib nosound
+_nrealloc		whelp clib "realloc Functions"
+offsetof		whelp clib offsetof
+onexit		whelp clib onexit
+open		whelp clib "open, _open, _wopen"
+_open_osfhandle		whelp clib _open_osfhandle
+_open		whelp clib "open, _open, _wopen"
+opendir		whelp clib "opendir, _wopendir"
+_os_handle		whelp clib _os_handle
+_osbuild		whelp clib "Global Data"
+_osmajor		whelp clib "Global Data"
+_osminor		whelp clib "Global Data"
+_osmode		whelp clib "Global Data"
+_osver		whelp clib "Global Data"
+_outgtext		whelp clib _outgtext
+_outmem		whelp clib _outmem
+outp		whelp clib outp
+outpd		whelp clib outpd
+outpw		whelp clib outpw
+_outtext		whelp clib _outtext
+_pclose		whelp clib _pclose
+perror		whelp clib "perror, _wperror"
+_pg_analyzechart		whelp clib "_pg_analyzechart, _pg_analyzechartms"
+_pg_analyzechartms		whelp clib "_pg_analyzechart, _pg_analyzechartms"
+_pg_analyzepie		whelp clib _pg_analyzepie
+_pg_analyzescatter		whelp clib "_pg_analyzescatter, _pg_analyzescatterms"
+_pg_analyzescatterms		whelp clib "_pg_analyzescatter, _pg_analyzescatterms"
+_pg_chart		whelp clib "_pg_chart, _pg_chartms"
+_pg_chartms		whelp clib "_pg_chart, _pg_chartms"
+_pg_chartpie		whelp clib _pg_chartpie
+_pg_chartscatter		whelp clib "_pg_chartscatter, _pg_chartscatterms"
+_pg_chartscatterms		whelp clib "_pg_chartscatter, _pg_chartscatterms"
+_pg_defaultchart		whelp clib _pg_defaultchart
+_pg_getchardef		whelp clib _pg_getchardef
+_pg_getpalette		whelp clib _pg_getpalette
+_pg_getstyleset		whelp clib _pg_getstyleset
+_pg_hlabelchart		whelp clib _pg_hlabelchart
+_pg_initchart		whelp clib _pg_initchart
+_pg_resetpalette		whelp clib _pg_resetpalette
+_pg_resetstyleset		whelp clib _pg_resetstyleset
+_pg_setchardef		whelp clib _pg_setchardef
+_pg_setpalette		whelp clib _pg_setpalette
+_pg_setstyleset		whelp clib _pg_setstyleset
+_pg_vlabelchart		whelp clib _pg_vlabelchart
+_pie_w		whelp clib "_pie, _pie_w, _pie_wxy"
+_pie_wxy		whelp clib "_pie, _pie_w, _pie_wxy"
+_pie		whelp clib "_pie, _pie_w, _pie_wxy"
+_pipe		whelp clib _pipe
+_polygon_w		whelp clib "_polygon, _polygon_w, _polygon_wxy"
+_polygon_wxy		whelp clib "_polygon, _polygon_w, _polygon_wxy"
+_polygon		whelp clib "_polygon, _polygon_w, _polygon_wxy"
+_popen		whelp clib "_popen, _wpopen"
+pow		whelp clib pow
+printf		whelp clib "printf, wprintf"
+_psp		whelp clib "Global Data"
+putc		whelp clib "putc, putwc"
+putch		whelp clib putch
+putchar		whelp clib "putchar, putwchar"
+putenv		whelp clib "putenv, _putenv, _wputenv"
+_putenv		whelp clib "putenv, _putenv, _wputenv"
+_putimage_w		whelp clib "_putimage, _putimage_w"
+_putimage		whelp clib "_putimage, _putimage_w"
+puts		whelp clib "puts, _putws"
+_putw		whelp clib _putw
+putwc		whelp clib "putc, putwc"
+putwchar		whelp clib "putchar, putwchar"
+_putws		whelp clib "puts, _putws"
+qsort		whelp clib qsort
+raise		whelp clib raise
+rand		whelp clib rand
+read		whelp clib read
+readdir		whelp clib "readdir, _wreaddir"
+realloc		whelp clib "realloc Functions"
+_rectangle_w		whelp clib "_rectangle, _rectangle_w, _rectangle_wxy"
+_rectangle_wxy		whelp clib "_rectangle, _rectangle_w, _rectangle_wxy"
+_rectangle		whelp clib "_rectangle, _rectangle_w, _rectangle_wxy"
+_registerfonts		whelp clib _registerfonts
+_remapallpalette		whelp clib _remapallpalette
+_remappalette		whelp clib _remappalette
+remove		whelp clib "remove, _wremove"
+rename		whelp clib "rename, _wrename"
+rewind		whelp clib rewind
+rewinddir		whelp clib "rewinddir, _wrewinddir"
+rmdir		whelp clib "rmdir, _wrmdir"
+_rotl		whelp clib _rotl
+_rotr		whelp clib _rotr
+sbrk		whelp clib sbrk
+scanf		whelp clib "scanf, wscanf"
+_scrolltextwindow		whelp clib _scrolltextwindow
+_searchenv		whelp clib "_searchenv, _wsearchenv"
+segread		whelp clib segread
+_selectpalette		whelp clib _selectpalette
+_set_matherr		whelp clib _set_matherr
+_set_new_handler		whelp clib "set_new_handler, _set_new_handler"
+_setactivepage		whelp clib _setactivepage
+_setbkcolor		whelp clib _setbkcolor
+setbuf		whelp clib setbuf
+_setcharsize_w		whelp clib "_setcharsize, _setcharsize_w"
+_setcharsize		whelp clib "_setcharsize, _setcharsize_w"
+_setcharspacing_w		whelp clib "_setcharspacing, _setcharspacing_w"
+_setcharspacing		whelp clib "_setcharspacing, _setcharspacing_w"
+_setcliprgn		whelp clib _setcliprgn
+_setcolor		whelp clib _setcolor
+setenv		whelp clib "setenv, _setenv, _wsetenv"
+_setenv		whelp clib "setenv, _setenv, _wsetenv"
+_setfillmask		whelp clib _setfillmask
+_setfont		whelp clib _setfont
+_setgtextvector		whelp clib _setgtextvector
+setjmp		whelp clib setjmp
+_setlinestyle		whelp clib _setlinestyle
+setlocale		whelp clib "setlocale, _wsetlocale"
+_setmbcp		whelp clib _setmbcp
+setmode		whelp clib setmode
+_setnew_handler		whelp clib "set_new_handler, _set_new_handler"
+_setpixel_w		whelp clib "_setpixel, _setpixel_w"
+_setpixel		whelp clib "_setpixel, _setpixel_w"
+_setplotaction		whelp clib _setplotaction
+_settextalign		whelp clib _settextalign
+_settextcolor		whelp clib _settextcolor
+_settextcursor		whelp clib _settextcursor
+_settextorient		whelp clib _settextorient
+_settextpath		whelp clib _settextpath
+_settextposition		whelp clib _settextposition
+_settextrows		whelp clib _settextrows
+_settextwindow		whelp clib _settextwindow
+setvbuf		whelp clib setvbuf
+_setvideomode		whelp clib _setvideomode
+_setvideomoderows		whelp clib _setvideomoderows
+_setvieworg		whelp clib _setvieworg
+_setviewport		whelp clib _setviewport
+_setvisualpage		whelp clib _setvisualpage
+_setwindow		whelp clib _setwindow
+signal		whelp clib signal
+sin		whelp clib sin
+sinh		whelp clib sinh
+sisinit		whelp clib sisinit
+sleep		whelp clib sleep
+snprintf		whelp clib "snprintf, snwprintf"
+_snprintf		whelp clib "_snprintf, _snwprintf"
+snwprintf		whelp clib "snprintf, snwprintf"
+_snwprintf		whelp clib "_snprintf, _snwprintf"
+sopen		whelp clib "sopen, _wsopen"
+sound		whelp clib sound
+spawnl		whelp clib "spawn Functions"
+spawnle		whelp clib "spawn Functions"
+spawnlp		whelp clib "spawn Functions"
+spawnlpe		whelp clib "spawn Functions"
+spawnv		whelp clib "spawn Functions"
+spawnve		whelp clib "spawn Functions"
+spawnvp		whelp clib "spawn Functions"
+spawnvpe		whelp clib "spawn Functions"
+_splitpath2		whelp clib "_splitpath2, _wsplitpath2"
+_splitpath		whelp clib "_splitpath, _wsplitpath"
+sprintf		whelp clib "sprintf, swprintf"
+sqrt		whelp clib sqrt
+srand		whelp clib srand
+sscanf		whelp clib "sscanf, swscanf"
+stackavail		whelp clib stackavail
+_stacksize		whelp clib "Global Data"
+stat		whelp clib "stat, _stat, _stati64, _wstat, _wstati64"
+_stat		whelp clib "stat, _stat, _stati64, _wstat, _wstati64"
+_stati64		whelp clib "stat, _stat, _stati64, _wstat, _wstati64"
+_status87		whelp clib _status87
+stdaux		whelp clib "Global Data"
+stderr		whelp clib "Global Data"
+stdin		whelp clib "Global Data"
+stdout		whelp clib "Global Data"
+stdprn		whelp clib "Global Data"
+strcat		whelp clib "strcat, _fstrcat, wcscat, _mbscat, _fmbscat"
+strchr		whelp clib "strchr, _fstrchr, wcschr, _mbschr, _fmbschr"
+strcmp		whelp clib "strcmp, _fstrcmp, wcscmp, _mbscmp, _fmbscmp"
+strcmpi		whelp clib "strcmpi, wcscmpi"
+strcoll		whelp clib "strcoll, wcscoll, _mbscoll"
+strcpy		whelp clib "strcpy, _fstrcpy, wcscpy, _mbscpy, _fmbscpy"
+strcspn		whelp clib "strcspn, _fstrcspn, wcscspn, _mbscspn, _fmbscspn"
+_strdate		whelp clib "_strdate, _wstrdate"
+_strdec		whelp clib "_strdec, _wcsdec, _mbsdec, _fmbsdec"
+strdup		whelp clib "strdup, _strdup, _fstrdup, _wcsdup, _mbsdup, _fmbsdup"
+_strdup		whelp clib "strdup, _strdup, _fstrdup, _wcsdup, _mbsdup, _fmbsdup"
+strerror		whelp clib "strerror, wcserror"
+strftime		whelp clib "strftime, wcsftime, _wstrftime_ms"
+stricmp		whelp clib "stricmp, _stricmp, _fstricmp, _wcsicmp, _mbsicmp, _fmbsicmp"
+_stricmp		whelp clib "stricmp, _stricmp, _fstricmp, _wcsicmp, _mbsicmp, _fmbsicmp"
+_stricoll		whelp clib "_stricoll, _wcsicoll, _mbsicoll"
+_strinc		whelp clib "_strinc, _wcsinc, _mbsinc, _fmbsinc"
+strlen		whelp clib "strlen, _fstrlen, wcslen, _mbslen, _fmbslen"
+strlwr		whelp clib "strlwr, _strlwr, _fstrlwr, _wcslwr, _mbslwr, _fmbslwr"
+_strlwr		whelp clib "strlwr, _strlwr, _fstrlwr, _wcslwr, _mbslwr, _fmbslwr"
+strncat		whelp clib "strncat, _fstrncat, wcsncat, _mbsncat, _fmbsncat"
+strncmp		whelp clib "strncmp, _fstrncmp, wcsncmp, _mbsncmp, _fmbsncmp"
+_strncnt		whelp clib "_mbsnccnt, _fmbsnccnt, _strncnt, _wcsncnt"
+_strncoll		whelp clib "_strncoll, _wcsncoll, _mbsncoll"
+strncpy		whelp clib "strncpy, _fstrncpy, wcsncpy, _mbsncpy, _fmbsncpy"
+_strnextc		whelp clib "_mbsnextc, _fmbsnextc, _strnextc, _wcsnextc"
+strnicmp		whelp clib "strnicmp, _strnicmp, _fstrnicmp, _wcsnicmp, _mbsnicmp, _fmbsnicmp"
+_strnicmp		whelp clib "strnicmp, _strnicmp, _fstrnicmp, _wcsnicmp, _mbsnicmp, _fmbsnicmp"
+_strnicoll		whelp clib "_strnicoll, _wcsnicoll, _mbsnicoll"
+_strninc		whelp clib "_strninc, _wcsninc, _mbsninc, _fmbsninc"
+strnset		whelp clib "strnset, _strnset, _fstrnset, _wcsnset, _mbsnset, _fmbsnset"
+_strnset		whelp clib "strnset, _strnset, _fstrnset, _wcsnset, _mbsnset, _fmbsnset"
+strpbrk		whelp clib "strpbrk, _fstrpbrk, wcspbrk, _mbspbrk, _fmbspbrk"
+strrchr		whelp clib "strrchr, _fstrrchr, wcsrchr, _mbsrchr, _fmbsrchr"
+strrev		whelp clib "strrev, _strrev, _fstrrev, _wcsrev, _mbsrev, _fmbsrev"
+_strrev		whelp clib "strrev, _strrev, _fstrrev, _wcsrev, _mbsrev, _fmbsrev"
+strset		whelp clib "strset, _strset, _fstrset, _wcsset, _mbsset, _fmbsset"
+_strset		whelp clib "strset, _strset, _fstrset, _wcsset, _mbsset, _fmbsset"
+strspn		whelp clib "strspn, _fstrspn, wcsspn, _mbsspn, _fmbsspn"
+strspnp		whelp clib "strspnp, _strspnp, _fstrspnp, _wcsspnp, _mbsspnp, _fmbsspnp"
+_strspnp		whelp clib "strspnp, _strspnp, _fstrspnp, _wcsspnp, _mbsspnp, _fmbsspnp"
+strstr		whelp clib "strstr, _fstrstr, wcsstr, _mbsstr, _fmbsstr"
+_strtime		whelp clib "_strtime, _wstrtime"
+strtod		whelp clib "strtod, wcstod"
+strtok		whelp clib "strtok, _fstrtok, wcstok, _mbstok, _fmbstok"
+strtol		whelp clib "strtol, wcstol"
+strtoul		whelp clib "strtoul, wcstoul"
+strupr		whelp clib "strupr, _strupr, _fstrupr, _wcsupr, _mbsupr, _fmbsupr"
+_strupr		whelp clib "strupr, _strupr, _fstrupr, _wcsupr, _mbsupr, _fmbsupr"
+strxfrm		whelp clib "strxfrm, wcsxfrm"
+swab		whelp clib swab
+swprintf		whelp clib "sprintf, swprintf"
+swscanf		whelp clib "sscanf, swscanf"
+_syserrlist		whelp clib "Global Data"
+_sysnerr		whelp clib "Global Data"
+system		whelp clib "system, _wsystem"
+tan		whelp clib tan
+tanh		whelp clib tanh
+tell		whelp clib tell
+_tempnam		whelp clib "_tempnam, _wtempnam"
+_threadid		whelp clib "Global Data"
+time		whelp clib time
+timezone		whelp clib "Global Data"
+tmpfile		whelp clib tmpfile
+tmpnam		whelp clib "tmpnam, _wtmpnam"
+tolower		whelp clib "tolower, _tolower, towlower"
+_tolower		whelp clib "tolower, _tolower, towlower"
+toupper		whelp clib "toupper, _toupper, towupper"
+_toupper		whelp clib "toupper, _toupper, towupper"
+towlower		whelp clib "tolower, _tolower, towlower"
+towupper		whelp clib "toupper, _toupper, towupper"
+tzname		whelp clib "Global Data"
+tzset		whelp clib tzset
+ultoa		whelp clib "ultoa, _ultoa, _ultow"
+_ultoa		whelp clib "ultoa, _ultoa, _ultow"
+_ultow		whelp clib "ultoa, _ultoa, _ultow"
+umask		whelp clib umask
+ungetc		whelp clib "ungetc, ungetwc"
+ungetch		whelp clib ungetch
+ungetwc		whelp clib "ungetc, ungetwc"
+unlink		whelp clib "unlink, _wunlink"
+unlock		whelp clib unlock
+_unregisterfonts		whelp clib _unregisterfonts
+utime		whelp clib "utime, _utime, _wutime"
+_utime		whelp clib "utime, _utime, _wutime"
+utoa		whelp clib "utoa, _utoa, _utow"
+_utoa		whelp clib "utoa, _utoa, _utow"
+_utow		whelp clib "utoa, _utoa, _utow"
+va_arg		whelp clib va_arg
+va_end		whelp clib va_end
+va_start		whelp clib va_start
+_vbprintf		whelp clib "_vbprintf, _vbwprintf"
+_vbwprintf		whelp clib "_vbprintf, _vbwprintf"
+vcprintf		whelp clib vcprintf
+vcscanf		whelp clib vcscanf
+vfprintf		whelp clib "vfprintf, vfwprintf"
+vfscanf		whelp clib "vfscanf, vfwscanf"
+vfwprintf		whelp clib "vfprintf, vfwprintf"
+vfwscanf		whelp clib "vfscanf, vfwscanf"
+vprintf		whelp clib "vprintf, vwprintf"
+vscanf		whelp clib "vscanf, vwscanf"
+vsnprintf		whelp clib "vsnprintf, vsnwprintf"
+_vsnprintf		whelp clib "_vsnprintf, _vsnwprintf"
+vsnwprintf		whelp clib "vsnprintf, vsnwprintf"
+_vsnwprintf		whelp clib "_vsnprintf, _vsnwprintf"
+vsprintf		whelp clib "vsprintf, vswprintf"
+vsscanf		whelp clib "vsscanf, vswscanf"
+vswprintf		whelp clib "vsprintf, vswprintf"
+vswscanf		whelp clib "vsscanf, vswscanf"
+vwprintf		whelp clib "vprintf, vwprintf"
+vwscanf		whelp clib "vscanf, vwscanf"
+_waccess		whelp clib "access, _access, _waccess"
+wait		whelp clib wait
+__wargc		whelp clib "Global Data"
+__wargv		whelp clib "Global Data"
+_wchdir		whelp clib "chdir, _wchdir"
+_wchmod		whelp clib "chmod, _wchmod"
+_wclosedir		whelp clib "closedir, _wclosedir"
+_wcreat		whelp clib "creat, _wcreat"
+wcrtomb		whelp clib "wcrtomb, _fwcrtomb"
+wcscat		whelp clib "strcat, _fstrcat, wcscat, _mbscat, _fmbscat"
+wcschr		whelp clib "strchr, _fstrchr, wcschr, _mbschr, _fmbschr"
+wcscmp		whelp clib "strcmp, _fstrcmp, wcscmp, _mbscmp, _fmbscmp"
+wcscmpi		whelp clib "strcmpi, wcscmpi"
+wcscoll		whelp clib "strcoll, wcscoll, _mbscoll"
+wcscpy		whelp clib "strcpy, _fstrcpy, wcscpy, _mbscpy, _fmbscpy"
+wcscspn		whelp clib "strcspn, _fstrcspn, wcscspn, _mbscspn, _fmbscspn"
+_wcsdec		whelp clib "_strdec, _wcsdec, _mbsdec, _fmbsdec"
+_wcsdup		whelp clib "strdup, _strdup, _fstrdup, _wcsdup, _mbsdup, _fmbsdup"
+wcserror		whelp clib "strerror, wcserror"
+wcsftime		whelp clib "strftime, wcsftime, _wstrftime_ms"
+_wcsicmp		whelp clib "stricmp, _stricmp, _fstricmp, _wcsicmp, _mbsicmp, _fmbsicmp"
+_wcsicoll		whelp clib "_stricoll, _wcsicoll, _mbsicoll"
+_wcsinc		whelp clib "_strinc, _wcsinc, _mbsinc, _fmbsinc"
+wcslen		whelp clib "strlen, _fstrlen, wcslen, _mbslen, _fmbslen"
+_wcslwr		whelp clib "strlwr, _strlwr, _fstrlwr, _wcslwr, _mbslwr, _fmbslwr"
+wcsncat		whelp clib "strncat, _fstrncat, wcsncat, _mbsncat, _fmbsncat"
+wcsncmp		whelp clib "strncmp, _fstrncmp, wcsncmp, _mbsncmp, _fmbsncmp"
+_wcsncnt		whelp clib "_mbsnccnt, _fmbsnccnt, _strncnt, _wcsncnt"
+_wcsncoll		whelp clib "_strncoll, _wcsncoll, _mbsncoll"
+wcsncpy		whelp clib "strncpy, _fstrncpy, wcsncpy, _mbsncpy, _fmbsncpy"
+_wcsnextc		whelp clib "_mbsnextc, _fmbsnextc, _strnextc, _wcsnextc"
+_wcsnicmp		whelp clib "strnicmp, _strnicmp, _fstrnicmp, _wcsnicmp, _mbsnicmp, _fmbsnicmp"
+_wcsnicoll		whelp clib "_strnicoll, _wcsnicoll, _mbsnicoll"
+_wcsninc		whelp clib "_strninc, _wcsninc, _mbsninc, _fmbsninc"
+_wcsnset		whelp clib "strnset, _strnset, _fstrnset, _wcsnset, _mbsnset, _fmbsnset"
+wcspbrk		whelp clib "strpbrk, _fstrpbrk, wcspbrk, _mbspbrk, _fmbspbrk"
+wcsrchr		whelp clib "strrchr, _fstrrchr, wcsrchr, _mbsrchr, _fmbsrchr"
+_wcsrev		whelp clib "strrev, _strrev, _fstrrev, _wcsrev, _mbsrev, _fmbsrev"
+wcsrtombs		whelp clib "wcsrtombs, _fwcsrtombs"
+_wcsset		whelp clib "strset, _strset, _fstrset, _wcsset, _mbsset, _fmbsset"
+wcsspn		whelp clib "strspn, _fstrspn, wcsspn, _mbsspn, _fmbsspn"
+_wcsspnp		whelp clib "strspnp, _strspnp, _fstrspnp, _wcsspnp, _mbsspnp, _fmbsspnp"
+wcsstr		whelp clib "strstr, _fstrstr, wcsstr, _mbsstr, _fmbsstr"
+wcstod		whelp clib "strtod, wcstod"
+wcstok		whelp clib "strtok, _fstrtok, wcstok, _mbstok, _fmbstok"
+wcstol		whelp clib "strtol, wcstol"
+wcstombs		whelp clib "wcstombs, _fwcstombs"
+wcstoul		whelp clib "strtoul, wcstoul"
+_wcsupr		whelp clib "strupr, _strupr, _fstrupr, _wcsupr, _mbsupr, _fmbsupr"
+wcsxfrm		whelp clib "strxfrm, wcsxfrm"
+wctob		whelp clib wctob
+wctomb		whelp clib "wctomb, _fwctomb"
+wctype		whelp clib wctype
+_wenviron		whelp clib "Global Data"
+_wfcvt		whelp clib "fcvt, _fcvt, _wfcvt"
+_wfdopen		whelp clib "fdopen, _fdopen, _wfdopen"
+_wfindfirst		whelp clib "_findfirst, _findfirsti64, _wfindfirst, _wfindfirsti64"
+_wfindfirsti64		whelp clib "_findfirst, _findfirsti64, _wfindfirst, _wfindfirsti64"
+_wfindnext		whelp clib "_findnext, _findnexti64, _wfindnext, _wfindnexti64"
+_wfindnexti64		whelp clib "_findnext, _findnexti64, _wfindnext, _wfindnexti64"
+_wfopen		whelp clib "fopen, _wfopen"
+_wfreopen		whelp clib "freopen, _wfreopen"
+_wfsopen		whelp clib "_fsopen, _wfsopen"
+_wfstat		whelp clib "fstat, _fstat, _fstati64, _wfstat, _wfstati64"
+_wfstati64		whelp clib "fstat, _fstat, _fstati64, _wfstat, _wfstati64"
+_wfullpath		whelp clib "_fullpath, _wfullpath"
+_wgcvt		whelp clib "gcvt, _gcvt, _wgcvt"
+_wgetcwd		whelp clib "getcwd, _wgetcwd"
+_wgetdcwd		whelp clib "_getdcwd, _wgetdcwd"
+_wgetenv		whelp clib "getenv, _wgetenv"
+_win_flags_alloc_		whelp clib "Global Data"
+_win_flags_realloc_		whelp clib "Global Data"
+_winmajor		whelp clib "Global Data"
+_winminor		whelp clib "Global Data"
+_winver		whelp clib "Global Data"
+WinMain		whelp clib "main, wmain, WinMain, wWinMain"
+wmain		whelp clib "main, wmain, WinMain, wWinMain"
+_wmakepath		whelp clib "_makepath, _wmakepath"
+_wmkdir		whelp clib "mkdir, _mkdir, _wmkdir"
+_wmktemp		whelp clib "_mktemp, _wmktemp"
+_wopen		whelp clib "open, _open, _wopen"
+_wopendir		whelp clib "opendir, _wopendir"
+_wperror		whelp clib "perror, _wperror"
+_wpopen		whelp clib "_popen, _wpopen"
+wprintf		whelp clib "printf, wprintf"
+_wputenv		whelp clib "putenv, _putenv, _wputenv"
+_wrapon		whelp clib _wrapon
+_wreaddir		whelp clib "readdir, _wreaddir"
+_wremove		whelp clib "remove, _wremove"
+_wrename		whelp clib "rename, _wrename"
+_wrewinddir		whelp clib "rewinddir, _wrewinddir"
+write		whelp clib write
+_wrmdir		whelp clib "rmdir, _wrmdir"
+wscanf		whelp clib "scanf, wscanf"
+_wsearchenv		whelp clib "_searchenv, _wsearchenv"
+_wsetenv		whelp clib "setenv, _setenv, _wsetenv"
+_wsetlocale		whelp clib "setlocale, _wsetlocale"
+_wsopen		whelp clib "sopen, _wsopen"
+_wsplitpath2		whelp clib "_splitpath2, _wsplitpath2"
+_wsplitpath		whelp clib "_splitpath, _wsplitpath"
+_wstat		whelp clib "stat, _stat, _stati64, _wstat, _wstati64"
+_wstati64		whelp clib "stat, _stat, _stati64, _wstat, _wstati64"
+_wstrdate		whelp clib "_strdate, _wstrdate"
+_wstrftime_ms		whelp clib "strftime, wcsftime, _wstrftime_ms"
+_wstrtime		whelp clib "_strtime, _wstrtime"
+_wsystem		whelp clib "system, _wsystem"
+_wtempnam		whelp clib "_tempnam, _wtempnam"
+_wtmpnam		whelp clib "tmpnam, _wtmpnam"
+_wtof		whelp clib "atof, _wtof"
+_wtoi		whelp clib "atoi, _wtoi"
+_wtol		whelp clib "atol, _wtol"
+_wunlink		whelp clib "unlink, _wunlink"
+_wutime		whelp clib "utime, _utime, _wutime"
+wWinMain		whelp clib "main, wmain, WinMain, wWinMain"
+y0		whelp clib "bessel Functions"
+y1		whelp clib "bessel Functions"
+yn		whelp clib "bessel Functions"
+
+__386__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+__based		whelp clr "Based Pointers for Open Watcom C/16 and C/32"
+__cdecl		whelp clr "Open Watcom C/16 and C/32 Keywords"
+__CHAR_SIGNED__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+__CHEAP_WINDOWS__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+__COMPACT__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+__DATE__		whelp clr "Standard Predefined Macros"
+__DOS__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+__export		whelp clr "Open Watcom C/16 and C/32 Keywords"
+__FILE__		whelp clr "Standard Predefined Macros"
+__FLAT__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+__export		whelp clr "Open Watcom C/16 and C/32 Keywords"
+__far		whelp clr "The _ _far Keyword for Open Watcom"
+__far16		whelp clr "The _ _far16 and _Seg16 Keywords"
+__fortran		whelp clr "Open Watcom C/16 and C/32 Keywords"
+__FPI__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+__FUNCTION__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+__func__		whelp clr "Standard Predefined Macros"
+__HUGE__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+__huge		whelp clr "The _ _huge Keyword for Open Watcom"
+__INLINE_FUNCTIONS__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+__interrupt		whelp clr "Open Watcom C/16 and C/32 Keywords"
+__LARGE__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+__LINE__		whelp clr "Standard Predefined Macros"
+__loadds		whelp clr "Open Watcom C/16 and C/32 Keywords"
+__MEDIUM__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+__near		whelp clr "The _ _near Keyword for Open Watcom"
+__NETWARE_386__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+__NT__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+__OS2__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+__pascal		whelp clr "Open Watcom C/16 and C/32 Keywords"
+__QNX__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+__saveregs		whelp clr "Open Watcom C/16 and C/32 Keywords"
+__segment		whelp clr "Segment Constant Based Pointers and Objects"
+__segname		whelp clr "Segment Constant Based Pointers and Objects"
+__self		whelp clr "Self Based Pointers"
+__SMALL__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+__STDC__		whelp clr "Standard Predefined Macros"
+__stdcall		whelp clr "Open Watcom C/16 and C/32 Keywords"
+__syscall		whelp clr "Open Watcom C/16 and C/32 Keywords"
+__TIME__		whelp clr "Standard Predefined Macros"
+__VA_ARGS__		whelp clr "Variable Argument Macros"
+__WATCOMC__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+__WINDOWS__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+__WINDOWS_386__		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+_based		whelp clr "Open Watcom C/16 and C/32 Keywords"
+_cdecl		whelp clr "Open Watcom C/16 and C/32 Keywords"
+_Cdecl		whelp clr "Open Watcom C/16 and C/32 Keywords"
+_CODE		whelp clr "Segment Constant Based Pointers and Objects"
+_CONST		whelp clr "Segment Constant Based Pointers and Objects"
+_DATA		whelp clr "Segment Constant Based Pointers and Objects"
+_far		whelp clr "Open Watcom C/16 and C/32 Keywords"
+_far16		whelp clr "Open Watcom C/16 and C/32 Keywords"
+_Far16		whelp clr "Open Watcom C/16 and C/32 Keywords"
+_fortran		whelp clr "Open Watcom C/16 and C/32 Keywords"
+_huge		whelp clr "Open Watcom C/16 and C/32 Keywords"
+_interrupt		whelp clr "Open Watcom C/16 and C/32 Keywords"
+_loadds		whelp clr "Open Watcom C/16 and C/32 Keywords"
+_M_I86		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+_M_I86CM		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+_M_I86HM		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+_M_I86LM		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+_M_I86MM		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+_M_I86SM		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+_M_I386		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+_M_IX86		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+_near		whelp clr "Open Watcom C/16 and C/32 Keywords"
+_Packed		whelp clr "Open Watcom C/16 and C/32 Keywords"
+_pascal		whelp clr "Open Watcom C/16 and C/32 Keywords"
+_saveregs		whelp clr "Open Watcom C/16 and C/32 Keywords"
+_Seg16		whelp clr "The _ _far16 and _Seg16 Keywords"
+_segment		whelp clr "Open Watcom C/16 and C/32 Keywords"
+_segname		whelp clr "Open Watcom C/16 and C/32 Keywords"
+_self		whelp clr "Open Watcom C/16 and C/32 Keywords"
+#		whelp clr "The Null Directive"
+##		whelp clr "Concatenating Tokens"
+#define		whelp clr "Macro Replacement"
+#elif		whelp clr "Conditionally Including Source Lines"
+#else		whelp clr "Conditionally Including Source Lines"
+#endif		whelp clr "Conditionally Including Source Lines"
+#error		whelp clr "Displaying a Diagnostic Message"
+#if		whelp clr "Conditionally Including Source Lines"
+#ifdef		whelp clr "The #ifdef and #ifndef Directives"
+#ifndef		whelp clr "The #ifdef and #ifndef Directives"
+#include		whelp clr "Including Headers and Source Files"
+#line		whelp clr "Changing the Line Numbering and File Name"
+#undef		whelp clr "Redfining a Macro"
+argc		whelp clr "The Parameters to the Function Main"
+argv		whelp clr "The Parameters to the Function Main"
+auto		whelp clr "The auto Storage Class"
+const		whelp clr "The const and volatile Declarations"
+CHAR_BIT		whelp clr "Numerical Limits for Integer Types"
+CHAR_MAX		whelp clr "Numerical Limits for Integer Types"
+CHAR_MIN		whelp clr "Numerical Limits for Integer Types"
+defined		whelp clr "Conditionally Including Source Lines"
+DBL_DIG		whelp clr "Numerical Limits for Floating-Point Types"
+DBL_EPSILON		whelp clr "Numerical Limits for Floating-Point Types"
+DBL_MANT_DIG		whelp clr "Numerical Limits for Floating-Point Types"
+DBL_MAX		whelp clr "Numerical Limits for Floating-Point Types"
+DBL_MAX_10_EXP		whelp clr "Numerical Limits for Floating-Point Types"
+DBL_MAX_EXP		whelp clr "Numerical Limits for Floating-Point Types"
+DBL_MIN		whelp clr "Numerical Limits for Floating-Point Types"
+DBL_MIN_10_EXP		whelp clr "Numerical Limits for Floating-Point Types"
+DBL_MIN_EXP		whelp clr "Numerical Limits for Floating-Point Types"
+double		whelp clr "Floating-Point Types"
+enum		whelp clr "Enumerated Types"
+extern		whelp clr "The extern Storage Class"
+float		whelp clr "Floating-Point Types"
+FLT_DIG		whelp clr "Numerical Limits for Floating-Point Types"
+FLT_EPSILON		whelp clr "Numerical Limits for Floating-Point Types"
+FLT_MANT_DIG		whelp clr "Numerical Limits for Floating-Point Types"
+FLT_MAX		whelp clr "Numerical Limits for Floating-Point Types"
+FLT_MAX_10_EXP		whelp clr "Numerical Limits for Floating-Point Types"
+FLT_MAX_EXP		whelp clr "Numerical Limits for Floating-Point Types"
+FLT_MIN		whelp clr "Numerical Limits for Floating-Point Types"
+FLT_MIN_10_EXP		whelp clr "Numerical Limits for Floating-Point Types"
+FLT_MIN_EXP		whelp clr "Numerical Limits for Floating-Point Types"
+FLT_RADIX		whelp clr "Numerical Limits for Floating-Point Types"
+FLT_ROUNDS		whelp clr "Integer to Floating-Point Conversion"
+INT_MAX		whelp clr "Numerical Limits for Integer Types"
+INT_MIN		whelp clr "Numerical Limits for Integer Types"
+LDBL_DIG		whelp clr "Numerical Limits for Floating-Point Types"
+LDBL_EPSILON		whelp clr "Numerical Limits for Floating-Point Types"
+LDBL_MANT_DIG		whelp clr "Numerical Limits for Floating-Point Types"
+LDBL_MAX		whelp clr "Numerical Limits for Floating-Point Types"
+LDBL_MAX_10_EXP		whelp clr "Numerical Limits for Floating-Point Types"
+LDBL_MAX_EXP		whelp clr "Numerical Limits for Floating-Point Types"
+LDBL_MIN		whelp clr "Numerical Limits for Floating-Point Types"
+LDBL_MIN_10_EXP		whelp clr "Numerical Limits for Floating-Point Types"
+LDBL_MIN_EXP		whelp clr "Numerical Limits for Floating-Point Types"
+LONG_MAX		whelp clr "Numerical Limits for Integer Types"
+LONG_MIN		whelp clr "Numerical Limits for Integer Types"
+MB_LEN_MAX		whelp clr "Numerical Limits for Integer Types"
+MSDOS		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+NO_EXT_KEYS		whelp clr "Open Watcom C/16 and C/32 Predefined Macros"
+NULL		whelp clr "The NULL Macro"
+offsetof		whelp clr "The offsetof Macro"
+register		whelp clr "The register Storage Class"
+SCHAR_MAX		whelp clr "Numerical Limits for Integer Types"
+SCHAR_MIN		whelp clr "Numerical Limits for Integer Types"
+SHRT_MAX		whelp clr "Numerical Limits for Integer Types"
+SHRT_MIN		whelp clr "Numerical Limits for Integer Types"
+sizeof		whelp clr "The sizeof Operator"
+SOMLINK		whelp clr "Open Watcom C/16 and C/32 Keywords"
+SOMDLINK		whelp clr "Open Watcom C/16 and C/32 Keywords"
+static		whelp clr "Static Storage Duration"
+struct		whelp clr "Structures"
+typedef		whelp clr "Type Definitions"
+UCHAR_MAX		whelp clr "Numerical Limits for Integer Types"
+UINT_MAX		whelp clr "Numerical Limits for Integer Types"
+ULONG_MAX		whelp clr "Numerical Limits for Integer Types"
+USHRT_MAX		whelp clr "Numerical Limits for Integer Types"
+union		whelp clr "Unions"
+va_list		whelp clr "Variable Argument Lists"
+void		whelp clr "Void"
+volatile		whelp clr "The const and volatile Declarations"
+
+__chipbug		whelp cguide "fpd"
+__declspec		whelp cguide "The __declspec Keyword"
+__SW_0		whelp cguide "0"
+__SW_1		whelp cguide "1"
+__SW_2		whelp cguide "2"
+__SW_3		whelp cguide "3"
+__SW_3R		whelp cguide "3{r|s}"
+__SW_3S		whelp cguide "3{r|s}"
+__SW_4		whelp cguide "4"
+__SW_5		whelp cguide "5"
+__SW_6		whelp cguide "6"
+__SW_EE		whelp cguide "ee"
+__SW_EI		whelp cguide "ei"
+__SW_EM		whelp cguide "em"
+__SW_EN		whelp cguide "en"
+__SW_EP		whelp cguide "ep[<number>]"
+__SW_FPC		whelp cguide "fpc"
+__SW_FPI		whelp cguide "fpi"
+__SW_FPI87		whelp cguide "fpi87"
+__SW_FP2		whelp cguide "fp2"
+__SW_FP3		whelp cguide "fp3"
+__SW_FP4		whelp cguide "fp4"
+__SW_FP5		whelp cguide "fp5"
+__SW_FP6		whelp cguide "fp6"
+__SW_FPD		whelp cguide "fpd"
+__SW_J		whelp cguide "j"
+__SW_ND		whelp cguide "nd=<name>"
+__SW_OA		whelp cguide "oa"
+__SW_OC		whelp cguide "oc"
+__SW_OD		whelp cguide "od"
+__SW_OI		whelp cguide "oi"
+__SW_OL		whelp cguide "ol"
+__SW_OM		whelp cguide "om"
+__SW_ON		whelp cguide "on"
+__SW_OO		whelp cguide "oo"
+__SW_OP		whelp cguide "op"
+__SW_OR		whelp cguide "or"
+__SW_OS		whelp cguide "os"
+__SW_OT		whelp cguide "ot"
+__SW_OU		whelp cguide "ou"
+__SW_OZ		whelp cguide "oz"
+__SW_S		whelp cguide "s"
+__SW_ZC		whelp cguide "zc"
+__SW_ZDF		whelp cguide "zd{f,p}"
+__SW_ZDP		whelp cguide "zd{f,p}"
+__SW_ZFF		whelp cguide "zf{f,p}"
+__SW_ZFP		whelp cguide "zf{f,p}"
+__SW_ZGF		whelp cguide "zg{f,p}"
+__SW_ZGP		whelp cguide "zg{f,p}"
+__SW_ZK		whelp cguide "zk{0,1,2,l}"
+__SW_ZM		whelp cguide "zm"
+__SW_ZU		whelp cguide "zu"
+
+ACCESS_RD	io.h	/#define ACCESS_RD /
+ACCESS_WR	io.h	/#define ACCESS_WR /
+AbnormalTermination	excpt.h	/#define AbnormalTermination /
+CLK_TCK	time.h	/#define CLK_TCK /
+CLOCKS_PER_SEC	time.h	/#define CLOCKS_PER_SEC /
+DBL_RADIX	float.h	/#define DBL_RADIX /
+DBL_ROUNDS	float.h	/#define DBL_ROUNDS /
+DOMAIN	math.h	/#define DOMAIN /
+DOS_ALLOC_SEG	dosfunc.h	/#define DOS_ALLOC_SEG /
+DOS_CHDIR	dosfunc.h	/#define DOS_CHDIR /
+DOS_CHMOD	dosfunc.h	/#define DOS_CHMOD /
+DOS_CLOSE	dosfunc.h	/#define DOS_CLOSE /
+DOS_COMMIT_FILE	dosfunc.h	/#define DOS_COMMIT_FILE /
+DOS_CREAT	dosfunc.h	/#define DOS_CREAT /
+DOS_CTRL_BREAK	dosfunc.h	/#define DOS_CTRL_BREAK /
+DOS_CUR_DISK	dosfunc.h	/#define DOS_CUR_DISK /
+DOS_DUP	dosfunc.h	/#define DOS_DUP /
+DOS_DUP2	dosfunc.h	/#define DOS_DUP2 /
+DOS_EXIT	dosfunc.h	/#define DOS_EXIT /
+DOS_FILE_DATE	dosfunc.h	/#define DOS_FILE_DATE /
+DOS_FIND_FIRST	dosfunc.h	/#define DOS_FIND_FIRST /
+DOS_FIND_NEXT	dosfunc.h	/#define DOS_FIND_NEXT /
+DOS_FREE_SEG	dosfunc.h	/#define DOS_FREE_SEG /
+DOS_GETCWD	dosfunc.h	/#define DOS_GETCWD /
+DOS_GET_CHAR_NO_ECHO	dosfunc.h	/#define DOS_GET_CHAR_NO_ECHO /
+DOS_GET_DATE	dosfunc.h	/#define DOS_GET_DATE /
+DOS_GET_INT	dosfunc.h	/#define DOS_GET_INT /
+DOS_GET_TIME	dosfunc.h	/#define DOS_GET_TIME /
+DOS_GET_VERSION	dosfunc.h	/#define DOS_GET_VERSION /
+DOS_IOCTL	dosfunc.h	/#define DOS_IOCTL /
+DOS_LSEEK	dosfunc.h	/#define DOS_LSEEK /
+DOS_MKDIR	dosfunc.h	/#define DOS_MKDIR /
+DOS_MODE	stdlib.h	/#define DOS_MODE /
+DOS_MODIFY_SEG	dosfunc.h	/#define DOS_MODIFY_SEG /
+DOS_OPEN	dosfunc.h	/#define DOS_OPEN /
+DOS_READ	dosfunc.h	/#define DOS_READ /
+DOS_RENAME	dosfunc.h	/#define DOS_RENAME /
+DOS_RMDIR	dosfunc.h	/#define DOS_RMDIR /
+DOS_SET_DTA	dosfunc.h	/#define DOS_SET_DTA /
+DOS_SET_INT	dosfunc.h	/#define DOS_SET_INT /
+DOS_SWITCH_CHAR	dosfunc.h	/#define DOS_SWITCH_CHAR /
+DOS_UNLINK	dosfunc.h	/#define DOS_UNLINK /
+DOS_WRITE	dosfunc.h	/#define DOS_WRITE /
+E2BIG	errno.h	/#define E2BIG /
+EACCES	errno.h	/#define EACCES /
+EAGAIN	errno.h	/#define EAGAIN /
+EBADF	errno.h	/#define EBADF /
+EBUSY	errno.h	/#define EBUSY /
+ECHILD	errno.h	/#define ECHILD /
+EDEADLK	errno.h	/#define EDEADLK /
+EDEADLOCK	errno.h	/#define EDEADLOCK /
+EDOM	errno.h	/#define EDOM /
+EEXIST	errno.h	/#define EEXIST /
+EFAULT	errno.h	/#define EFAULT /
+EFBIG	errno.h	/#define EFBIG /
+EILSEQ	errno.h	/#define EILSEQ /
+EINTR	errno.h	/#define EINTR /
+EINVAL	errno.h	/#define EINVAL /
+EIO	errno.h	/#define EIO /
+EISDIR	errno.h	/#define EISDIR /
+EMFILE	errno.h	/#define EMFILE /
+EMLINK	errno.h	/#define EMLINK /
+EM_DENORMAL	float.h	/#define EM_DENORMAL /
+EM_INEXACT	float.h	/#define EM_INEXACT /
+EM_INVALID	float.h	/#define EM_INVALID /
+EM_OVERFLOW	float.h	/#define EM_OVERFLOW /
+EM_PRECISION	float.h	/#define EM_PRECISION /
+EM_UNDERFLOW	float.h	/#define EM_UNDERFLOW /
+EM_ZERODIVIDE	float.h	/#define EM_ZERODIVIDE /
+ENAMETOOLONG	errno.h	/#define ENAMETOOLONG /
+ENFILE	errno.h	/#define ENFILE /
+ENODEV	errno.h	/#define ENODEV /
+ENOENT	errno.h	/#define ENOENT /
+ENOEXEC	errno.h	/#define ENOEXEC /
+ENOLCK	errno.h	/#define ENOLCK /
+ENOMEM	errno.h	/#define ENOMEM /
+ENOSPC	errno.h	/#define ENOSPC /
+ENOSYS	errno.h	/#define ENOSYS /
+ENOTBLK	errno.h	/#define ENOTBLK /
+ENOTDIR	errno.h	/#define ENOTDIR /
+ENOTEMPTY	errno.h	/#define ENOTEMPTY /
+ENOTTY	errno.h	/#define ENOTTY /
+ENXIO	errno.h	/#define ENXIO /
+EPERM	errno.h	/#define EPERM /
+EPIPE	errno.h	/#define EPIPE /
+ERANGE	errno.h	/#define ERANGE /
+EROFS	errno.h	/#define EROFS /
+ESPIPE	errno.h	/#define ESPIPE /
+ESRCH	errno.h	/#define ESRCH /
+ETXTBSY	errno.h	/#define ETXTBSY /
+EXCEPTION_CONTINUE_EXECUTION	excpt.h	/#define EXCEPTION_CONTINUE_EXECUTION /
+EXCEPTION_CONTINUE_SEARCH	excpt.h	/#define EXCEPTION_CONTINUE_SEARCH /
+EXCEPTION_EXECUTE_HANDLER	excpt.h	/#define EXCEPTION_EXECUTE_HANDLER /
+EXDEV	errno.h	/#define EXDEV /
+EXIT_FAILURE	stdlib.h	/#define EXIT_FAILURE /
+EXIT_SUCCESS	stdlib.h	/#define EXIT_SUCCESS /
+EZERO	errno.h	/#define EZERO /
+FLT_NORMALIZE	float.h	/#define FLT_NORMALIZE /
+FPE_DENORMAL	float.h	/#define FPE_DENORMAL /
+FPE_EXPLICITGEN	float.h	/#define FPE_EXPLICITGEN /
+FPE_INEXACT	float.h	/#define FPE_INEXACT /
+FPE_INVALID	float.h	/#define FPE_INVALID /
+FPE_IOVERFLOW	float.h	/#define FPE_IOVERFLOW /
+FPE_LOGERR	float.h	/#define FPE_LOGERR /
+FPE_MODERR	float.h	/#define FPE_MODERR /
+FPE_OVERFLOW	float.h	/#define FPE_OVERFLOW /
+FPE_SQRTNEG	float.h	/#define FPE_SQRTNEG /
+FPE_STACKOVERFLOW	float.h	/#define FPE_STACKOVERFLOW /
+FPE_STACKUNDERFLOW	float.h	/#define FPE_STACKUNDERFLOW /
+FPE_UNDERFLOW	float.h	/#define FPE_UNDERFLOW /
+FPE_UNEMULATED	float.h	/#define FPE_UNEMULATED /
+FPE_ZERODIVIDE	float.h	/#define FPE_ZERODIVIDE /
+F_OK	io.h	/#define F_OK /
+GetExceptionCode	excpt.h	/#define GetExceptionCode /
+GetExceptionInformation	excpt.h	/#define GetExceptionInformation /
+HUGE_VAL	math.h	/#define HUGE_VAL /
+IC_AFFINE	float.h	/#define IC_AFFINE /
+IC_PROJECTIVE	float.h	/#define IC_PROJECTIVE /
+LC_ALL	locale.h	/#define LC_ALL /
+LC_COLLATE	locale.h	/#define LC_COLLATE /
+LC_CTYPE	locale.h	/#define LC_CTYPE /
+LC_MESSAGES	locale.h	/#define LC_MESSAGES /
+LC_MONETARY	locale.h	/#define LC_MONETARY /
+LC_NUMERIC	locale.h	/#define LC_NUMERIC /
+LC_TIME	locale.h	/#define LC_TIME /
+LDBL_RADIX	float.h	/#define LDBL_RADIX /
+LDBL_ROUNDS	float.h	/#define LDBL_ROUNDS /
+L_tmpnam	stdio.h	/#define L_tmpnam /
+MCW_EM	float.h	/#define MCW_EM /
+MCW_IC	float.h	/#define MCW_IC /
+MCW_PC	float.h	/#define MCW_PC /
+MCW_RC	float.h	/#define MCW_RC /
+NAME_MAX	direct.h	/#define NAME_MAX /
+OS2_MODE	stdlib.h	/#define OS2_MODE /
+OVERFLOW	math.h	/#define OVERFLOW /
+O_APPEND	fcntl.h	/#define O_APPEND /
+O_BINARY	fcntl.h	/#define O_BINARY /
+O_CREAT	fcntl.h	/#define O_CREAT /
+O_EXCL	fcntl.h	/#define O_EXCL /
+O_NOINHERIT	fcntl.h	/#define O_NOINHERIT /
+O_RDONLY	fcntl.h	/#define O_RDONLY /
+O_RDWR	fcntl.h	/#define O_RDWR /
+O_TEXT	fcntl.h	/#define O_TEXT /
+O_TRUNC	fcntl.h	/#define O_TRUNC /
+O_WRONLY	fcntl.h	/#define O_WRONLY /
+PC_24	float.h	/#define PC_24 /
+PC_53	float.h	/#define PC_53 /
+PC_64	float.h	/#define PC_64 /
+PLOSS	math.h	/#define PLOSS /
+P_NOWAIT	process.h	/#define P_NOWAIT /
+P_NOWAITO	process.h	/#define P_NOWAITO /
+P_OVERLAY	process.h	/#define P_OVERLAY /
+P_WAIT	process.h	/#define P_WAIT /
+RAND_MAX	stdlib.h	/#define RAND_MAX /
+RC_CHOP	float.h	/#define RC_CHOP /
+RC_DOWN	float.h	/#define RC_DOWN /
+RC_NEAR	float.h	/#define RC_NEAR /
+RC_UP	float.h	/#define RC_UP /
+R_OK	io.h	/#define R_OK /
+SEEK_CUR	io.h	/#define SEEK_CUR /
+SEEK_END	io.h	/#define SEEK_END /
+SEEK_SET	io.h	/#define SEEK_SET /
+SH_COMPAT	share.h	/#define SH_COMPAT /
+SH_DENYNO	share.h	/#define SH_DENYNO /
+SH_DENYRD	share.h	/#define SH_DENYRD /
+SH_DENYRW	share.h	/#define SH_DENYRW /
+SH_DENYWR	share.h	/#define SH_DENYWR /
+SIGABRT	signal.h	/#define SIGABRT /
+SIGBREAK	signal.h	/#define SIGBREAK /
+SIGFPE	signal.h	/#define SIGFPE /
+SIGIDIVZ	signal.h	/#define SIGIDIVZ /
+SIGILL	signal.h	/#define SIGILL /
+SIGINT	signal.h	/#define SIGINT /
+SIGIOVFL	signal.h	/#define SIGIOVFL /
+SIGSEGV	signal.h	/#define SIGSEGV /
+SIGTERM	signal.h	/#define SIGTERM /
+SIGUSR1	signal.h	/#define SIGUSR1 /
+SIGUSR2	signal.h	/#define SIGUSR2 /
+SIGUSR3	signal.h	/#define SIGUSR3 /
+SIG_DFL	signal.h	/#define SIG_DFL /
+SIG_ERR	signal.h	/#define SIG_ERR /
+SIG_IGN	signal.h	/#define SIG_IGN /
+SING	math.h	/#define SING /
+STDAUX_FILENO	io.h	/#define STDAUX_FILENO /
+STDERR_FILENO	io.h	/#define STDERR_FILENO /
+STDIN_FILENO	io.h	/#define STDIN_FILENO /
+STDOUT_FILENO	io.h	/#define STDOUT_FILENO /
+STDPRN_FILENO	io.h	/#define STDPRN_FILENO /
+SW_DENORMAL	float.h	/#define SW_DENORMAL /
+SW_INEXACT	float.h	/#define SW_INEXACT /
+SW_INVALID	float.h	/#define SW_INVALID /
+SW_OVERFLOW	float.h	/#define SW_OVERFLOW /
+SW_SQRTNEG	float.h	/#define SW_SQRTNEG /
+SW_STACKOVERFLOW	float.h	/#define SW_STACKOVERFLOW /
+SW_STACKUNDERFLOW	float.h	/#define SW_STACKUNDERFLOW /
+SW_UNDERFLOW	float.h	/#define SW_UNDERFLOW /
+SW_UNEMULATED	float.h	/#define SW_UNEMULATED /
+SW_ZERODIVIDE	float.h	/#define SW_ZERODIVIDE /
+TLOSS	math.h	/#define TLOSS /
+TMP_MAX	stdio.h	/#define TMP_MAX /
+TZNAME_MAX	limits.h	/#define TZNAME_MAX /
+UNDERFLOW	math.h	/#define UNDERFLOW /
+WAIT_CHILD	process.h	/#define WAIT_CHILD /
+WAIT_GRANDCHILD	process.h	/#define WAIT_GRANDCHILD /
+WEOF	stdio.h	/#define WEOF /
+W_OK	io.h	/#define W_OK /
+X_OK	io.h	/#define X_OK /
+_98ANALOG	graph98.h	/#define _98ANALOG /
+_98BLACK	graph98.h	/#define _98BLACK /
+_98BLACK_D	graph98.h	/#define _98BLACK_D /
+_98BLUE	graph98.h	/#define _98BLUE /
+_98BLUE_D	graph98.h	/#define _98BLUE_D /
+_98CGA	graph98.h	/#define _98CGA /
+_98CYAN	graph98.h	/#define _98CYAN /
+_98CYAN_D	graph98.h	/#define _98CYAN_D /
+_98DARKBLUE	graph98.h	/#define _98DARKBLUE /
+_98DARKCYAN	graph98.h	/#define _98DARKCYAN /
+_98DARKGREEN	graph98.h	/#define _98DARKGREEN /
+_98DARKMAGENTA	graph98.h	/#define _98DARKMAGENTA /
+_98DARKRED	graph98.h	/#define _98DARKRED /
+_98DARKWHITE	graph98.h	/#define _98DARKWHITE /
+_98DARKYELLOW	graph98.h	/#define _98DARKYELLOW /
+_98DIGITAL	graph98.h	/#define _98DIGITAL /
+_98EGA	graph98.h	/#define _98EGA /
+_98GRAY	graph98.h	/#define _98GRAY /
+_98GREEN	graph98.h	/#define _98GREEN /
+_98GREEN_D	graph98.h	/#define _98GREEN_D /
+_98HIRES16COLOR	graph98.h	/#define _98HIRES16COLOR /
+_98HIRESS16COLOR	graph98.h	/#define _98HIRESS16COLOR /
+_98MAGENTA	graph98.h	/#define _98MAGENTA /
+_98MAGENTA_D	graph98.h	/#define _98MAGENTA_D /
+_98RED	graph98.h	/#define _98RED /
+_98RED_D	graph98.h	/#define _98RED_D /
+_98RES16COLOR	graph98.h	/#define _98RES16COLOR /
+_98RES8COLOR	graph98.h	/#define _98RES8COLOR /
+_98RESCOLOR	graph98.h	/#define _98RESCOLOR /
+_98RESS16COLOR	graph98.h	/#define _98RESS16COLOR /
+_98RESS8COLOR	graph98.h	/#define _98RESS8COLOR /
+_98RESSCOLOR	graph98.h	/#define _98RESSCOLOR /
+_98TEXT80	graph98.h	/#define _98TEXT80 /
+_98WHITE	graph98.h	/#define _98WHITE /
+_98WHITE_D	graph98.h	/#define _98WHITE_D /
+_98YELLOW	graph98.h	/#define _98YELLOW /
+_98YELLOW_D	graph98.h	/#define _98YELLOW_D /
+_ANALOGCOLOR	graph.h	/#define _ANALOGCOLOR /
+_ANALOGMONO	graph.h	/#define _ANALOGMONO /
+_APPEND	stdio.h	/#define _APPEND /
+_A_ARCH	direct.h	/#define _A_ARCH /
+_A_HIDDEN	direct.h	/#define _A_HIDDEN /
+_A_NORMAL	direct.h	/#define _A_NORMAL /
+_A_RDONLY	direct.h	/#define _A_RDONLY /
+_A_SUBDIR	direct.h	/#define _A_SUBDIR /
+_A_SYSTEM	direct.h	/#define _A_SYSTEM /
+_A_VOLID	direct.h	/#define _A_VOLID /
+_BIGBUF	stdio.h	/#define _BIGBUF /
+_BINARY	stdio.h	/#define _BINARY /
+_BLACK	graph.h	/#define _BLACK /
+_BLUE	graph.h	/#define _BLUE /
+_BRIGHTWHITE	graph.h	/#define _BRIGHTWHITE /
+_BROWN	graph.h	/#define _BROWN /
+_BYTE_ORIENTED	stdio.h	/#define _BYTE_ORIENTED /
+_CGA	graph.h	/#define _CGA /
+_CMD_2D	bios98.h	/#define _CMD_2D /
+_CMD_2DD	bios98.h	/#define _CMD_2DD /
+_CMD_2HD	bios98.h	/#define _CMD_2HD /
+_CMD_HD	bios98.h	/#define _CMD_HD /
+_CMD_MF	bios98.h	/#define _CMD_MF /
+_CMD_MT	bios98.h	/#define _CMD_MT /
+_CMD_RETRY	bios98.h	/#define _CMD_RETRY /
+_CMD_SEEK	bios98.h	/#define _CMD_SEEK /
+_CNTRL	ctype.h	/#define _CNTRL /
+_COLOR	graph.h	/#define _COLOR /
+_COMMIT	stdio.h	/#define _COMMIT /
+_COM_110	bios.h	/#define _COM_110 /
+_COM_1200	bios.h	/#define _COM_1200 /
+_COM_150	bios.h	/#define _COM_150 /
+_COM_2400	bios.h	/#define _COM_2400 /
+_COM_300	bios.h	/#define _COM_300 /
+_COM_4800	bios.h	/#define _COM_4800 /
+_COM_600	bios.h	/#define _COM_600 /
+_COM_75	bios98.h	/#define _COM_75 /
+_COM_9600	bios.h	/#define _COM_9600 /
+_COM_CH1	bios98.h	/#define _COM_CH1 /
+_COM_CH2	bios98.h	/#define _COM_CH2 /
+_COM_CH3	bios98.h	/#define _COM_CH3 /
+_COM_CHR7	bios.h	/#define _COM_CHR7 /
+_COM_CHR8	bios.h	/#define _COM_CHR8 /
+_COM_COMMAND	bios98.h	/#define _COM_COMMAND /
+_COM_DEFAULT	bios98.h	/#define _COM_DEFAULT /
+_COM_DTR	bios98.h	/#define _COM_DTR /
+_COM_ER	bios98.h	/#define _COM_ER /
+_COM_EVEN	bios98.h	/#define _COM_EVEN /
+_COM_EVENPARITY	bios.h	/#define _COM_EVENPARITY /
+_COM_GETDTL	bios98.h	/#define _COM_GETDTL /
+_COM_INIT	bios.h	/#define _COM_INIT /
+_COM_INITX	bios98.h	/#define _COM_INITX /
+_COM_IR	bios98.h	/#define _COM_IR /
+_COM_NOPARITY	bios.h	/#define _COM_NOPARITY /
+_COM_ODD	bios98.h	/#define _COM_ODD /
+_COM_ODDPARITY	bios.h	/#define _COM_ODDPARITY /
+_COM_RECEIVE	bios.h	/#define _COM_RECEIVE /
+_COM_RTS	bios98.h	/#define _COM_RTS /
+_COM_RXEN	bios98.h	/#define _COM_RXEN /
+_COM_SBRK	bios98.h	/#define _COM_SBRK /
+_COM_SEND	bios.h	/#define _COM_SEND /
+_COM_SPACEPARITY	bios.h	/#define _COM_SPACEPARITY /
+_COM_STATUS	bios.h	/#define _COM_STATUS /
+_COM_STOP1	bios.h	/#define _COM_STOP1 /
+_COM_STOP2	bios.h	/#define _COM_STOP2 /
+_COM_TXEN	bios98.h	/#define _COM_TXEN /
+_CRTDBG_FILE_STDERR	crtdbg.h	/#define _CRTDBG_FILE_STDERR /
+_CRTDBG_FILE_STDOUT	crtdbg.h	/#define _CRTDBG_FILE_STDOUT /
+_CRTDBG_HFILE_ERROR	crtdbg.h	/#define _CRTDBG_HFILE_ERROR /
+_CRTDBG_INVALID_HFILE	crtdbg.h	/#define _CRTDBG_INVALID_HFILE /
+_CRTDBG_MODE_DEBUG	crtdbg.h	/#define _CRTDBG_MODE_DEBUG /
+_CRTDBG_MODE_FILE	crtdbg.h	/#define _CRTDBG_MODE_FILE /
+_CRTDBG_MODE_WNDW	crtdbg.h	/#define _CRTDBG_MODE_WNDW /
+_CRTDBG_REPORT_FILE	crtdbg.h	/#define _CRTDBG_REPORT_FILE /
+_CRTDBG_REPORT_MODE	crtdbg.h	/#define _CRTDBG_REPORT_MODE /
+_CRT_ASSERT	crtdbg.h	/#define _CRT_ASSERT /
+_CRT_ERRCNT	crtdbg.h	/#define _CRT_ERRCNT /
+_CRT_ERROR	crtdbg.h	/#define _CRT_ERROR /
+_CRT_WARN	crtdbg.h	/#define _CRT_WARN /
+_CW_DEFAULT	float.h	/#define _CW_DEFAULT /
+_CYAN	graph.h	/#define _CYAN /
+_DBL_EPSILON	float.h	/#define _DBL_EPSILON /
+_DBL_MAX	float.h	/#define _DBL_MAX /
+_DBL_MIN	float.h	/#define _DBL_MIN /
+_DBL_RADIX	float.h	/#define _DBL_RADIX /
+_DBL_ROUNDS	float.h	/#define _DBL_ROUNDS /
+_DEFAULTMODE	graph.h	/#define _DEFAULTMODE /
+_DIGIT	ctype.h	/#define _DIGIT /
+_DIRTY	stdio.h	/#define _DIRTY /
+_DISK_ALTERNATE	bios98.h	/#define _DISK_ALTERNATE /
+_DISK_BADTRACK	bios98.h	/#define _DISK_BADTRACK /
+_DISK_DIAGNOSTIC	bios98.h	/#define _DISK_DIAGNOSTIC /
+_DISK_FORMAT	bios.h	/#define _DISK_FORMAT /
+_DISK_FORMATDRIVE	bios98.h	/#define _DISK_FORMATDRIVE /
+_DISK_FORMATTRACK	bios98.h	/#define _DISK_FORMATTRACK /
+_DISK_INITIALIZE	bios98.h	/#define _DISK_INITIALIZE /
+_DISK_OPMODE	bios98.h	/#define _DISK_OPMODE /
+_DISK_READ	bios.h	/#define _DISK_READ /
+_DISK_READDDAM	bios98.h	/#define _DISK_READDDAM /
+_DISK_READID	bios98.h	/#define _DISK_READID /
+_DISK_RECALIBRATE	bios98.h	/#define _DISK_RECALIBRATE /
+_DISK_RESET	bios.h	/#define _DISK_RESET /
+_DISK_RETRACT	bios98.h	/#define _DISK_RETRACT /
+_DISK_SEEK	bios98.h	/#define _DISK_SEEK /
+_DISK_SENSE	bios98.h	/#define _DISK_SENSE /
+_DISK_STATUS	bios.h	/#define _DISK_STATUS /
+_DISK_VERIFY	bios.h	/#define _DISK_VERIFY /
+_DISK_WRITE	bios.h	/#define _DISK_WRITE /
+_DISK_WRITEDDAM	bios98.h	/#define _DISK_WRITEDDAM /
+_DYNAMIC	stdio.h	/#define _DYNAMIC /
+_EGA	graph.h	/#define _EGA /
+_EM_DENORMAL	float.h	/#define _EM_DENORMAL /
+_EM_INEXACT	float.h	/#define _EM_INEXACT /
+_EM_INVALID	float.h	/#define _EM_INVALID /
+_EM_OVERFLOW	float.h	/#define _EM_OVERFLOW /
+_EM_UNDERFLOW	float.h	/#define _EM_UNDERFLOW /
+_EM_ZERODIVIDE	float.h	/#define _EM_ZERODIVIDE /
+_ENHANCED	graph.h	/#define _ENHANCED /
+_EOF	stdio.h	/#define _EOF /
+_ERESCOLOR	graph.h	/#define _ERESCOLOR /
+_ERESNOCOLOR	graph.h	/#define _ERESNOCOLOR /
+_FILEEXT	stdio.h	/#define _FILEEXT /
+_FPE_DENORMAL	float.h	/#define _FPE_DENORMAL /
+_FPE_EXPLICITGEN	float.h	/#define _FPE_EXPLICITGEN /
+_FPE_INEXACT	float.h	/#define _FPE_INEXACT /
+_FPE_INVALID	float.h	/#define _FPE_INVALID /
+_FPE_IOVERFLOW	float.h	/#define _FPE_IOVERFLOW /
+_FPE_LOGERR	float.h	/#define _FPE_LOGERR /
+_FPE_MODERR	float.h	/#define _FPE_MODERR /
+_FPE_OVERFLOW	float.h	/#define _FPE_OVERFLOW /
+_FPE_SQRTNEG	float.h	/#define _FPE_SQRTNEG /
+_FPE_STACKOVERFLOW	float.h	/#define _FPE_STACKOVERFLOW /
+_FPE_STACKUNDERFLOW	float.h	/#define _FPE_STACKUNDERFLOW /
+_FPE_UNDERFLOW	float.h	/#define _FPE_UNDERFLOW /
+_FPE_UNEMULATED	float.h	/#define _FPE_UNEMULATED /
+_FPE_ZERODIVIDE	float.h	/#define _FPE_ZERODIVIDE /
+_FP_SEG	i86.h	/#define _FP_SEG /
+_FREEENTRY	malloc.h	/#define _FREEENTRY /
+_GBORDER	graph.h	/#define _GBORDER /
+_GCLEARGRAPH	graph98.h	/#define _GCLEARGRAPH /
+_GCLEARSCREEN	graph.h	/#define _GCLEARSCREEN /
+_GCLEARTEXT	graph98.h	/#define _GCLEARTEXT /
+_GFILLINTERIOR	graph.h	/#define _GFILLINTERIOR /
+_GRAY	graph.h	/#define _GRAY /
+_GRCLIPPED	graph.h	/#define _GRCLIPPED /
+_GREEN	graph.h	/#define _GREEN /
+_GRERROR	graph.h	/#define _GRERROR /
+_GRFONTFILENOTFOUND	graph.h	/#define _GRFONTFILENOTFOUND /
+_GRINSUFFICIENTMEMORY	graph.h	/#define _GRINSUFFICIENTMEMORY /
+_GRINVALIDFONTFILE	graph.h	/#define _GRINVALIDFONTFILE /
+_GRINVALIDPARAMETER	graph.h	/#define _GRINVALIDPARAMETER /
+_GRMODENOTSUPPORTED	graph.h	/#define _GRMODENOTSUPPORTED /
+_GRNOOUTPUT	graph.h	/#define _GRNOOUTPUT /
+_GRNOTINPROPERMODE	graph.h	/#define _GRNOTINPROPERMODE /
+_GROK	graph.h	/#define _GROK /
+_GSCROLLDOWN	graph.h	/#define _GSCROLLDOWN /
+_GSCROLLUP	graph.h	/#define _GSCROLLUP /
+_GVIEWPORT	graph.h	/#define _GVIEWPORT /
+_GWINDOW	graph.h	/#define _GWINDOW /
+_HARDERR_ABORT	dos.h	/#define _HARDERR_ABORT /
+_HARDERR_FAIL	dos.h	/#define _HARDERR_FAIL /
+_HARDERR_IGNORE	dos.h	/#define _HARDERR_IGNORE /
+_HARDERR_RETRY	dos.h	/#define _HARDERR_RETRY /
+_HEAPBADBEGIN	malloc.h	/#define _HEAPBADBEGIN /
+_HEAPBADNODE	malloc.h	/#define _HEAPBADNODE /
+_HEAPBADPTR	malloc.h	/#define _HEAPBADPTR /
+_HEAPEMPTY	malloc.h	/#define _HEAPEMPTY /
+_HEAPEND	malloc.h	/#define _HEAPEND /
+_HEAPOK	malloc.h	/#define _HEAPOK /
+_HERCMONO	graph.h	/#define _HERCMONO /
+_HERCULES	graph.h	/#define _HERCULES /
+_HGC	graph.h	/#define _HGC /
+_HRES16COLOR	graph.h	/#define _HRES16COLOR /
+_HRESBW	graph.h	/#define _HRESBW /
+_I16_MAX	limits.h	/#define _I16_MAX /
+_I16_MIN	limits.h	/#define _I16_MIN /
+_I32_MAX	limits.h	/#define _I32_MAX /
+_I32_MIN	limits.h	/#define _I32_MIN /
+_I8_MAX	limits.h	/#define _I8_MAX /
+_I8_MIN	limits.h	/#define _I8_MIN /
+_IC_AFFINE	float.h	/#define _IC_AFFINE /
+_IC_PROJECTIVE	float.h	/#define _IC_PROJECTIVE /
+_IOFBF	stdio.h	/#define _IOFBF /
+_IOLBF	stdio.h	/#define _IOLBF /
+_IONBF	stdio.h	/#define _IONBF /
+_ISTTY	stdio.h	/#define _ISTTY /
+_KEYBRD_INITIALIZE	bios98.h	/#define _KEYBRD_INITIALIZE /
+_KEYBRD_READ	bios.h	/#define _KEYBRD_READ /
+_KEYBRD_READY	bios.h	/#define _KEYBRD_READY /
+_KEYBRD_SENSE	bios98.h	/#define _KEYBRD_SENSE /
+_KEYBRD_SHIFTSTATUS	bios.h	/#define _KEYBRD_SHIFTSTATUS /
+_LDBL_RADIX	float.h	/#define _LDBL_RADIX /
+_LDBL_ROUNDS	float.h	/#define _LDBL_ROUNDS /
+_LIGHTBLUE	graph.h	/#define _LIGHTBLUE /
+_LIGHTCYAN	graph.h	/#define _LIGHTCYAN /
+_LIGHTGREEN	graph.h	/#define _LIGHTGREEN /
+_LIGHTMAGENTA	graph.h	/#define _LIGHTMAGENTA /
+_LIGHTRED	graph.h	/#define _LIGHTRED /
+_LIGHTYELLOW	graph.h	/#define _LIGHTYELLOW /
+_LOWER	ctype.h	/#define _LOWER /
+_MAGENTA	graph.h	/#define _MAGENTA /
+_MAXCOLORMODE	graph.h	/#define _MAXCOLORMODE /
+_MAXRESMODE	graph.h	/#define _MAXRESMODE /
+_MAXTEXTROWS	graph.h	/#define _MAXTEXTROWS /
+_MAX_DIR	stdlib.h	/#define _MAX_DIR /
+_MAX_DRIVE	stdlib.h	/#define _MAX_DRIVE /
+_MAX_EXT	stdlib.h	/#define _MAX_EXT /
+_MAX_FNAME	stdlib.h	/#define _MAX_FNAME /
+_MAX_PATH2	stdlib.h	/#define _MAX_PATH2 /
+_MCGA	graph.h	/#define _MCGA /
+_MCW_EM	float.h	/#define _MCW_EM /
+_MCW_IC	float.h	/#define _MCW_IC /
+_MCW_PC	float.h	/#define _MCW_PC /
+_MCW_RC	float.h	/#define _MCW_RC /
+_MDPA	graph.h	/#define _MDPA /
+_MONO	graph.h	/#define _MONO /
+_MRES16COLOR	graph.h	/#define _MRES16COLOR /
+_MRES256COLOR	graph.h	/#define _MRES256COLOR /
+_MRES32KCOLOR	graph.h	/#define _MRES32KCOLOR /
+_MRES4COLOR	graph.h	/#define _MRES4COLOR /
+_MRES64KCOLOR	graph.h	/#define _MRES64KCOLOR /
+_MRESNOCOLOR	graph.h	/#define _MRESNOCOLOR /
+_MRESTRUECOLOR	graph.h	/#define _MRESTRUECOLOR /
+_NFILES	stdio.h	/#define _NFILES /
+_NKEYBRD_READ	bios.h	/#define _NKEYBRD_READ /
+_NKEYBRD_READY	bios.h	/#define _NKEYBRD_READY /
+_NKEYBRD_SHIFTSTATUS	bios.h	/#define _NKEYBRD_SHIFTSTATUS /
+_NODISPLAY	graph.h	/#define _NODISPLAY /
+_NOT_ORIENTED	stdio.h	/#define _NOT_ORIENTED /
+_NULLOFF	malloc.h	/#define _NULLOFF /
+_NULLSEG	malloc.h	/#define _NULLSEG /
+_O_APPEND	fcntl.h	/#define _O_APPEND /
+_O_BINARY	fcntl.h	/#define _O_BINARY /
+_O_CREAT	fcntl.h	/#define _O_CREAT /
+_O_EXCL	fcntl.h	/#define _O_EXCL /
+_O_NOINHERIT	fcntl.h	/#define _O_NOINHERIT /
+_O_RDONLY	fcntl.h	/#define _O_RDONLY /
+_O_RDWR	fcntl.h	/#define _O_RDWR /
+_O_TEXT	fcntl.h	/#define _O_TEXT /
+_O_TRUNC	fcntl.h	/#define _O_TRUNC /
+_O_WRONLY	fcntl.h	/#define _O_WRONLY /
+_PC_24	float.h	/#define _PC_24 /
+_PC_53	float.h	/#define _PC_53 /
+_PC_64	float.h	/#define _PC_64 /
+_PG_BADCHARTSTYLE	pgchart.h	/#define _PG_BADCHARTSTYLE /
+_PG_BADCHARTTYPE	pgchart.h	/#define _PG_BADCHARTTYPE /
+_PG_BADCHARTWINDOW	pgchart.h	/#define _PG_BADCHARTWINDOW /
+_PG_BADDATAWINDOW	pgchart.h	/#define _PG_BADDATAWINDOW /
+_PG_BADLEGENDWINDOW	pgchart.h	/#define _PG_BADLEGENDWINDOW /
+_PG_BADLOGBASE	pgchart.h	/#define _PG_BADLOGBASE /
+_PG_BADSCALEFACTOR	pgchart.h	/#define _PG_BADSCALEFACTOR /
+_PG_BADSCREENMODE	pgchart.h	/#define _PG_BADSCREENMODE /
+_PG_MAXCHARTSTYLE	pgchart.h	/#define _PG_MAXCHARTSTYLE /
+_PG_MAXCHARTTYPE	pgchart.h	/#define _PG_MAXCHARTTYPE /
+_PG_MISSINGVALUE	pgchart.h	/#define _PG_MISSINGVALUE /
+_PG_NOTINITIALIZED	pgchart.h	/#define _PG_NOTINITIALIZED /
+_PG_TITLELEN	pgchart.h	/#define _PG_TITLELEN /
+_PG_TOOFEWSERIES	pgchart.h	/#define _PG_TOOFEWSERIES /
+_PG_TOOSMALLN	pgchart.h	/#define _PG_TOOSMALLN /
+_PRINT	ctype.h	/#define _PRINT /
+_PRINTER_INIT	bios.h	/#define _PRINTER_INIT /
+_PRINTER_STATUS	bios.h	/#define _PRINTER_STATUS /
+_PRINTER_WRITE	bios.h	/#define _PRINTER_WRITE /
+_PRINTER_WRITE_STRING	bios98.h	/#define _PRINTER_WRITE_STRING /
+_PRN_INIT	bios98.h	/#define _PRN_INIT /
+_PRN_STATUS	bios98.h	/#define _PRN_STATUS /
+_PRN_STRING	bios98.h	/#define _PRN_STRING /
+_PRN_WRITE	bios98.h	/#define _PRN_WRITE /
+_PUNCT	ctype.h	/#define _PUNCT /
+_P_tmpdir	stdio.h	/#define _P_tmpdir /
+_RC_CHOP	float.h	/#define _RC_CHOP /
+_RC_DOWN	float.h	/#define _RC_DOWN /
+_RC_NEAR	float.h	/#define _RC_NEAR /
+_RC_UP	float.h	/#define _RC_UP /
+_READ	stdio.h	/#define _READ /
+_RED	graph.h	/#define _RED /
+_REGS	i86.h	/#define _REGS /
+_SFERR	stdio.h	/#define _SFERR /
+_SIGMAX	signal.h	/#define _SIGMAX /
+_SIGMIN	signal.h	/#define _SIGMIN /
+_SPACE	ctype.h	/#define _SPACE /
+_SREGS	i86.h	/#define _SREGS /
+_SVGA	graph.h	/#define _SVGA /
+_SVRES16COLOR	graph.h	/#define _SVRES16COLOR /
+_SVRES256COLOR	graph.h	/#define _SVRES256COLOR /
+_SVRES32KCOLOR	graph.h	/#define _SVRES32KCOLOR /
+_SVRES64KCOLOR	graph.h	/#define _SVRES64KCOLOR /
+_SVRESTRUECOLOR	graph.h	/#define _SVRESTRUECOLOR /
+_SVTEXTC132X25	graph.h	/#define _SVTEXTC132X25 /
+_SVTEXTC132X43	graph.h	/#define _SVTEXTC132X43 /
+_SVTEXTC132X50	graph.h	/#define _SVTEXTC132X50 /
+_SVTEXTC132X60	graph.h	/#define _SVTEXTC132X60 /
+_SVTEXTC80X60	graph.h	/#define _SVTEXTC80X60 /
+_SW_DENORMAL	float.h	/#define _SW_DENORMAL /
+_SW_INEXACT	float.h	/#define _SW_INEXACT /
+_SW_INVALID	float.h	/#define _SW_INVALID /
+_SW_OVERFLOW	float.h	/#define _SW_OVERFLOW /
+_SW_SQRTNEG	float.h	/#define _SW_SQRTNEG /
+_SW_STACKOVERFLOW	float.h	/#define _SW_STACKOVERFLOW /
+_SW_STACKUNDERFLOW	float.h	/#define _SW_STACKUNDERFLOW /
+_SW_UNDERFLOW	float.h	/#define _SW_UNDERFLOW /
+_SW_UNEMULATED	float.h	/#define _SW_UNEMULATED /
+_SW_ZERODIVIDE	float.h	/#define _SW_ZERODIVIDE /
+_TEOF	tchar.h	/#define _TEOF /
+_TEXTBW40	graph.h	/#define _TEXTBW40 /
+_TEXTBW80	graph.h	/#define _TEXTBW80 /
+_TEXTC40	graph.h	/#define _TEXTC40 /
+_TEXTC80	graph.h	/#define _TEXTC80 /
+_TEXTMONO	graph.h	/#define _TEXTMONO /
+_TIME_GETCLOCK	bios.h	/#define _TIME_GETCLOCK /
+_TIME_SETCLOCK	bios.h	/#define _TIME_SETCLOCK /
+_TMPFIL	stdio.h	/#define _TMPFIL /
+_UI16_MAX	limits.h	/#define _UI16_MAX /
+_UI32_MAX	limits.h	/#define _UI32_MAX /
+_UI8_MAX	limits.h	/#define _UI8_MAX /
+_UNGET	stdio.h	/#define _UNGET /
+_UNKNOWN	graph.h	/#define _UNKNOWN /
+_UPPER	ctype.h	/#define _UPPER /
+_URES256COLOR	graph.h	/#define _URES256COLOR /
+_USEDENTRY	malloc.h	/#define _USEDENTRY /
+_VGA	graph.h	/#define _VGA /
+_VRES16COLOR	graph.h	/#define _VRES16COLOR /
+_VRES256COLOR	graph.h	/#define _VRES256COLOR /
+_VRES2COLOR	graph.h	/#define _VRES2COLOR /
+_VRES32KCOLOR	graph.h	/#define _VRES32KCOLOR /
+_VRES64KCOLOR	graph.h	/#define _VRES64KCOLOR /
+_VRESTRUECOLOR	graph.h	/#define _VRESTRUECOLOR /
+_WHITE	graph.h	/#define _WHITE /
+_WIDE_ORIENTED	stdio.h	/#define _WIDE_ORIENTED /
+_WRITE	stdio.h	/#define _WRITE /
+_XDIGT	ctype.h	/#define _XDIGT /
+_XRES16COLOR	graph.h	/#define _XRES16COLOR /
+_XRES256COLOR	graph.h	/#define _XRES256COLOR /
+_XRES32KCOLOR	graph.h	/#define _XRES32KCOLOR /
+_XRES64KCOLOR	graph.h	/#define _XRES64KCOLOR /
+_XRESTRUECOLOR	graph.h	/#define _XRESTRUECOLOR /
+_YELLOW	graph.h	/#define _YELLOW /
+_YRES16COLOR	graph.h	/#define _YRES16COLOR /
+_YRES256COLOR	graph.h	/#define _YRES256COLOR /
+_YRES32KCOLOR	graph.h	/#define _YRES32KCOLOR /
+_YRES64KCOLOR	graph.h	/#define _YRES64KCOLOR /
+_YRESTRUECOLOR	graph.h	/#define _YRESTRUECOLOR /
+_ZRES256COLOR	graph.h	/#define _ZRES256COLOR /
+_ZRES32KCOLOR	graph.h	/#define _ZRES32KCOLOR /
+_ZRES64KCOLOR	graph.h	/#define _ZRES64KCOLOR /
+_ZRESTRUECOLOR	graph.h	/#define _ZRESTRUECOLOR /
+__except	excpt.h	/#define __except /
+__finally	excpt.h	/#define __finally /
+__leave	excpt.h	/#define __leave /
+__targc	tchar.h	/#define __targc /
+__targv	tchar.h	/#define __targv /
+__try	excpt.h	/#define __try /
+_diskinfo_t	bios.h	/#define _diskinfo_t /
+_dosdate_t	dos.h	/#define _dosdate_t /
+_dostime_t	dos.h	/#define _dostime_t /
+_fgettc	tchar.h	/#define _fgettc /
+_fgettchar	tchar.h	/#define _fgettchar /
+_fgetts	tchar.h	/#define _fgetts /
+_find_t	dos.h	/#define _find_t /
+_fputtc	tchar.h	/#define _fputtc /
+_fputtchar	tchar.h	/#define _fputtchar /
+_fputts	tchar.h	/#define _fputts /
+_ftprintf	tchar.h	/#define _ftprintf /
+_ftscanf	tchar.h	/#define _ftscanf /
+_getlogcoord	graph.h	/#define _getlogcoord /
+_gettc	tchar.h	/#define _gettc /
+_gettchar	tchar.h	/#define _gettchar /
+_getts	tchar.h	/#define _getts /
+_getwritemode	graph.h	/#define _getwritemode /
+_istalnum	tchar.h	/#define _istalnum /
+_istalpha	tchar.h	/#define _istalpha /
+_istascii	tchar.h	/#define _istascii /
+_istcntrl	tchar.h	/#define _istcntrl /
+_istdigit	tchar.h	/#define _istdigit /
+_istgraph	tchar.h	/#define _istgraph /
+_istlower	tchar.h	/#define _istlower /
+_istprint	tchar.h	/#define _istprint /
+_istpunct	tchar.h	/#define _istpunct /
+_istspace	tchar.h	/#define _istspace /
+_istupper	tchar.h	/#define _istupper /
+_istxdigit	tchar.h	/#define _istxdigit /
+_itot	tchar.h	/#define _itot /
+_ltot	tchar.h	/#define _ltot /
+_mbsnbcoll	mbstring.h	/#define _mbsnbcoll /
+_mbsnbicoll	mbstring.h	/#define _mbsnbicoll /
+_puttc	tchar.h	/#define _puttc /
+_puttchar	tchar.h	/#define _puttchar /
+_putts	tchar.h	/#define _putts /
+_setlogorg	graph.h	/#define _setlogorg /
+_setwritemode	graph.h	/#define _setwritemode /
+_stscanf	tchar.h	/#define _stscanf /
+_tWinMain	tchar.h	/#define _tWinMain /
+_taccess	tchar.h	/#define _taccess /
+_tasctime	tchar.h	/#define _tasctime /
+_tchdir	tchar.h	/#define _tchdir /
+_tchmod	tchar.h	/#define _tchmod /
+_tclosedir	tchar.h	/#define _tclosedir /
+_tcreat	tchar.h	/#define _tcreat /
+_tcscat	tchar.h	/#define _tcscat /
+_tcschr	tchar.h	/#define _tcschr /
+_tcsclen	tchar.h	/#define _tcsclen /
+_tcscmp	tchar.h	/#define _tcscmp /
+_tcscoll	tchar.h	/#define _tcscoll /
+_tcscpy	tchar.h	/#define _tcscpy /
+_tcscspn	tchar.h	/#define _tcscspn /
+_tcsdec	tchar.h	/#define _tcsdec /
+_tcsdup	tchar.h	/#define _tcsdup /
+_tcsftime	tchar.h	/#define _tcsftime /
+_tcsicmp	tchar.h	/#define _tcsicmp /
+_tcsicoll	tchar.h	/#define _tcsicoll /
+_tcsinc	tchar.h	/#define _tcsinc /
+_tcslen	tchar.h	/#define _tcslen /
+_tcslwr	tchar.h	/#define _tcslwr /
+_tcsnbcnt	tchar.h	/#define _tcsnbcnt /
+_tcsncat	tchar.h	/#define _tcsncat /
+_tcsnccat	tchar.h	/#define _tcsnccat /
+_tcsnccmp	tchar.h	/#define _tcsnccmp /
+_tcsnccnt	tchar.h	/#define _tcsnccnt /
+_tcsnccoll	tchar.h	/#define _tcsnccoll /
+_tcsnccpy	tchar.h	/#define _tcsnccpy /
+_tcsncicmp	tchar.h	/#define _tcsncicmp /
+_tcsncicoll	tchar.h	/#define _tcsncicoll /
+_tcsncmp	tchar.h	/#define _tcsncmp /
+_tcsncoll	tchar.h	/#define _tcsncoll /
+_tcsncpy	tchar.h	/#define _tcsncpy /
+_tcsncset	tchar.h	/#define _tcsncset /
+_tcsnextc	tchar.h	/#define _tcsnextc /
+_tcsnicmp	tchar.h	/#define _tcsnicmp /
+_tcsnicoll	tchar.h	/#define _tcsnicoll /
+_tcsninc	tchar.h	/#define _tcsninc /
+_tcsnset	tchar.h	/#define _tcsnset /
+_tcspbrk	tchar.h	/#define _tcspbrk /
+_tcsrchr	tchar.h	/#define _tcsrchr /
+_tcsrev	tchar.h	/#define _tcsrev /
+_tcsset	tchar.h	/#define _tcsset /
+_tcsspn	tchar.h	/#define _tcsspn /
+_tcsspnp	tchar.h	/#define _tcsspnp /
+_tcsstr	tchar.h	/#define _tcsstr /
+_tcstod	tchar.h	/#define _tcstod /
+_tcstol	tchar.h	/#define _tcstol /
+_tcstoul	tchar.h	/#define _tcstoul /
+_tcsupr	tchar.h	/#define _tcsupr /
+_tcsxfrm	tchar.h	/#define _tcsxfrm /
+_tctime	tchar.h	/#define _tctime /
+_tdirent	tchar.h	/#define _tdirent /
+_tenviron	tchar.h	/#define _tenviron /
+_texecl	tchar.h	/#define _texecl /
+_texecle	tchar.h	/#define _texecle /
+_texeclp	tchar.h	/#define _texeclp /
+_texeclpe	tchar.h	/#define _texeclpe /
+_texecv	tchar.h	/#define _texecv /
+_texecve	tchar.h	/#define _texecve /
+_texecvp	tchar.h	/#define _texecvp /
+_texecvpe	tchar.h	/#define _texecvpe /
+_tfdopen	tchar.h	/#define _tfdopen /
+_tfinddata_t	tchar.h	/#define _tfinddata_t /
+_tfinddatai64_t	tchar.h	/#define _tfinddatai64_t /
+_tfindfirst	tchar.h	/#define _tfindfirst /
+_tfindfirsti64	tchar.h	/#define _tfindfirsti64 /
+_tfindnext	tchar.h	/#define _tfindnext /
+_tfindnexti64	tchar.h	/#define _tfindnexti64 /
+_tfopen	tchar.h	/#define _tfopen /
+_tfreopen	tchar.h	/#define _tfreopen /
+_tfsopen	tchar.h	/#define _tfsopen /
+_tfstat	tchar.h	/#define _tfstat /
+_tfstati64	tchar.h	/#define _tfstati64 /
+_tfullpath	tchar.h	/#define _tfullpath /
+_tgetcwd	tchar.h	/#define _tgetcwd /
+_tgetdcwd	tchar.h	/#define _tgetdcwd /
+_tgetenv	tchar.h	/#define _tgetenv /
+_tmain	tchar.h	/#define _tmain /
+_tmakepath	tchar.h	/#define _tmakepath /
+_tmkdir	tchar.h	/#define _tmkdir /
+_topen	tchar.h	/#define _topen /
+_topendir	tchar.h	/#define _topendir /
+_totlower	tchar.h	/#define _totlower /
+_totupper	tchar.h	/#define _totupper /
+_tperror	tchar.h	/#define _tperror /
+_tprintf	tchar.h	/#define _tprintf /
+_tputenv	tchar.h	/#define _tputenv /
+_treaddir	tchar.h	/#define _treaddir /
+_tremove	tchar.h	/#define _tremove /
+_trename	tchar.h	/#define _trename /
+_trewinddir	tchar.h	/#define _trewinddir /
+_trmdir	tchar.h	/#define _trmdir /
+_tscanf	tchar.h	/#define _tscanf /
+_tsearchenv	tchar.h	/#define _tsearchenv /
+_tsetlocale	tchar.h	/#define _tsetlocale /
+_tsopen	tchar.h	/#define _tsopen /
+_tspawnl	tchar.h	/#define _tspawnl /
+_tspawnle	tchar.h	/#define _tspawnle /
+_tspawnlp	tchar.h	/#define _tspawnlp /
+_tspawnlpe	tchar.h	/#define _tspawnlpe /
+_tspawnv	tchar.h	/#define _tspawnv /
+_tspawnve	tchar.h	/#define _tspawnve /
+_tspawnvp	tchar.h	/#define _tspawnvp /
+_tspawnvpe	tchar.h	/#define _tspawnvpe /
+_tsplitpath	tchar.h	/#define _tsplitpath /
+_tstat	tchar.h	/#define _tstat /
+_tstati64	tchar.h	/#define _tstati64 /
+_tstrdate	tchar.h	/#define _tstrdate /
+_tstrtime	tchar.h	/#define _tstrtime /
+_tsystem	tchar.h	/#define _tsystem /
+_ttmpnam	tchar.h	/#define _ttmpnam /
+_ttoi	tchar.h	/#define _ttoi /
+_ttol	tchar.h	/#define _ttol /
+_tunlink	tchar.h	/#define _tunlink /
+_tutime	tchar.h	/#define _tutime /
+_ultot	tchar.h	/#define _ultot /
+_ungettc	tchar.h	/#define _ungettc /
+_vftprintf	tchar.h	/#define _vftprintf /
+_vtprintf	tchar.h	/#define _vtprintf /
+_wP_tmpdir	stdio.h	/#define _wP_tmpdir /
+abnormal_termination	excpt.h	/#define abnormal_termination /
+and	iso646.h	/#define and /
+and_eq	iso646.h	/#define and_eq /
+bitand	iso646.h	/#define bitand /
+bitor	iso646.h	/#define bitor /
+compl	iso646.h	/#define compl /
+diskfree_t	direct.h	/#define diskfree_t /
+diskinfo_t	bios.h	/#define diskinfo_t /
+exception_code	excpt.h	/#define exception_code /
+exception_info	excpt.h	/#define exception_info /
+ne	iso646.h	/#define ne /
+not	iso646.h	/#define not /
+or	iso646.h	/#define or /
+or_eq	iso646.h	/#define or_eq /
+sys_errlist	stdlib.h	/#define sys_errlist /
+sys_nerr	stdlib.h	/#define sys_nerr /
+xor	iso646.h	/#define xor /
+xor_eq	iso646.h	/#define xor_eq /
+_PG_PALETTELEN	pgchart.h	/typedef 	_PG_PALETTELEN/
+DBCODE	mbstring.h	/typedef 	DBCODE/
+DIR	direct.h	/typedef 	DIR/
+GPT	generic.h	/typedef 	GPT/
+TCHAR	tchar.h	/typedef 	TCHAR/
+WCbool	wcdefs.h	/typedef 	WCbool/
+_CRT_REPORT_HOOK	crtdbg.h	/typedef 	_CRT_REPORT_HOOK/
+_FUSTRING	mbstring.h	/typedef 	_FUSTRING/
+_TCHAR	tchar.h	/typedef 	_TCHAR/
+_TINT	tchar.h	/typedef 	_TINT/
+_TSCHAR	tchar.h	/typedef 	_TSCHAR/
+_TUCHAR	tchar.h	/typedef 	_TUCHAR/
+_TXCHAR	tchar.h	/typedef 	_TXCHAR/
+_UCHAR	mbstring.h	/typedef 	_UCHAR/
+_USTRING	mbstring.h	/typedef 	_USTRING/
+__sig_func	signal.h	/typedef 	__sig_func/
+_fsize_t	io.h	/typedef 	_fsize_t/
+charmap	pgchart.h	/typedef 	charmap/
+fillmap	pgchart.h	/typedef 	fillmap/
+fpos_t	stdio.h	/typedef 	fpos_t/
+mbstate_t	wchar.h	/typedef 	mbstate_t/
+ptrdiff_t	mem.h	/typedef 	ptrdiff_t/
+sig_atomic_t	signal.h	/typedef 	sig_atomic_t/
+string	stdexcep.h	/typedef 	string/
+terminate_handler	exceptio.h	/typedef 	terminate_handler/
+time_t	io.h	/typedef 	time_t/
+unexpected_handler	exceptio.h	/typedef 	unexpected_handler/
+wchar_t	ctype.h	/typedef 	wchar_t/
+wctype_t	ctype.h	/typedef 	wctype_t/
+wint_t	ctype.h	/typedef 	wint_t/
+DOSERROR	dos.h	/struct DOSERROR/
+DWORDREGS	i86.h	/struct DWORDREGS/
+INTPACKW	i86.h	/struct INTPACKW/
+INTPACKX	i86.h	/struct INTPACKX/
+REGPACKB	i86.h	/struct REGPACKB/
+REGPACKX	i86.h	/struct REGPACKX/
+SREGS	i86.h	/struct SREGS/
+WORDREGS	i86.h	/struct WORDREGS/
+_DOSERROR	dos.h	/struct _DOSERROR/
+_complex	math.h	/struct _complex/
+_diskfree_t	direct.h	/struct _diskfree_t/
+_exception	math.h	/struct _exception/
+_finddata_t	io.h	/struct _finddata_t/
+_finddatai64_t	io.h	/struct _finddatai64_t/
+_fontinfo	graph.h	/struct _fontinfo/
+_wdirent	direct.h	/struct _wdirent/
+_wfind_t	dos.h	/struct _wfind_t/
+_wfinddata_t	io.h	/struct _wfinddata_t/
+_wfinddatai64_t	io.h	/struct _wfinddatai64_t/
+_wxycoord	graph.h	/struct _wxycoord/
+com_t	bios98.h	/struct com_t/
+dirent	direct.h	/struct dirent/
+dosdate_t	dos.h	/struct dosdate_t/
+dostime_t	dos.h	/struct dostime_t/
+find_t	dos.h	/struct find_t/
+lconv	locale.h	/struct lconv/
+rccoord	graph.h	/struct rccoord/
+textsettings	graph.h	/struct textsettings/
+videoconfig	graph.h	/struct videoconfig/
+xycoord	graph.h	/struct xycoord/
+BUFSIZ	stdio.h	/ #define BUFSIZ/
+FALSE	wcdefs.h	/    #define FALSE/
+FILENAME_MAX	stdio.h	/ #define FILENAME_MAX/
+FOPEN_MAX	stdio.h	/ #define FOPEN_MAX/
+FP_OFF	i86.h	/#define  FP_OFF/
+FP_SEG	i86.h	/  #define FP_SEG/
+LLONG_MAX	limits.h	/ #define LLONG_MAX/
+LLONG_MIN	limits.h	/ #define LLONG_MIN/
+LONGLONG_MAX	limits.h	/ #define LONGLONG_MAX/
+LONGLONG_MIN	limits.h	/ #define LONGLONG_MIN/
+MB_CUR_MAX	limits.h	/    #define MB_CUR_MAX/
+MK_FP	i86.h	/#define MK_FP/
+NonConstList	wclistit.h	/    typedef 	NonConstList/
+NonConstThis	wcskip.h	/    typedef 	NonConstThis/
+OPEN_MAX	stdio.h	/ #define OPEN_MAX/
+PATH_MAX	stdio.h	/  #define PATH_MAX/
+INTPACK	i86.h	/union  INTPACK/
+REGPACK	i86.h	/union REGPACK/
+REGS	i86.h	/union REGS/
+Stored_Ptr	wcskip.h	/    typedef 	Stored_Ptr/
+TRUE	wcdefs.h	/    #define TRUE/
+UINT_MAX	limits.h	/ #define UINT_MAX/
+ULLONG_MAX	limits.h	/ #define ULLONG_MAX/
+ULONGLONG_MAX	limits.h	/ #define ULONGLONG_MAX/
+_AXP_FLOAT_REGS	stdarg.h	/ #define _AXP_FLOAT_REGS/
+_AXP_FLOAT_SIZE	stdarg.h	/ #define _AXP_FLOAT_SIZE/
+_AXP_WORD_SIZE	stdarg.h	/ #define _AXP_WORD_SIZE/
+_CRTIMP	_comdef.h	/    #define _CRTIMP/
+_DOSFAR	dos.h	/ #define _DOSFAR/
+_HFILE	crtdbg.h	/    typedef 	_HFILE/
+_HugeValue	math.h	/ #define _HugeValue/
+_I64_MAX	limits.h	/ #define _I64_MAX/
+_I64_MIN	limits.h	/ #define _I64_MIN/
+_IsTable	ctype.h	/ #define _IsTable/
+_MAX_PATH	io.h	/  #define _MAX_PATH/
+_NLSCMPERROR	mbstring.h	/ #define _NLSCMPERROR/
+_UI64_MAX	limits.h	/ #define _UI64_MAX/
+_WCDATA	_comdef.h	/    #define _WCDATA/
+_WCFAR	_comdef.h	/    #define _WCFAR/
+_WCHUGE	_comdef.h	/    #define _WCHUGE/
+_WCINTERRUPT	_comdef.h	/    #define _WCINTERRUPT/
+_WCNEAR	_comdef.h	/    #define _WCNEAR/
+_WCRTLINK	_comdef.h	/      #define _WCRTLINK/
+_WMIRTLINK	_comdef.h	/      #define _WMIRTLINK/
+_WMRTLINK	_comdef.h	/      #define _WMRTLINK/
+_WPIRTLINK	_comdef.h	/    #define _WPIRTLINK/
+_WPRTLINK	_comdef.h	/      #define _WPRTLINK/
+__iob	stdio.h	/ #define __iob/
+__minreal	stdlib.h	/ #define __minreal/
+__va_list	conio.h	/    typedef 	__va_list/
+__win_alloc_flags	stdlib.h	/ #define __win_alloc_flags/
+__win_realloc_flags	stdlib.h	/ #define __win_realloc_flags/
+_fileinfo	stdlib.h	/ #define _fileinfo/
+_sys_errlist	stdlib.h	/ #define _sys_errlist/
+_sys_nerr	stdlib.h	/ #define _sys_nerr/
+va_alist	varargs.h	/ #define va_alist/
+_ASSERT	crtdbg.h	/	_ASSERT/
+_ASSERTE	crtdbg.h	/	_ASSERTE/
+_FP_OFF	i86.h	/	_FP_OFF/
+_HEAPINFO	malloc.h	/	_HEAPINFO/
+_RPT0	crtdbg.h	/	_RPT0/
+_RPT1	crtdbg.h	/	_RPT1/
+_RPT2	crtdbg.h	/	_RPT2/
+_RPT3	crtdbg.h	/	_RPT3/
+_RPT4	crtdbg.h	/	_RPT4/
+_RPTF0	crtdbg.h	/	_RPTF0/
+_RPTF1	crtdbg.h	/	_RPTF1/
+_RPTF2	crtdbg.h	/	_RPTF2/
+_RPTF3	crtdbg.h	/	_RPTF3/
+_RPTF4	crtdbg.h	/	_RPTF4/
+_TEXT	tchar.h	/	_TEXT/
+_WCI86FAR	_comdef.h	/	_WCI86FAR/
+_WCI86HUGE	_comdef.h	/	_WCI86HUGE/
+_WCI86NEAR	_comdef.h	/	_WCI86NEAR/
+_WCIRTLINK	_comdef.h	/	_WCIRTLINK/
+_WCTHROWS	stdexcep.h	/	_WCTHROWS(/
+_WCUNALIGNED	_comdef.h	/	_WCUNALIGNED/
+__FILLER	i86.h	/	__FILLER/
+__T	tchar.h	/	__T/
+__alloca	malloc.h	/	__alloca(/
+__m64	mmintrin.h	/	__m64/
+__max	stdlib.h	/	__max/
+__min	stdlib.h	/	__min/
+__paste2	generic.h	/	__paste2/
+__paste3	generic.h	/	__paste3/
+__paste4	generic.h	/	__paste4/
+_alloca	malloc.h	/	_alloca(/
+_fileno	stdio.h	/	_fileno/
+_ibm_diskinfo_t	bios.h	/	_ibm_diskinfo_t/
+_istlead	tchar.h	/	_istlead/
+_istleadbyte	tchar.h	/	_istleadbyte/
+_istlegal	tchar.h	/	_istlegal/
+_nec98_diskinfo_t	bios98.h	/	_nec98_diskinfo_t/
+axistype	pgchart.h	/	axistype/
+callerror	generic.h	/	callerror/
+chartenv	pgchart.h	/	chartenv/
+clock_t	time.h	/	clock_t/                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               /
+declare	generic.h	/	declare/
+declare2	generic.h	/	declare2/
+div_t	stdlib.h	/	div_t/
+errorhandler	generic.h	/	errorhandler/
+exception	math.h	/	exception/
+implement	generic.h	/	implement/
+implement2	generic.h	/	implement2/
+jmp_buf	setjmp.h	/	jmp_buf[1]/
+ldiv_t	stdlib.h	/	ldiv_t/
+legendtype	pgchart.h	/	legendtype/
+onexit_t	stdlib.h	/	*onexit_t/
+paletteentry	pgchart.h	/	paletteentry/
+set_handler	generic.h	/	set_handler/
+titletype	pgchart.h	/	titletype/
+va_dcl	varargs.h	/	va_dcl/
+windowtype	pgchart.h	/	windowtype/
+
+bios	bios.h	/extern/
+bios98	bios98.h	/extern/
+complex	complex.h	/extern/
+conio	conio.h	/extern/
+crtdbg	crtdbg.h	/extern/
+ctype	ctype.h	/extern/
+direct	direct.h	/extern/
+dos	dos.h	/extern/
+dosfunc	dosfunc.h	/extern/
+eh	eh.h	/extern/
+env	env.h	/extern/
+except	except.h	/extern/
+exceptio	exceptio.h	/extern/
+excpt	excpt.h	/extern/
+exstring	exstring.h	/extern/
+fcntl	fcntl.h	/extern/
+fstream	fstream.h	/extern/
+generic	generic.h	/extern/
+graph	graph.h	/extern/
+graph98	graph98.h	/extern/
+i86	i86.h	/extern/
+io	io.h	/extern/
+iomanip	iomanip.h	/extern/
+iostream	iostream.h	/extern/
+iso646	iso646.h	/extern/
+limits	limits.h	/extern/
+locale	locale.h	/extern/
+math	math.h	/extern/
+mem	mem.h	/extern/
+memory	memory.h	/extern/
+new	new.h	/extern/
+pgchart	pgchart.h	/extern/
+process	process.h	/extern/
+search	search.h	/extern/
+share	share.h	/extern/
+stdarg	stdarg.h	/extern/
+stddef	stddef.h	/extern/
+stdexcep	stdexcep.h	/extern/
+stdio	stdio.h	/extern/
+stdiobuf	stdiobuf.h	/extern/
+stdlib	stdlib.h	/extern/
+unistd	unistd.h	/extern/
+varargs	varargs.h	/extern/

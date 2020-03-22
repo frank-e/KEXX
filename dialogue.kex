@@ -1,0 +1,25 @@
+'set novalue on'        /* quick and dirty test of dialog and alert */
+
+HEADER = 'Dialog demo'
+LINEND = d2c( 10 )
+PROMPT = 'Show a prompt line:'
+PROMPT = PROMPT || LINEND || 'Ask for a password.'
+INEDIT = 'Enter it here'
+
+HEADER = delimit( HEADER )      /* optional */
+PROMPT = delimit( PROMPT )      /* required */
+INEDIT = delimit( INEDIT )      /* optional */
+BUTTON = 'OK'                   /* optional, default OK */
+BUTTON = 'OKCANCEL'             /* forced for EDITfield */
+BUTTON = 'YESNOCANCEL'          /* or only YESNO        */
+
+'dialog' PROMPT 'TITLE' HEADER 'EDIT' INEDIT
+
+if DIALOG.1 <> 'sword' | DIALOG.2 <> 'OK' then do
+   'msg input "' || DIALOG.1 || '", button' DIALOG.2
+
+   'alert' HEADER BUTTON 'DEFBUTTON' 2
+   DIALOG.1 = ALERT.1 ; DIALOG.2 = ALERT.2
+end
+
+'msg input "' || DIALOG.1 || '", button' DIALOG.2

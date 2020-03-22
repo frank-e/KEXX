@@ -1,0 +1,144 @@
+* Function: Sorting within a box block.  (Converts a line block to a box.)
+*
+* To run:   Mark a box block and type "[MACRO] SORTBOX" on the command line.
+*           If you want to sort in Descending order, type "SORTBOX D".
+*           This macro also accepts "-" as a synonym for "Descending".
+*           (Sort columns can also be entered on the command line.)
+*
+*           Alternatively, issue the command "DEFine Ctrl-S [MACRO] SORTBOX",
+*           and then press the Ctrl-S key to sort the contents of a block.
+*           If the cursor is inside the block when you press the key, the
+*           cursor position determines where the sort key begins.  (The
+*           sort key always extends to the right edge of the block, and
+*           begins by default at the left edge of the block.)
+*
+*           If a key is defined as suggested above, then the Shifted key can
+*           be used to do a descending sort.
+*
+* Why:      Kedit's SORT command, when applied to a box block, still sorts
+*           whole lines rather than just the text inside the block.
+*
+*           Also, unlike most other KEDIT commands, the SORT command
+*           processes all lines in the target area, regardless of their
+*           selection level, so that even excluded lines are sorted.
+*
+* Requires: KEDIT 5.0 or Kedit for Windows
+*
+* Version:  User macro (September 1991 - Frank Huber)
+*
+*           Convert a line block to a box block -- so that, when we move the
+*           sorted block back to where it was, there'll be no errors and the
+*           text will be put back in the proper places, even if the original
+*           block spanned excluded lines.  (Jan 1998 - FH)
+
+
+If \Block() | Block.1() == 'STREAM' Then Do
+   'emsg {SORTBOX} No marked box or line block in this file.'
+   'msg'
+   'msg If the cursor is inside the block when SORTBOX is invoked,'
+   'msg the sort key begins at the cursor location rather than at'
+   'msg the left edge of the block.  To reverse the sort order,'
+   'msg enter a SORTBOX command with "D" or "-" as the argument.'
+   Exit 1
+   End
+
+* Note where we are, and make sure the block is addressable.
+
+inblock = InBlock()
+'sos save'
+'preserve'
+'sos current'
+'extract/Alt/Block/Column/Line/Margins/Zone'
+
+'sos current blockstart'
+If RC = 2 Then Do
+   'restore'
+   'sos restore'
+   Exit 1
+   End
+
+* See if the shift key was pressed along with the Ctrl-S.
+
+sortargs = ''
+If Right(LastKey.4(),2) \== '00' Then sortargs = 'D'
+
+* Convert a line block to a box block -- so that, when we move
+* the sorted block back to where it was, there'll be no errors
+* and the text will be put back in its proper place.
+*
+* (Note:  'cursor file' fails if the specified line and column
+* are not currently displayed in the document window, so we have
+* to give it a little help.)
+
+If Block.1 == 'LINE' Then Do
+   ':'Block.2 'right 0'; 'right' Zone.1-1; 'cursor file' Block.2 Zone.1; 'mark box'
+   ':'Block.4 'right 0'; 'right' Zone.2-1; 'cursor file' Block.4 Zone.2; 'mark box'
+   End
+
+* Determine the width of the box to be sorted.
+
+rightm = Block.5 - Block.3 + 1
+
+* Move the block to the temporary file.
+
+'set autosave off'
+homefile = FileID.1()
+tempfile = '.\$t$e$m$p.tmp'
+'kedit' tempfile '(new noprof'
+'1 move block'
+
+* Sort the text in the temporary file.
+
+If Arg() Then Do
+   i = 0
+   count = 0
+   Do Forever
+      i = i + 1
+      next = Word(Arg(1), i)
+      If next == '' Then Leave
+      If next == '-' Then next = 'D'
+      If Datatype(next, 'N') Then count = count + 1
+      sortargs = sortargs next
+      End
+   If count = 0 Then sortargs = sortargs '1' rightm
+   If count // 2 Then sortargs = sortargs rightm
+   End
+Else Do
+   If inblock
+      Then sortcol = Column.1 - Block.3 + 1
+      Else sortcol = 1
+   sortargs = sortargs sortcol rightm
+   End
+'sort block' sortargs
+RCx = RC
+m = LastMsg.1()
+
+* Switch to the original file and copy the block back.
+
+'kedit "'homefile'" (nodefext'
+'cursor home'
+':'Block.2 'sos firstcol'; 'right' Block.3 - 1
+'move block'
+
+* Discard the temporary file.
+
+'kedit' tempfile
+'macro push_colorset'
+'qquit'
+'kedit "'homefile'" (nodefext'
+
+* Reposition the original file so the operator would see no movement.
+
+':'Line.1
+'set alt' Alt.1+1 Alt.2+1
+'restore'
+'sos restore'
+
+* But then move the cursor to the first line in the sorted block.
+
+':'Block.2; 'cursor file' Block.2
+
+* Quit, returning the saved error code and message.
+
+If RCx \= 0 Then 'emsg' m
+Exit RCx

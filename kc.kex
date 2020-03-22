@@ -1,0 +1,310 @@
+'set novalue on'  /* force KEXX 5.0 and its way of SIGNAL ON NOVALUE */
+
+/* Usage:      [macro] KC fileid1 [fileid2]                          */
+/* Example:    KC =:=\=.bak                                          */
+/* Purpose:    KC is a fast split screen file compare macro derived  */
+/*             from KCOMPARE 1.1 (1991) by Nico Mak.                 */
+/*             KC uses 3 temporarily redefined keys for navigation:  */
+/*              ?NEXT key goes to begin of next  difference (or eof) */
+/*              ?PREV key goes to begin of prev. difference (or top) */
+/*              ?LAST key goes to the end of the current difference  */
+/* Screens:    Kedit 5.0 and KC.KEX support split screens.  KC shows */
+/*             the compared files in the first two logical screens,  */
+/*             forcing SET SCREEN 1 SPLIT if there is only 1 screen. */
+/*             Use e.g. SET SCREEN SIZE 10 SPLIT to edit a 3rd file. */
+/* Profile:    KC.KEX can be used as profile in a OS/2 or DOS script */
+/*             and then executes the default profile DEFPROFile.1(). */
+/*             KC.BAT example:   kedit "%1" "%2" (PROFile KC.KEX)    */
+/*             This syntax is unsuited for KeditW 1.0, therefore the */
+/*             following form for an NT CMD shell is also supported: */
+/*                               keditw %~s1 (PROFile KC.KEX) %~s2   */
+/* Issues:     KCOMPARE counts lines with more than 255 characters   */
+/*             as multiple input lines.  The minimal WIDTH 255 would */
+/*             allow to view differences for files with long lines,  */
+/*             but editing the input could cause havoc.  Do not use  */
+/*             KC for files with long lines.                         */
+/*             The KeditW 1.0 OFPW (one file per window) feature is  */
+/*             not yet supported.  At the moment KC forces OFPW OFF. */
+/* See also:   KHELP SCREEN, KHELP WIDTH, KHELP DEFPROF              */
+/* Requires:   Kedit 5.0 and KCOMPARE.EXE    (Frank Ellermann, 2001) */
+
+/* User set EDITV variables (KC.KEY.EXIT resets all changed keys):   */
+/*       KC.KEY.NEXT   default: "PLUS" , executes 'macro KC ?NEXT'   */
+/*       KC.KEY.PREV   default: "MINUS", executes 'macro KC ?PREV'   */
+/*       KC.KEY.LAST   default: "STAR" , executes 'macro KC ?LAST'   */
+/*       KC.KEY.EXIT   default: "SLASH", executes 'macro KC ?EXIT'   */
+
+/* Internal EDITV variables (KC.KEY.EXIT removes these variables):   */
+/*       KC.FILE.1     first  compared file                          */
+/*       KC.FILE.2     second compared file, default: current file   */
+/*       KC.POINT      current difference (0, 1 ... KC.0, KC.0 + 1)  */
+/*       KC.0          number of differences                         */
+/*       KC.1 ... KC.n number of lines added, deleted, or changed    */
+
+if debugging.1() = 'ON' then interpret 'trace' debugging.3()
+
+/* History: -------------------------------------------------------- */
+/* 1.0 (August, 1991) by Nico Mak                                    */
+/* 1.1 (September, 1991) by Nico Mak                                 */
+/*       changed KC_SYNC_KEY to KC_END_KEY, reworded !end message    */
+/* 2.0 (October, 1998) by Frank Ellermann                            */
+/*       renamed KCOMPARE to KC (both KC.BAT and KC.KEX) again (?)   */
+/*       removed KC_SPLT_KEY, usually another split key is defined   */
+/*       renamed all KC_* to KC.*  (and KC_END_KEY to KC.KEY.LAST)   */
+/*       added a KC.KEY.EXIT resetting all KC.KEYs to saved values   */
+/*       corrected KC.KEY.LAST behaviour for KC.POINT > KC.0 (EOF)   */
+/* 2.1 (November, 1998)                                              */
+/*       dito KC.KEY.LAST at KC.POINT = 0 corrected, now shows infos */
+/*       split all messages between both windows (one message line)  */
+/*       force FCOMPARE.EXE read access SHARING DENYWRITE DENYWRITE  */
+/* 2.2 (February, 2001)                                              */
+/*       replaced FCOMPARE.EXE by KCOMPARE.EXE for three reasons:    */
+/*          1: there is another FCOMPARE.C in Bob Stout's C snippets */
+/*          2: there is another FCOMPARE.EXE in my NORTON DOS tools  */
+/*          3: Nico Mak did not enable LFNS (long file name support) */
+/*       KCOMPARE.EXE is still the original (1991) bound (DOS, OS/2) */
+/*       FCOMPARE.EXE, but I used MARKEXE LFNS KCOMPARE.EXE and a    */
+/*       hex. editor (of course KEDIT :-) to replace four strings    */
+/*       FCOMPARE by KCOMPARE in the binary... (usage message etc.)  */
+/* 2.3 (June, 2001)                                                  */
+/*       support blanks in HPFS paths and especially HPFS file names */
+/*       support screen layouts with more than 2 logical screens     */
+/* 2.4 (July, 2006)                                                  */
+/*       editorial update of OS/2 script KC.CMD, no technical change */
+/* 2.5 (November 2008)                                               */
+/*       KCOMPARE.EXE on NT sometimes refuses to produce any output, */
+/*       and the code to detect this situation did not work: fixed.  */
+/*       Side by side diff (i.e. a vertically split screen) setting  */
+/*       replaced by a horizontally split screen to see more of the  */
+/*       different lines.                                            */
+/*       now also supported:  KEDITW file.1 (profile KC.KEX) file.2  */
+
+'editv get KC.0 KC.POINT KC.FILE.1 KC.FILE.2'
+'editv get KC.KEY.NEXT KC.KEY.PREV KC.KEY.LAST KC.KEY.EXIT'
+if KC.KEY.NEXT = '' then KC.KEY.NEXT = 'PLUS'
+if KC.KEY.PREV = '' then KC.KEY.PREV = 'MINUS'
+if KC.KEY.LAST = '' then KC.KEY.LAST = 'STAR'
+if KC.KEY.EXIT = '' then KC.KEY.EXIT = 'SLASH'
+
+TMP = dosenv( 'TMP' )                     /* current dir. may change */
+if TMP = '' then TMP = dosenv( 'TEMP' ) ; if TMP = '' then TMP = 'C:'
+if right( TMP, 1 ) <> '\' then TMP = TMP || '\'
+
+CMD = word( arg(1), 1 ) ''                /* add trailing blank here */
+
+if 0 = pos( CMD, '?EXIT ?GOTO ?LAST ?MARK ?NEXT ?PREV ' ) then do
+   if initial() then 'macro' defprofile.1()
+   if abbrev( CMD, '"' )
+      then  parse arg '"' KC.FILE.1 '"' CMD
+      else  parse arg     KC.FILE.1     CMD
+   if CMD = '' then CMD = fileid.1()
+   if abbrev( strip( CMD ), '(' )   then parse var CMD ')' CMD
+   if abbrev( strip( CMD ), '"' )
+      then  parse var CMD '"' KC.FILE.2 '"'  CMD
+      else  parse var CMD     KC.FILE.2      CMD
+   if initial() & abbrev( strip( CMD ), '(' ) then CMD = ''
+   if KC.FILE.1 = '' | KC.FILE.2 = '' | CMD <> '' then do
+      parse upper source . . I .
+      'emsg' I 'cannot handle' arg(1)  ;  exit 1
+   end
+
+   if version.1() <> 'KEDIT'  then 'OFPW OFF'
+   'extract /SHARING/'  ;  'sharing denywrite denywrite'
+   do I = 1 to 2
+      call XEDITF KC.FILE.I
+      KC.FILE.I = fileid.1()  ;  'editv put KC.FILE.' || I
+      if alt() then do                    /* note true name of files */
+         'save' ; if rc <> 0 then exit rc /* saving current contents */
+      end
+      'nomsg unlock' ; if rc = 0 then 'nomsg lock'
+   end
+   'sharing' SHARING.1 SHARING.2          /* KCOMPARE can read files */
+
+   BAT = TMP || 'KC.BAT'                  /* try KCOMPARE via KC.BAT */
+   TMP = TMP || 'KC.TMP'                  /* get rid of any old diff */
+   call XEDITN TMP   ;  TMP = fileid.1()  ;  'qquit'
+   'nomsg erase "' || TMP || '"'
+
+   call XEDITN BAT   ;  BAT = fileid.1()  ;  'nomsg del all'
+   I = '"' ||KC.FILE.1 || '" "' || KC.FILE.2 || '"'
+   'i @kcompare' I 'kedit >' TMP          ;  'ffile'
+   if version.1() <> 'KEDIT' then 'winexec cmd /c' BAT
+   else if opsys.1() <> 'DOS' | opsys.2() = "5.00"
+      then 'dosn cmd /c' BAT              /* "5.00" is actually NT 5 */
+      else 'dosn' BAT                     /* no DOS is actually OS/2 */
+   if rc == 0 then 'kedit "' || TMP || '" (noprof nodefext nolock)'
+   if rc <> 0 | size.1() = 0 then do      /* user can check command: */
+      if rc = 0 then 'qquit'              ;  'cmsg erase' BAT
+      'emsg KCOMPARE failed and/or' TMP 'is empty' ;  exit 1
+   end
+   'erase' BAT                            /* erase the helper script */
+
+   KC.POINT = KC.0   ;  KC.0 = 0 ;  'next'
+   do until focuseof()                    /* handle KCOMPARE output  */
+      'extract /CURLINE/'  ;  'next'      /* go to next  difference  */
+      if word( CURLINE.3, 1 ) <> '*' then iterate
+
+      I = KC.0 + 1   ;  KC.0 = I ;  KC.I = subword( CURLINE.3, 6, 3 )
+      'editv put KC.0 KC.' || I  ;  if rc <> 0 then exit rc
+
+      do I = 1 to 2
+         call XEDITF KC.FILE.I
+         'locate :' || word( CURLINE.3, I+1 ) 'set point .KCS.' || KC.0
+         'locate :' || word( CURLINE.3, I+3 ) 'set point .KCE.' || KC.0
+      end
+      call XEDITN TMP                     /* back to difference log  */
+   end
+
+   'nomsg erase "' || TMP || '"'          /* erase tmp and old stuff */
+   if datatype( KC.POINT, 'w' ) then do I = KC.0 + 1 to KC.POINT
+      'editv set KC.' || I                /* left from previous run  */
+   end
+
+   'macros' KC.KEY.NEXT KC.KEY.PREV KC.KEY.LAST KC.KEY.EXIT
+   'ffile "' || TMP || '"'                /* saved for KC.KEY.EXIT   */
+   'define' KC.KEY.NEXT '"macro KC ?NEXT"'
+   'define' KC.KEY.PREV '"macro KC ?PREV"'
+   'define' KC.KEY.LAST '"macro KC ?LAST"'
+   'define' KC.KEY.EXIT '"macro KC ?EXIT"'
+
+   KC.POINT = 0      ;  'editv put KC.0 KC.POINT'
+   if nbfile.1() > 1 then 'qquit'
+   'macro KC ?LAST'  ;  exit rc
+end                  /* -------------------------------------------- */
+if abbrev( CMD, '?' ) then do             /* handle internal command */
+   if datatype( KC.0, 'w' ) & datatype( KC.POINT, 'w' ) then do
+      if sign( wordpos( CMD, '?LAST ?NEXT ?PREV' )) then do
+         if LSCREEN( 0 ) then 'set screen 2'
+         do I = 1 to 2
+            call LSCREEN I ;  call XEDITF KC.FILE.I   ;  'refresh'
+         end                              /* force file 1 in 1st and */
+      end                                 /* file 2 in 2nd screen    */
+   end
+   else do                                /* KC.FILE.1/2 not checked */
+      parse upper source . . I . ;  'emsg' I 'aborted, internal error'
+      exit 1                              /* KC.* variables invalid, */
+   end                                    /* maybe ISA exhausted (?) */
+end                  /* -------------------------------------------- */
+if CMD = '?EXIT' then do                  /* reset KC-keys and exit  */
+   do I = 0 to KC.0     ;  'editv set KC.' || I ;  end
+   'nomsg reset block'  ; 'screen 1'            ;  'cursor cmdline'
+   'nomsg rename "' || TMP || 'KC.TMP" "' || TMP || 'KC.KML"'
+   'nomsg define "' || TMP || 'KC.KML"'   /* rename failure was sane */
+   if rc <> 0 & datatype( KC.POINT, 'w' ) then do
+      'emsg cannot reset keys, "' || TMP || 'KC.TMP" not found'
+      exit 1
+   end
+   say 'keys' KC.KEY.NEXT KC.KEY.PREV KC.KEY.LAST KC.KEY.EXIT 'reset'
+   'editv set KC.FILE.1'   ;  'editv set KC.POINT'
+   'editv set KC.FILE.2'   ;  'nomsg erase "' || TMP || 'KC.KML' || '"'
+   exit 0                                 /* preserved user KC.KEY.* */
+end                  /* -------------------------------------------- */
+if CMD = '?GOTO' then do                  /* go to KC-point in file: */
+   'cursor cmdline'  ;  'nomsg locate' word( arg(1), 2 )
+   if rc > 1 then do
+      'emsg Probably deleted difference' word( arg(1), 2 )  ;  exit 1
+   end
+   exit 0
+end                  /* -------------------------------------------- */
+if CMD = '?MARK' then do                  /* mark lines :from .. :to */
+   I = line.1()
+   'locate' word( arg(1), 2 ) 'mark line reset'
+   'locate' word( arg(1), 3 ) 'mark line'
+   'locate :' || I   ;  exit 0
+end                  /* -------------------------------------------- */
+if CMD = '?LAST' then do                  /* go to end of difference */
+   if KC.POINT > KC.0 | KC.POINT = 0 then do
+      KC.POINT = 1 ; 'editv put KC.POINT' ; 'macro KC ?PREV' ; exit rc
+   end
+   do I = 1 to 2                          /* go to end of difference */
+      call LSCREEN I ;  'macro KC ?GOTO .KCE.' || KC.POINT
+      if rc <> 0 then iterate             /* trap deleted difference */
+      if I = 1
+         then say KC.KEY.NEXT || '/' || KC.KEY.PREV 'for next/prev'
+         else say 'End of difference' KC.POINT
+   end
+end                  /* -------------------------------------------- */
+if CMD = '?NEXT' then KC.POINT = min( KC.POINT, KC.0 ) + 1
+if CMD = '?PREV' then KC.POINT = max( KC.POINT, 1 ) - 1
+if CMD = '?NEXT' | CMD = '?PREV' then do
+   'editv put KC.POINT' ;  I = KC.POINT   /* note difference number  */
+
+   if I = 0 | I > KC.0 then do I = 1 to 2 /* special at top or EOF   */
+      if KC.POINT = 0 then do             /* go to top of both files */
+         call LSCREEN I ;  'macro KC ?GOTO :0'
+         if I = 1
+            then say KC.KEY.NEXT || '/' || KC.KEY.EXIT 'for next/exit'
+            else say 'Found' KC.0 'difference(s)'
+      end
+      else do                             /* go to end of both files */
+         call LSCREEN I ;  'macro KC ?GOTO :*'
+         if I = 1
+            then say KC.KEY.PREV || '/' || KC.KEY.LAST 'for prev./top'
+            else say 'No more differences'
+      end
+   end
+   else do
+      'editv get KC.' || I ;  I = KC.I    /* using difference info I */
+      TMP = KC.KEY.NEXT || '/' || KC.KEY.PREV 'for next/prev.'
+
+      call LSCREEN 1 ;  'macro KC ?GOTO .KCS.' || KC.POINT
+      if rc <> 0 then do
+         call LSCREEN 2 ;  'macro KC ?GOTO 0'   ;  say TMP
+         call LSCREEN 1 ;   exit 1        /* trap deleted difference */
+      end
+
+      if      word( I, 2 ) > 0 then 'macro KC ?MARK' 1 word( I, 2 ) - 1
+      else if word( I, 3 ) > 0 then 'macro KC ?MARK' 0 word( I, 3 ) - 1
+      say KC.POINT 'of' KC.0 || ',' TMP
+
+      call LSCREEN 2 ;  'macro KC ?GOTO .KCS.' || KC.POINT
+      if rc <> 0 then exit LSCREEN( 1 ) + 1  /* 1 deleted difference */
+      if word( I, 1 ) > 0 then do
+         'macro KC ?MARK' 1 word( I, 1 ) - 1
+         say 'difference:' word( I, 1 ) 'line(s) added'
+      end
+      else do
+         if word( I, 2 ) > 0
+            then say 'difference:' word( I, 2 ) 'line(s) deleted'
+            else say 'difference:' word( I, 3 ) 'line(s) changed'
+      end
+   end
+end                  /* -------------------------------------------- */
+if sign( wordpos( CMD, '?NEXT ?PREV ?LAST' )) then do I = 2 to 0 by -1
+   if I = 0 then exit 0 ;  else call LSCREEN I
+   if lscreen.2() < pscreen.2() then do
+      HERE = autoscroll.1()   ;  'autoscroll 1'
+      'sos current firstcol endchar firstchar tabc'
+      'autoscroll' HERE                   /* if vertically split ... */
+   end                                    /* ... skip leading blanks */
+end                  /* -------------------------------------------- */
+if KC.POINT = '' then do                  /* ? usage not implemented */
+   parse upper source . . I .
+   say I || '.KEX version 2.5 by Frank Ellermann (November 2008)'
+end
+else 'macro KC ?EXIT'
+exit 0
+
+LSCREEN: procedure   /* -------------------------------------------- */
+   if arg( 1 ) = 0 then do                /* count logical screens   */
+      'extract /LSCREEN/'
+      do HERE = 0 until LSCREEN.3 LSCREEN.4 = lscreen.3() lscreen.4()
+         'sos tabcmdf'
+      end
+   end
+   else do                                /* goto logical screen N   */
+      HERE = ( 1 1 = lscreen.3() lscreen.4())
+      do while HERE <> arg( 1 )
+         'sos tabcmdf'
+         if HERE = 0 then HERE = ( 1 1 = lscreen.3() lscreen.4())
+                     else HERE = HERE + 1
+      end
+   end
+   return HERE = 0
+
+XEDITO:  procedure   /* -------------------------------------------- */
+   'xedit "' || arg( 1 ) || '"' arg( 2 )  ;  if rc <> 0 then exit rc
+   return rc
+
+XEDITF:  return XEDITO( arg( 1 ), "(nodefext)"     )
+XEDITN:  return XEDITO( arg( 1 ), "(new noprof)"   )

@@ -1,0 +1,40 @@
+* Function: Display dialog box showing KEDIT memory usage
+* To run:   Type "MEMORY" from the command line.
+* Requires: KEDIT 5.0
+* Version:  5.0 (May, 1992)
+* Updated for KeditW 1.0
+
+lf = d2c(10)
+t = delimit(version.1() version.2() version.3() 'memory usage')
+
+'EXTRACT /isa/memory/'
+
+if version.1() = 'KEDIT' & opsys.1() = "DOS" then do
+   s =      makel('Potential File Storage Area (FSA)', memory.1)
+   s = s || makel('Unallocated DOS memory',            memory.2)
+   s = s || makel('Unused ISA memory',                 memory.3)
+   s = s || makel('Total Internal Storage Area (ISA)',    isa.1)
+   s = s || makel('FSA memory allocated from DOS',     memory.4)
+   s = s || makel('FSA memory allocated from EMS',     memory.5)
+   s = s || makel('FSA memory allocated from XMS',     memory.6)
+   s = s || makel('Undo memory allocated',             memory.7)
+   end
+else if opsys.1() = "DOS" then do
+   t = t 'fixed'
+   s =      makel('Unused ISA memory',                 memory.3)
+   s = s || makel('Total FSA memory allocated',        memory.4)
+   s = s || makel('Undo memory allocated',             memory.7)
+   end
+else do
+   s =      makel('Unused ISA memory',                 memory.3)
+   s = s || makel('Total Internal Storage Area (ISA)',    isa.1)
+   s = s || makel('FSA memory allocated from OS/2',    memory.4)
+   s = s || makel('Undo memory allocated',             memory.7)
+   end
+
+'DIALOG' delimit(s) 'title' t
+exit
+
+makel:
+parse arg description, memory
+return left(description, 35, '.') || right(memory, 6, '.')'K'lf

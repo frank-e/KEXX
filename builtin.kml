@@ -1,0 +1,928 @@
+::* builtin.kml - KEDIT for Windows 1.0, January 1995
+::*
+::* This file contains copies of the default macros built into
+::* KEDIT for Windows, as discussed in the Built-In Macro Handling chapter
+::* of the Reference Manual.
+::*
+::* Note that, since the macro definitions involved are built into the
+::* KEDITW.EXE module, KEDIT for Windows does not actually load them from
+::* this file.
+::*
+::* Default definitions for certain keys with 'uninteresting' definitions,
+::* such as the 'a' key, which is defined as 'text a', are not included.
+::*
+::* If you decide to change any of KEDIT's default macro definitions, we
+::* recommend that you use separate DEFINE commands or KML files for
+::* your modified definitions and that you not load the entire
+::* BUILTIN.KML file from within your profile. This is because loading
+::* the entire file would be time consuming and redundant, since the
+::* macros involved are already built into the KEDIT module, and because
+::* if any of KEDIT's default definitions change in future releases of
+::* KEDIT, your may be loading in obsolete macro definitions from your
+::* modified version of BUILTIN.KML.
+::*
+::*
+::* Keyboard macros:
+::*
+:f1
+'help'
+:f2
+if command() then 'sos current'
+if autoindent.1() = 'ON' then do
+    if \blank() then 'sos firstchar'
+    'sos lineadd'
+    end
+else 'sos lineadd marginl'
+:f3
+'quit'
+:f4
+'sos tab'
+:f5
+'sos makecurr'
+:f6
+'?'
+:f7
+'sos firstcol'
+:f8
+'dup'
+:f9
+'cursor cmdline';'='
+:f10
+if cua() then 'win menumode';else 'sos tabcmdf'
+:f11
+'spltjoin'
+:f12
+if cua() then do;'cursor cmdline';'sos doprefix';end;else 'cursor home'
+:a+-
+'win menumode document'
+:a+=
+'dup'
+:a+1
+'point .bookmark1'
+:a+2
+'point .bookmark2'
+:a+3
+'point .bookmark3'
+:a+4
+'locate .bookmark1'
+:a+5
+'locate .bookmark2'
+:a+6
+'locate .bookmark3'
+:a+a
+if cua() then 'win menumode actions';else 'sos lineadd marginl'
+:a+b
+'mark box'
+:a+bksp
+'undo'
+:a+c
+'copy block';if rc = 0 then 'reset block'
+:a+d
+'sos linedel'
+:a+e
+'win menumode edit'
+:a+f
+if cua() then 'win menumode file'; else 'macro prompt_fillbox'
+:a+f1
+'sos quickfindf'
+:a+f10
+'win maximize frame'
+:a+f2
+'sos quickfindb'
+:a+f3
+'sos quickfindact'
+:a+f4
+'win close frame'
+:a+f5
+'win restore frame'
+:a+g
+'delete block'
+:a+h
+'win menumode help'
+:a+j
+if \command() then 'join aligned'
+:a+k
+'copy block'
+:a+l
+'mark line'
+:a+m
+'move block';if rc = 0 then 'reset block'
+:a+minus
+'win menumode document'
+:a+o
+if cua() then 'win menumode options';else 'overlaybox'
+:a+plus
+if display.1() = 1 & display.2() = 1 then
+    'display 0 *'
+else
+    'display 1 1'
+say 'Excluded line display toggled by Alt-Plus'
+:a+r
+'recover'
+:a+s
+if \command() then 'split aligned'
+:a+space
+'win menumode frame'
+:a+u
+'reset block';'reset cmdsel';'reset thighlight'
+:a+w
+if cua() then 'win menumode window';else 'sos delword'
+:a+x
+if \dir() | dirfileid.1() = '' then exit
+if pos('<dir>',curline.3()) = 0 then
+    'k "'dirfileid.1()'"(nodefext'
+else
+    'dir "'dirfileid.1()'"'
+:a+z
+'mark stream'
+:bksp
+if cua() then do
+    'cursor revert'
+    if delsel() then
+        'sos delsel'
+   else if keystyle.4() = 'STANDARD' & field.3() = 1 & modifiable() & \command() & \inprefix() then do
+        orig = line.1()
+        'cursor up'
+        if modifiable() & line.1() = orig - 1 then do
+            'sos endchar'
+            'join'
+            end
+        else
+            'cursor down'
+        end
+    else
+        'sos delback'
+    end
+else
+    'sos delback'
+:c+a
+if cua() then 'mark line selection all';else 'sos cursoradjust'
+:c+b
+'showdlg bookmark'
+:c+bksp
+'redo'
+:c+c
+if cua() then 'clipboard copy'; else 'center'
+:c+center
+if cua() then 'mark line selection all';else 'mark line anchor all'
+:c+curd
+'sos retrievef'
+:c+curl
+'sos tabwordb'
+:c+curr
+'sos tabword'
+:c+curu
+'sos retrieveb'
+:c+del
+'sos delend'
+:c+end
+if cua() then 'locate *';else 'sos delend'
+:c+enter
+if cua() then do
+    'cursor down';if prefixleft() then 'sos prefix';else 'sos marginl'
+    end
+else do
+    if inprefix() then 'sos doprefix leftedge';else 'sos doprefix prefix'
+    end
+:c+f
+if cua() then 'macro menu_edit_find'
+else do;'flow';if \command() then 'sos marginl';end
+:c+f1
+'undo'
+:c+f10
+'win maximize document'
+:c+f2
+'redo'
+:c+f4
+'win close document'
+:c+f5
+'win restore document'
+:c+f6
+'win nextwindow'
+:c+g
+'macro menu_edit_goto'
+:c+h
+'macro menu_edit_replace'
+:c+home
+if cua() then do
+    'top';if \command() then 'sos firstcol'
+    end
+else
+    'sos topedge leftedge'
+:c+i
+'macro prompt_fillbox'
+:c+ins
+'clipboard copy'
+:c+l
+'leftadjust'
+:c+m
+if cua() then do
+    'cursor revert'
+    if block.7() = 'SELECTION' then 'mark persistent'
+    end
+:c+n
+'macro menu_file_new'
+:c+numenter
+if inprefix() then 'sos doprefix leftedge';else 'sos doprefix prefix'
+:c+o
+'macro menu_file_open'
+:c+p
+if cua() then 'macro menu_file_print';else 'sos lineadd lineadd parindent'
+:c+pgdn
+if cua() then 'sos bottomedge rightedge';else do;'bottom';'sos makecurr';end
+:c+pgup
+if cua() then 'sos topedge leftedge';else do;'top';'sos makecurr';end
+:c+r
+'rightadjust'
+:c+s
+'macro menu_file_save'
+:c+tab
+'win nextwindow'
+:c+v
+'clipboard paste'
+:c+x
+if cua() then 'clipboard cut';else 'macro parentdir'
+:c+y
+'redo'
+:c+z
+'undo'
+:curd
+'cursor down';if repeating() & (bottomedge() | eof()) then 'cursor down'
+:curl
+if prefix() then 'cursor screen left';else 'cursor left'
+:curr
+if prefix() then 'cursor screen right';else 'cursor right'
+:curu
+'cursor up';if repeating() & (topedge() | tof()) then 'cursor up'
+:del
+if cua() then do
+    'cursor revert'
+    if delsel() then
+        'sos delsel'
+    else if keystyle.3() = 'STANDARD' & modifiable() & \command() & \inprefix() & field.3() > length.1() then do
+        'cursor down'
+        next = line.1()
+        next_modifiable = modifiable()
+        'cursor up'
+        if next_modifiable & line.1() = next - 1 then 'join aligned'
+        end
+    else
+        'sos delchar'
+    end
+else
+    'sos delchar'
+:end
+'sos endchar'
+:enter
+if cua() & keystyle.1() = 'STANDARD' then do
+    if command() then 'sos execute'
+    else if inprefix() then do
+        'cursor down';if prefixleft() then 'sos prefix';else 'sos marginl'
+        end
+    else if \modifiable() then 'sos lineadd marginl'
+    else if autoindent.1() = 'ON' then do
+        'split aligned';if \blank() then 'sos firstchar';'sos cdn'
+        end
+    else do
+        'split';'sos cdn';if blank() then 'sos marginl';else 'sos firstcol'
+        end
+    end
+else do
+    if command() then 'sos execute'
+    else if lineinp() then
+        'sos lineadd marginl'
+    else do
+        'cursor down';if prefixleft() then 'sos prefix';else 'sos marginl'
+        end
+    end
+:esc
+'reset field'
+:home
+if cua() & keystyle.2() = 'STANDARD' then 'sos firstcol';else do;'cursor cmdline';'sos doprefix';end
+:ins
+'insertmode toggle'
+:minus
+'text -'
+:numenter
+if cua() & keystyle.1() = 'STANDARD' then do
+    if command() then 'sos execute'
+    else if inprefix() then do
+        'cursor down';if prefixleft() then 'sos prefix';else 'sos marginl'
+        end
+    else if \modifiable() then 'sos lineadd marginl'
+    else if autoindent.1() = 'ON' then do
+        'split aligned';if \blank() then 'sos firstchar';'sos cdn'
+        end
+    else do
+        'split';'sos cdn';if blank() then 'sos marginl';else 'sos firstcol'
+        end
+    end
+else do
+    if command() then 'sos execute'
+    else if lineinp() then
+        'sos lineadd marginl'
+    else do
+        'cursor down';if prefixleft() then 'sos prefix';else 'sos marginl'
+        end
+    end
+:pgdn
+'forward'
+:pgup
+'backward'
+:plus
+if cua() then do
+    'cursor cmdline'
+    'sos doprefix'
+    end
+else if prefix() then do
+    if inprefix() then 'sos doprefix leftedge'
+    else 'sos doprefix prefix'
+    end
+else
+    'text +'
+:s+c+a
+'sos cursoradjust'
+:s+c+c
+'center'
+:s+c+curl
+if cua() then 'extend sos tabwordb'
+:s+c+curr
+if cua() then 'extend sos tabword'
+:s+c+end
+if cua() then 'extend locate *'
+:s+c+enter
+if inprefix() then 'sos doprefix leftedge';else 'sos doprefix prefix'
+:s+c+f
+'flow';if \command() then 'sos marginl'
+:s+c+f6
+'win prevwindow'
+:s+c+home
+if cua() then do
+    if command() then 'top';else do;'extend top';'extend sos firstcol';end
+end
+:s+c+l
+'leftadjust'
+:s+c+o
+'overlaybox'
+:s+c+p
+'sos lineadd lineadd parindent'
+:s+c+pgdn
+if cua() then 'extend sos bottomedge rightedge'
+:s+c+pgup
+if cua() then 'extend sos topedge leftedge'
+:s+c+r
+'rightadjust'
+:s+c+tab
+'win prevwindow'
+:s+c+w
+'sos delword'
+:s+c+x
+'macro parentdir'
+:s+center
+nop
+:s+curd
+if cua() then 'extend cursor down'
+:s+curl
+if cua() then do
+    if prefix() then 'extend cursor screen left';else 'extend cursor left'
+end
+:s+curr
+if cua() then do
+    if prefix() then 'extend cursor screen right';else 'extend cursor right'
+end
+:s+curu
+if cua() then 'extend cursor up'
+:s+del
+'clipboard cut'
+:s+end
+if cua() then 'extend sos endchar'
+:s+f1
+'locate'
+:s+f10
+'right half'
+:s+f11
+'win menumode'
+:s+f12
+'cursor home'
+:s+f2
+'sos current'
+:s+f3
+'cmatch'
+:s+f4
+'kedit'
+:s+f5
+'uppercase block'
+:s+f6
+'lowercase block'
+:s+f7
+'shift left 1 block'
+:s+f8
+'shift right 1 block'
+:s+f9
+'left half'
+:s+home
+if cua() then 'extend sos firstcol'
+:s+ins
+'clipboard paste'
+:s+pgdn
+if cua() then 'extend forward'
+:s+pgup
+if cua() then 'extend backward'
+:s+tab
+if prefix() then 'sos tabfieldb';else 'sos tabb'
+:slash
+'text /'
+:space
+'text  '
+:star
+'text *'
+:tab
+if cua() then do
+    if prefix() then 'sos tabfieldf'
+    else if insertmode() then do;'reset undo';'sos instab';end
+    else 'sos tab'
+    end
+else do
+    if prefix() then 'sos tabfieldf'
+    else 'sos tab'
+    end
+:ascii
+* scan code of 56 means this is Alt+Numeric Pad input, so we enter it as is
+if lastkey.3() = 56 then 'text' d2c(arg(1))
+* else Windows has given us the ANSI code; if using an OEM font, we translate ANSI->OEM
+else if oemfont() then 'text' ansitooem(d2c(arg(1)))
+* else we have an ANSI code and an ANSI font, so we enter it as is
+else 'text' d2c(arg(1))
+:alt
+if cua() & keystyle.5() = 'STANDARD' then 'win menumode'
+::*
+::* Menu macros:
+::*
+:menu_file_new
+'kedit (untitled'
+:menu_file_open
+'showdlg open'
+:menu_file_close
+'win close file'
+:menu_file_save
+'showdlg save'
+:menu_file_saveas
+'showdlg saveas'
+:menu_file_print
+'showdlg print'
+:menu_file_printsetup
+'showdlg printsetup'
+:menu_file_directory
+'showdlg directory'
+:menu_file_exit
+'win close frame'
+:menu_edit_undo
+'wmsg undo'
+:menu_edit_redo
+'wmsg redo'
+:menu_edit_cut
+'clipboard cut'
+:menu_edit_copy
+'clipboard copy'
+:menu_edit_paste
+'clipboard paste'
+:menu_edit_selectall
+if cua() then 'mark line selection all';else 'mark line anchor all'
+:menu_edit_delete
+if delsel() then 'sos delsel';else if block() then 'delete block'
+:menu_edit_unmark
+'reset block';'reset cmdsel';'reset thighlight'
+:menu_edit_makepersistent
+'cursor revert';if block.7() = 'SELECTION' then 'mark persistent'
+:menu_edit_find
+'showdlg find'
+:menu_edit_replace
+'showdlg replace'
+:menu_edit_selectiveediting
+'showdlg selectiveediting'
+:menu_edit_goto
+'showdlg goto'
+:menu_actions_bookmark
+'showdlg bookmark'
+:menu_actions_fill
+'showdlg fill'
+:menu_actions_sort
+'showdlg sort'
+:menu_actions_uppercase
+'wmsg upper block'
+:menu_actions_lowercase
+'wmsg lower block'
+:menu_options_screenfont
+'showdlg screenfont'
+:menu_options_interface
+'showdlg interface'
+:menu_options_setcommand
+'showdlg setcommand'
+:menu_options_status
+'showdlg status'
+:menu_options_savesettings
+'showdlg savesettings'
+:menu_window_newwindow
+'win newwindow'
+:menu_window_cascade
+'win cascade'
+:menu_window_tilehorizontally
+'win tile horizontally'
+:menu_window_tilevertically
+'win tile vertically'
+:menu_window_arrange
+'showdlg arrange'
+:menu_window_arrangeicons
+'win arrangeicons'
+:menu_help_contents
+'help'
+:menu_help_searchforhelpon
+'help search'
+:menu_help_howtousehelp
+'winhelp winhelp.hlp'
+:menu_help_technicalsupport
+'help h_technical_support'
+:menu_help_aboutkeditforwindows
+'showdlg aboutkeditforwindows'
+::*
+::* Toolbar macros:
+::*
+:tool_new
+'macro menu_file_new'
+:tool_open
+'macro menu_file_open'
+:tool_save
+'macro menu_file_save'
+:tool_print
+if showprintdlg() then
+    'showdlg print'
+else do
+    'extract /printer/'
+    'printer' printer.1 'close form'
+    if block() then 'print block';else 'print all'
+    'printer' printer.1 printer.2 printer.3
+    end
+:tool_findnext
+if shift() then 'sos quickfindb';else 'sos quickfindf'
+:tool_find
+'showdlg find'
+:tool_ringprev
+if nbfile.1() > 1 then 'kedit -';else 'sos mousebeep'
+:tool_ringnext
+if nbfile.1() > 1 then 'kedit';else 'sos mousebeep'
+:tool_undo
+'undo'
+:tool_redo
+'redo'
+:tool_cut
+'macro menu_edit_cut'
+:tool_copy
+'macro menu_edit_copy'
+:tool_paste
+'macro menu_edit_paste'
+:tool_blkcopy
+'copy block'
+:tool_blkmove
+'move block'
+:tool_blkover
+'overlaybox'
+:tool_blkdel
+'delete block'
+:tool_blkshftl
+'shift left 1 block'
+:tool_blkshftr
+'shift right 1 block'
+:tool_blkupper
+'uppercase block'
+:tool_blklower
+'lowercase block'
+:tool_blkadjl
+'leftadjust block'
+:tool_blkadjr
+'rightadjust block'
+:tool_blkfill
+'macro prompt_fillbox'
+:tool_setbook1
+'point .bookmark1'
+:tool_gobook1
+'locate .bookmark1'
+:tool_hide
+'display 1 1'
+:tool_unhide
+'display 0 *'
+:tool_sortname
+if \dir() then 'sos mousebeep';else 'dirsort name'
+:tool_sortext
+if \dir() then 'sos mousebeep';else 'dirsort ext'
+:tool_sortsize
+if \dir() then 'sos mousebeep';else 'dirsort size'
+:tool_sortdate
+if \dir() then 'sos mousebeep';else 'dirsort date'
+:tool_updir
+'macro parentdir'
+:tool_chdir
+'showdlg directory'
+:tool_exit
+'win close frame'
+::*
+::* Mouse macros:
+::*
+:button1down
+'macro buttonxdown'
+:button1dblclk
+'macro buttonxdblclk'
+:button2down
+'macro buttonxdown'
+:button2dblclk
+'macro buttonxdblclk'
+:buttonxdown
+'extract /click/'
+button = click.1
+line = click.2
+col = click.3
+inmargin = (click.4 = 'MARGIN')
+inprefix = (prefix() & ((prefix.2()='LEFT' & col<6) | (prefix.2()='RIGHT' & col>lscreen.2()-6)))
+
+if cua() then do
+    if button = 2 then do
+        'macro button2popup'
+        exit
+        end
+
+    if ctrl() & \altkey() & (inmargin | inprefix) then do
+        'set drag none'
+        'mark line selection all'
+        exit
+        end
+
+    if (ctrl() & \altkey()) | inmargin | inprefix then do
+        shape = 'line'
+        persistence = markstyle.1()
+        end
+    else if altkey() then do
+        shape = 'box'
+        persistence = markstyle.2()
+        end
+    else do
+        shape = 'stream'
+        persistence = markstyle.3()
+        end
+    end
+else do
+    if ctrl() & \altkey() & (inmargin | inprefix) then do
+        'set drag none'
+        'mark line anchor all'
+        exit
+        end
+
+    if (button = 2 & \button1()) | inprefix | inmargin then shape = 'line'
+    else if (button=1 & button2()) | (button=2 & button1()) then shape = 'box'
+    else shape = 'stream'
+    persistence = 'persistent'
+    end
+
+if line = cmdline.2() then
+    call cmdline
+else if \mouseposvalid() then
+    'sos mousebeep'
+else if \shift() then
+    call filearea
+else
+    call shift_filearea
+exit
+
+cmdline:
+if \mouseposvalid() then col = 7
+
+if (cua() & altkey()) | (\cua() & button = 2) then 'reset block'
+
+if \cua() | shape \= 'stream' then do
+    'cursor screen' line col
+    'reset cmdsel'
+    'set drag none'
+    end
+else if shift() then do
+    if \cmdsel() then 'mark cmdline reset'
+    'cursor screen' line col
+    'mark cmdline'
+    'set drag cmdline'
+    end
+else do
+    'cursor screen' line col
+    'set drag cmdline reset'
+    end
+return
+
+filearea:
+'cursor screen' line col
+if cua() then do
+    if inblock() & \inmargin & \altkey() then do
+        'set drag dragdrop'
+        return
+        end
+
+    if altkey() then 'reset block'
+
+    if inmargin & \shadow() then 'mark line' markstyle.1() 'anchor reset'
+
+    'set drag' shape persistence 'anchor reset'
+    end
+else do
+    if button = 2 then 'reset block'
+    else if inmargin & \shadow() then 'mark line persistent anchor reset'
+    'set drag' shape persistence 'anchor reset'
+    end
+return
+
+shift_filearea:
+'cursor screen' line col
+if block() then do
+    if inprefix & block.1() \= 'LINE' then exit
+    'mark' block.1() block.7() 'anchor'
+    'set drag' block.1() block.7() 'anchor'
+    end
+else if shadow() | (shape \= 'line' & click.6() = -1) then
+    'sos mousebeep'
+else if shape = 'stream' then do
+    'mark stream' persistence 'anchor'
+    'mark reanchor' click.5() click.6()
+    'set drag stream' persistence 'anchor'
+    end
+else if shape = 'box' then do
+    'mark box' persistence 'anchor'
+    'mark reanchor' click.5() click.6()
+    'set drag box' persistence 'anchor'
+    end
+else do
+    'mark line' persistence 'anchor'
+    'mark reanchor' click.5()
+    'set drag line' persistence 'anchor'
+    end
+return
+:buttonxdblclk
+'extract /click/'
+button = click.1
+line = click.2
+col = click.3
+inmargin = (click.4 = 'MARGIN')
+
+if cua() then do
+    if button = 2 then do;'sos mousebeep';exit;end
+    else if ctrl() & \altkey() & (inmargin | inprefix()) then exit
+    else if (ctrl() & \altkey()) | inmargin | inprefix() then do
+        shape = 'line'
+        persistence = markstyle.1()
+        end
+    else if altkey() then do
+        shape = 'box'
+        persistence = markstyle.2()
+        end
+    else do
+        shape = 'stream'
+        persistence = markstyle.3()
+        end
+    end
+else do
+    if (button=1 & button2())|(button=2 & button1()) then shape = 'box'
+    else if (button = 2) | inmargin | inprefix() then shape = 'line'
+    else shape = 'stream'
+    persistence = 'persistent'
+    end
+
+if line = cmdline.2() then
+    call cmdline
+else if \mouseposmodifiable() & \inprefix() then
+    'sos mousebeep'
+else if shape = 'line' then
+    call filearea_line
+else if shape = 'box' then
+    nop
+else if dir() & \shift() then
+    call dirfile
+else
+    call filearea_stream
+exit
+
+cmdline:
+if cua() then do
+   if shift() then
+       'mark cmdline word'
+   else
+       'mark cmdline word reset'
+   'set drag cmdline word'
+   end
+return
+
+dirfile:
+if dirfileid.1() = '' then do
+    'sos mousebeep'
+    return
+    end
+if pos('<dir>', curline.3()) = 0 then
+    'kedit "'dirfileid.1()'" (nodefext'
+else
+    'dir "'dirfileid.1()'"'
+return
+
+filearea_line:
+'reset block'
+'mark' shape persistence 'anchor'
+'set drag' shape persistence 'anchor'
+return
+
+filearea_stream:
+if shift() then
+    'mark' shape persistence 'word'
+else
+    'mark' shape persistence 'word reset'
+'set drag' shape persistence 'word'
+return
+:button2popup
+cut        = 'Cu&t'
+copy       = '&Copy'
+paste      = '&Paste'
+delete     = '&Delete'
+unmark     = 'Unmar&k'
+persistent = '&Make Persistent'
+
+if (command() & \cmdsel()) | (\command() & \block()) then do
+    cut  = '~'cut
+    copy = '~'copy
+    end
+if \cliptext() then
+    paste = '~'paste
+if \block() & \cmdsel() then
+    delete = '~'delete
+if block.1() = 'NONE' & \cmdsel() then
+    unmark = '~'unmark
+if block.7() \= 'SELECTION' then
+    persistent = '~'persistent
+
+'popup /'cut'/'copy'/'paste'/-/'delete'/'unmark'/'persistent'/'
+
+if popup.1 = cut        then 'clipboard cut'
+if popup.1 = copy       then 'clipboard copy'
+if popup.1 = paste      then 'clipboard paste'
+if popup.1 = delete     then do;if delsel() then 'sos delsel';else 'delete block';end
+if popup.1 = unmark     then do;'reset block';'reset cmdsel';'reset thighlight';end
+if popup.1 = persistent then do;'cursor revert';'mark persistent';end
+::*
+::* Mousebar macros included for KEDIT 5.0 compatibility:
+::*
+:mousebar_move
+'macro mousebar_block move block'
+:mousebar_copy
+'macro mousebar_block copy block'
+:mousebar_delete
+if block() then 'sos current blockstart';'delete block'
+:mousebar_undo
+'undo'
+:mousebar_redo
+'redo'
+:mousebar_help
+'khelp'
+:mousebar_save
+'macro menu_file_save'
+:mousebar_quit
+'quit'
+:mousebar_srtname
+'dirsort name';'defsort name'
+:mousebar_srtext
+'dirsort ext';'defsort ext'
+:mousebar_srtsize
+'dirsort size';'defsort size'
+:mousebar_srtdate
+'dirsort date';'defsort date'
+:mousebar_..
+'macro parentdir'
+:mousebar_block
+if command() | inprefix() then
+    'emsg Cursor not in file area'
+ else
+    arg(1)
+::*
+::* Utility macros called by other default definitions:
+::*
+:parentdir
+* issue 'dir' command for parent directory of the file on focus line
+if \dir() then do;'emsg Not a DIR file';exit;end
+if focustof() then 'down 1';else if focuseof() then 'up 1'
+if dirfileid.1() == '' then 'emsg Invalid DIR file entry'
+else if dirfileid.3() = '\' then 'emsg File is in root directory'
+else do
+    on_command_line = command()
+    'dir "'dirfileid.2() || dirfileid.3()'\.."'
+    if rc = 0 & \on_command_line then 'cursor file 1 1'
+    end
+:prompt_fillbox
+if \block() | block.1() \= 'BOX' then do
+    'fillbox x' /* generate error */
+    exit
+    end
+do until readv.2 \== '' & readv.2 \== d2c(13)
+    say 'Enter fill character (or press Escape to cancel)...'
+    'readv key noignore'
+    if rc \= 0 then exit
+    end
+if readv.2 = d2c(27) then exit
+'fillbox' readv.2

@@ -1,0 +1,28 @@
+'set novalue on'  /* force KEXX and its way of SIGNAL ON NOVALUE  */
+
+/* Usage:         [MACRO] TEST ...                                */
+/* Example:       TEST ...                                        */
+/* Purpose:       TEST ...                                        */
+/* Requires:      Kedit 5.0 or KeditW 1.0 (Frank Ellermann, 2013) */
+
+   DRIVE = '\\.\PHYSICALDRIVE1'
+   call charout DRIVE, '', 1
+   INPUT = charin( DRIVE, 512, 1 )
+   if length( INPUT ) = 512
+      then  say 'okay'
+      else  say chars( DRIVE )
+   exit rc
+
+   do N = 1000 until rc <> 0
+      'msg' left( N '', N, 'x' )
+      if rc <> 0  then  do
+         say 'error' rc 'for' N 'characters'
+         leave N
+      end
+      L = length( lastmsg.1())
+      if L < N    then  do
+         say 'length' N 'truncated to' L
+         leave N
+      end
+   end
+   exit rc

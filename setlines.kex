@@ -1,0 +1,140 @@
+'set novalue on'     /* force KEXX and its way of SIGNAL ON NOVALUE  */                                      /* 132 columns -> */
+
+/* KEDIT 5.0 (KEXX) macro used to change video modes (text modes) on */
+/* DOS PC with EGA, VGA, or VESA graphics.  See usage infos below.   */
+/* Most text modes are set by the external DOS utility SETLINES.COM. */
+
+/* Many modifications to use SETLINES.KEX in opmode FULLSCREEN too:  */
+/* generally all modes from 80,13 (KEDIT minimum 13) upto MODE 80,50 */
+/* can be set, but some are extremely annoying.  SETLINE + (more) or */
+/* SETLINE - (less lines) set only MODE 80,14/25/33/36/40/44/50.     */
+
+/* In opmode TEXTWINDOW columns can be more or less anything (but 80 */
+/* and 132 are still the only compatible widths for SETLINES, except */
+/* from MODE 40,25 = SETLINES 1 resp. MODE 100,14 = SETLINES 0).  In */
+/* opmode FULLSCREEN the best MODE 132 settings are selected:        */
+/* SETLINES 14 = MODE 80,14 <-> SETLINES -14 = MODE 132,14           */
+/* SETLINES 25 = MODE 80,25 <-> SETLINES -25 = MODE 132,25           */
+/* SETLINES 33 = MODE 80,33 <-> SETLINES -32 = MODE 132,32 (sic!)    */
+/* SETLINES 36 = MODE 80,36 <-> SETLINES -35 = MODE 132,35 (sic!)    */
+/* SETLINES 40 = MODE 80,40 <-> SETLINES -39 = MODE 132,39 (sic!)    */
+/* SETLINES 44 = MODE 80,44 <-> SETLINES -44 = MODE 132,44           */
+/* SETLINES 50 = MODE 80,50 <-> SETLINES -50 = MODE 132,50           */
+/* Very tricky, you can't set MODE 132,50 on the command line here - */
+/* and MODE 80,60 does yet not work for OS/2 (but DOS SETLINES 60 or */
+/* even SETLINES -60 for 60x132 are ok. in "opmode REAL", i.e. DOS). */
+
+parse source . . WHO                         /* set WHO = macro name */
+ROW = space( arg( 1 ), 0 )                   /* strip all (!) spaces */
+
+if datatype( ROW || '0', 'w' ) = 0 then do   /* no number, '-', '+': */
+   say 'usage:' WHO '[lines|+|-]' ; say
+   if opmode.1() <> 'FULLSCREEN' then do
+      say 'lines can be 12, 14, 21, 25, 28, 30, 34, 43, 50, or 60 for'
+      say 'lines x 80 columns, or use -21, -25, etc. for -lines x 132.'
+      say
+      say 'If lines are not specified then' WHO 'toggles between 80'
+      say 'and 132 columns (unsupported for REAL 12 x 80 and 14 x 80).'
+   end
+   else do
+      say 'lines can be 14, 21, 25, 33, 36, 40, 44, or 50 for lines x 80'
+      say '(resp. -14,-25,-32,-35,-39, or -44 for -lines x 132) columns.'
+      say WHO '60: yet not supported,' WHO '-50: 50x132 is okay.'
+      say
+      say 'If lines are not specified then' WHO 'toggles between 80'
+      say 'and 132 columns (using the next corresponding line number).'
+   end
+   say
+   say WHO '+ : more lines, e.g. 14 -> 21 -> ... -> 50 -> 14.'
+   say WHO '- : less lines, e.g. 50 -> 43 -> ... -> 14 -> 50.'
+   say WHO '1 : 25 x 40,   ' WHO '-1: VESA display power off.'
+   say
+   LINES = pscreen.1() 'x' pscreen.2()
+   say 'current screen size' LINES '(' || opmode.1() || ')'
+   exit 1
+end
+else if ROW = '+' | ROW = '-' then do
+   if opmode.1() = 'FULLSCREEN' & pscreen.2() = 132 then do
+      N = wordpos( pscreen.1(),  "14 25 33 36 40 44 50" )
+      if ROW = '+' then ROW = "25 25 33 36 40 44 50 14"
+                   else ROW = "25 50 14 25 33 36 40 44"
+      ROW = word( ROW, N + 1 )
+   end
+   else if opmode.1() = 'FULLSCREEN' then do
+      N = wordpos( pscreen.1(),  "14 25 32 35 39 44" )
+      if ROW = '+' then ROW = "15 25 32 35 39 44 14"
+                   else ROW = "25 44 14 25 32 35 39"
+      ROW = word( ROW, N + 1 )
+   end
+   else if pscreen.2() = 132 then do
+      N = wordpos( pscreen.1(),  "21 25 28 30 34 43 50 60" )
+      if ROW = '+' then ROW = "25 25 28 30 34 43 50 60 21"
+                   else ROW = "25 60 21 25 28 30 34 43 50"
+      ROW = word( ROW, N + 1 )
+   end
+   else do
+      N = wordpos( pscreen.1(),  "14 21 25 28 30 34 43 50 60" )
+      if ROW = '+' then ROW = "25 21 25 28 30 34 43 50 60 14"
+                   else ROW = "25 60 14 21 25 28 30 34 43 50"
+      ROW = word( ROW, N + 1 )
+   end
+   call LINES ROW                            /* else: NNx80 or 25x40 */
+end
+else if ROW == '' then do
+   if pscreen.2() = 80
+      then ROW = 0 - pscreen.1()
+      else ROW = 0 + pscreen.1()
+
+   if       opmode.1() = 'TEXTWINDOW' & ROW = -14  then call LINES 0
+   else if  opmode.1() = 'TEXTWINDOW'              then call LINES ROW
+   else if  opmode.1() = 'FULLSCREEN' & ROW = -33  then call LINES -32
+   else if  opmode.1() = 'FULLSCREEN' & ROW = -36  then call LINES -35
+   else if  opmode.1() = 'FULLSCREEN' & ROW = -40  then call LINES -39
+   else if  opmode.1() = 'FULLSCREEN' & ROW =  39  then call LINES  40
+   else if  opmode.1() = 'FULLSCREEN' & ROW =  35  then call LINES  36
+   else if  opmode.1() = 'FULLSCREEN' & ROW =  32  then call LINES  33
+   else if  opmode.1() <> 'REAL'                   then call LINES ROW
+   else if                    0 > ROW & ROW > -21  then call LINES -21
+   else                                                 call LINES ROW
+end
+else call LINES ROW + 0                      /* transform to number  */
+
+'emsg "' || WHO ROW || '" not supported here, "' || WHO '?" shows help'
+'cmsg' WHO '?'                               /* LINES returned error */
+call LINES 25 ; exit                         /* fall back to 25 x 80 */
+
+LINES:  procedure       /*********************************************/
+   QUERY = 'q pscreen'
+   if opmode.1() <> 'REAL' & opmode.1() <> 'WINDOWS' then do
+      if arg( 1 ) >  1 then 'macro mode  80,' || ( 0 + arg( 1 ))
+      if arg( 1 ) =  1 then 'macro mode  40,' || 25
+      if arg( 1 ) =  0 then 'macro mode 100,' || 14
+      if arg( 1 ) = -1 then 'dosq start /dos /fs /c setlines -1'
+      if arg( 1 ) < -1 then 'macro mode 132,' || ( 0 - arg( 1 ))
+      if rc = 0 then exit ; else return      /* special for OS/2 2.x */
+   end
+   else if arg( 1 ) = 12 then do             /* force 12 x 80        */
+      'dosq setlines' arg( 1 ) ; 'pscreen'   '13'      '80 preset'
+      QUERY = 'STATUSLINE ON BOTTOM'
+      say "KEDIT 5.00 doesn't support 12 lines: invisible" QUERY
+   end
+   else if arg( 1 ) = -1 then do             /* switch display OFF   */
+      'dosq setlines' arg( 1 )               /* until a key pressed  */
+   end
+   else if arg( 1 ) = +1 then do             /* sets 25 x 40: mode 1 */
+      'dosq setlines' arg( 1 ) ; 'pscreen'   '25'      '40 preset'
+   end
+   else if wordpos(  arg( 1 ), "12 14 21 30 34 60" ) > 0 then do
+      'dosq setlines' arg( 1 ) ; 'pscreen'   arg( 1 )  '80 preset'
+   end
+   else if wordpos( -arg( 1 ), "21 25 28 30 34 43 50 60" ) > 0 then do
+      'dosq setlines' arg( 1 ) ; 'pscreen' 0-arg( 1 ) '132 preset'
+   end
+   else do                                   /* i.e. 25, 28, 43, 50  */
+      'dosq setlines 25'                     /* force back VGA modes */
+      'pscreen 25 80 preset'                 /* inform editor        */
+      'nomsg pscreen' arg( 1 )               /* editor sets ?? x 80  */
+      if pscreen.1() <> arg( 1 ) then return /* unsupported height   */
+   end
+
+   'command' QUERY             ; exit rc     /* no return after set  */

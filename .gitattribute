@@ -1,2 +1,8 @@
-*.kex linguist-language=REXX
-*.kml linguist-language=REXX
+*.kex text eol=lf linguist-language=REXX
+*.kml text eol=lf linguist-language=REXX
+*.kld text eol=lf
+*.md  text eol=lf
+*.pro text eol=crlf
+*.rex text eol=lf
+*.wh  text eol=lf
+*.zip -text
