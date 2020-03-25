@@ -2,7 +2,7 @@
 
 /* Usage:	  [MACRO] INITIAL				  */
 /* Example:	  PROFILE.KEX: if initial() then 'macro INITIAL'  */
-/* Requires:	  Kedit 5.0 or KeditW 1.0			  */
+/* Requires:      Kedit 5.0 or KeditW32 1.6                       */
 /*		  INITIAL.KML	      general key definitions	  */
 /*		  OEMKEY.KML	      optional KEYB GR macros	  */
 /*		  defprof.1() KEX     PROFILE.KEX or WINPROF.KEX  */
@@ -34,6 +34,12 @@
 /*		  'DEF DOS.KML' defines macros DOS and DOSN for   */
 /*		  'SYN DOS macro DOS' and 'SYN DOSN macro DOSN'.  */
 /* Only 1.6.x:    Use new TABSAVE ON to preserve more input TABs. */
+/*                Syntax highligting (additional parsers):        */
+/*                BATCH.KLD           *.bat, *.cmd for Windows NT */
+/*                FREECIV.KLD         *.ruleset, *.tilespec, etc. */
+/*                KLD.KLD             *.kld (cf. Samples\KLD.KLD) */
+/*                LUA.KLD             *.lua                       */
+/*                WASM.KLD            *.asm, *.inc for WATCOM     */
 /* See also:	  KHELP DEFPROF, KHELP REPROF, KHELP MONITOR, and */
 /*		  all associated help topics like KHELP MACROPATH */
 /* Related:	  <URL:http://purl.net/xyzzy/xedit.htm> 	  */
@@ -74,7 +80,6 @@
    'reprof on'                   /* apply PROFILE.KEX on any file */
    'beep on'                     /* SOS ERRORBEEP in EMSG + ALERT */
    'hexdisp on'                  /* show ASCII code in statusline */
-   'shifts on'                   /* show shiftstate in statusline */
    'defsort P E N'               /* DIR sort Path Extension Name  */
    'sharing denywrite denywrite' /* allow others to read locked   */
    'debugging' debugging.1() min( 10, debugging.2())  /* min. 6   */
@@ -99,6 +104,7 @@
    rc = Q( 'macro watcom'  )     /* (optional Open Watcom macros) */
 
    if version.1() = 'KEDIT'   then  do
+      'shifts on'                /* show shiftstate in statusline */
       Q( 'macro CURSORSH' )      /* improve the cursor visibility */
       if rc = 0   then	'syn CURSORSHape 8 macro CURSORSH'
       if pscreen.1() = 25 & pscreen.2() = 80 then  do
@@ -136,7 +142,6 @@
       'autocolor .REXP REXX'     /* ooRexx RexxPaws               */
       'autocolor .REXX REXX'     /* Regina                        */
       'autocolor .THE  REXX'     /* THE macro, same idea as .KEX  */
-      'autocolor .TLD  kLD'      /* THE Language Definition       */
       rc = Q( 'parser BATCH BATCH.KLD' )
       if rc = 0   then  do
          'autocolor .BAT BATCH'  /* ignore few PC DOS 7 REXX .bat */
@@ -147,8 +152,15 @@
          'autocolor .ASM WASM'   /* presumably .S WASM is too bad */
          'autocolor .INC WASM'   /* extremely dubious, try anyway */
       end
-      rc = AUTOCOLOR( 'KLD' )    /* replace builtin *KLD.KLD      */
-      rc = AUTOCOLOR( 'LUA' )    /* load a homebrewn LUA.KLD      */
+      rc = Q( 'parser KLD KLD.KLD' )
+      if rc = 0   then  do       /* replace built-in *KLD.KLD     */
+         'autocolor .KLD KLD'
+         'autocolor .TLD KLD'    /* THE Language Definition       */
+      end
+      rc = Q( 'parser LUA LUA.KLD' )
+      if rc = 0   then  do       /* use homebrewn LUA.KLD parser: */
+         'autocolor .LUA LUA'
+      end
       rc = Q( 'parser FREECIV FREECIV.KLD' )
       if rc = 0   then  do       /* N.B.: .SPEC is rather obscure */
          'autocolor .MUSICSPEC   FREECIV'
@@ -175,11 +187,6 @@
       I = INITIAL( I, 'tabsave   on'         )  /* use TABSAVE ON */
    end
    'nomsg msg' MSG      ;  exit 0
-
-AUTOCOLOR:  procedure   /* --- quietly ignores missing KLD        */
-   rc = Q( 'parser' arg( 1 ) arg( 1 ) || '.KLD' )
-   if rc = 0   then  'autocolor .' || arg( 1 ) arg( 1 )
-   return rc
 
 Q:	    procedure	/* --- quietly ignores missing KEX or KML */
    MSG = lastmsg.1()	;  'nomsg' arg( 1 )     ;  QRC = rc
