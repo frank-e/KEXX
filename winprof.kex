@@ -13,7 +13,7 @@ if datatype( INITIAL.0, 'w' ) then  do N = 1 to INITIAL.0
    'set' INITIAL.N   ;  if rc <> 0  then  exit rc
 end
 
-do ;  if TYPE( 'LUA' ) | REXX()  then  do
+do ;  if TYPE( 'LUA MD' ) | REXX()  then  do
       'eolout lf'    ;  'tabs incr 3'
    end                        /* UNIX lineends, EOF = LF */
 else  if TYPE( 'ASM INC S SH NMK DIFF' ) | FCIV()  then  do
@@ -25,8 +25,8 @@ else  if TYPE( 'AWK C H CPP HPP CXX HXX JS CSS' )  then  do
 else  if NAME( 'CTAGS TAGS KTAGS MAKEFILE' )    then  do
       'eolout lf'    ;  'tabsin off'
    end                        /* do not expand tags TABs */
-else  if TYPE( 'BAT CMD INI SYS' )  then  do
-      'tabsin off'   ;  'tabs incr 3'
+else  if TYPE( 'BAT INI SYS CMD SCF' ) then  do
+      'eolout crlf'  ;  'tabsin off'
       if TYPE( 'BAT INI SYS' )   then  'eofout eoleof'
    end                        /* EOF char. for old *.BAT */
 end
