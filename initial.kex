@@ -126,6 +126,7 @@
       end			 /* (command DOSQ is always okay) */
    end				 /* ----------------------------- */
    else  do                      /* special stuff for KeditW 1.x: */
+      'colmark 35 68 80'         ;  'boundmark winmargin zone trunc'
       rc = Q( 'macro WINK *' )   /* map AltGr to Alt if available */
       'autocolor .DPK  NULL'     /* unused PASCAL \/ but keeping  */
       'autocolor .DPR  NULL'     /* unused PASCAL /\ .PAS PASCAL  */

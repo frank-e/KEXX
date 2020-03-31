@@ -33,7 +33,8 @@
  cd
  chdir
  cls
-*cmd                    (not listed, CMD is no internal command)
+*cmd                    (CMD handled as %COMSPEC% in a START command)
+ cmd
 *cmdextversion          (sub-keyword in extended IF CMDEXTVERSION ..)
  cmdextversion
  color
