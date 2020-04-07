@@ -37,6 +37,7 @@
 /*                Syntax highligting (additional parsers):        */
 /*                BATCH.KLD           *.bat, *.cmd for Windows NT */
 /*                FREECIV.KLD         *.ruleset, *.tilespec, etc. */
+/*                KEXX.KLD            *.kex, *.kml (not REXX.KLD) */
 /*                KLD.KLD             *.kld (cf. Samples\KLD.KLD) */
 /*                LUA.KLD             *.lua                       */
 /*                WASM.KLD            *.asm, *.inc for WATCOM     */
@@ -142,11 +143,16 @@
       'autocolor .REXG REXX'     /* ooRexx GUI                    */
       'autocolor .REXP REXX'     /* ooRexx RexxPaws               */
       'autocolor .REXX REXX'     /* Regina                        */
-      'autocolor .THE  REXX'     /* THE macro, same idea as .KEX  */
       rc = Q( 'parser BATCH BATCH.KLD' )
       if rc = 0   then  do
          'autocolor .BAT BATCH'  /* ignore few PC DOS 7 REXX .bat */
          'autocolor .CMD BATCH'  /* ignore few old OS/2 REXX .cmd */
+      end
+      rc = Q( 'parser KEXX KEXX.KLD' )
+      if rc = 0   then  do
+         'autocolor .KEX  KEXX'  /* modified REXX for KEXX        */
+         'autocolor .KML  KEXX'  /* modified REXX for KEXX        */
+         'autocolor .THE  KEXX'  /* THE macro, same idea as .KEX  */
       end
       rc = Q( 'parser WASM WASM.KLD' )
       if rc = 0   then  do

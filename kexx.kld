@@ -1,0 +1,114 @@
+* KEXX.KLD - KEDIT Language Definition for KEXX macros and KML
+* files (Kedit Macro Library), mostly identical to the KeditW32
+* built-in REXX.KLD (Version 1.1 - May 2007).
+
+:case
+ ignore
+:option
+ rexx
+:number
+ rexx
+:identifier
+ [a-zA-Z!?_@#$]  [a-zA-Z0-9.!?_@#$]
+:string
+ single
+ double
+:comment
+ paired   /* */ nest
+ line     *     firstnonblank
+* The KML "header" is a colon followed by the macro name, e.g.,
+* :: defines macro : for key :.  A ::* would define a useless
+* macro :*, this is used for KML comments.  Unlike * and /* */
+* comments ::* comments are not stored in the Kedit macrospace.
+ line     ::*   column 1
+:header
+ line     :     column 1
+:label
+ delimiter : any
+:match
+ (     )
+ do,select  end  when,otherwise
+:keyword
+* No REXX address, push, queue
+*address     type 5
+ arg         type 7
+ by          type 2
+ call        type 5
+ digits      type 2
+ do          type 5
+ drop        type 1
+ else        type 1
+ end         type 1
+ engineering type 2
+ exit        type 1
+ expose      type 2
+ for         type 2
+ forever     type 2
+ form        type 2
+ fuzz        type 2
+ if          type 1
+ interpret   type 1
+ iterate     type 1
+ leave       type 1
+ linein      type 2
+ name        type 2
+ nop         type 1
+ numeric     type 5
+ off         type 2
+ on          type 2
+ options     type 1
+ otherwise   type 1
+ parse       type 5
+ procedure   type 5
+ pull        type 7
+* No REXX address, push, queue
+*push        type 1
+*queue       type 1
+ return      type 1
+ say         type 1
+ scientific  type 2
+ select      type 1
+ signal      type 5
+ source      type 2
+ to          type 2
+ then        type 1
+ trace       type 5
+ until       type 2
+ upper       type 2
+ value       type 2
+ var         type 2
+ version     type 2
+ when        type 1
+ while       type 2
+ with        type 2
+:postcompare
+*See 'ecolor': 9 blue (like keywords), 8 black, 6 dark cyan (strings), 1 red.
+*The sort order is significant, anything already handled above does not work,
+*e.g., most strings, identifiers, keywords, and comments are already colored.
+
+ text \<<       alternate 9
+ text >>=       alternate 9
+ text \==       alternate 9
+ text \>>       alternate 9
+ text <<=       alternate 9
+ text <<        alternate 9
+ text ==        alternate 9
+ text <=        alternate 9
+ text \>        alternate 9
+ text <>        alternate 9
+ text ><        alternate 9
+ text >=        alternate 9
+ text \<        alternate 9
+ text >>        alternate 9
+ text //        alternate 9
+ text **        alternate 9
+ text ||        alternate 9
+ text &&        alternate 9
+*red for invalid operators
+ text ++        alternate 1
+ text --        alternate 1
+ text %%        alternate 1
+*red for invalid specials
+ class [`~]     alternate 1
+*red controls and non-ASCII
+ class [~!-~]   alternate 1
