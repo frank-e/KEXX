@@ -115,13 +115,13 @@
 * codepage 850 character 239 is displayed with a codepage 437 glyph,
 * characters 213 and 252 also are not shown as expected.  To get 850
 * glyphs in all modes I use MODE CON CP PREP=((850) C:\DOS\EGA.CPI).
-:::
-* Macro :: introduced by ::: in column 1 is used throughout all
+::*
+* Macro :: introduced by ::* in column 1 is used throughout all
 * following key definitions to keep comments apart from actual
 * key macros.  With this trick only the code is kept in memory,
 * comments automagically redefine each other.  KeditW offers a
 * new ::* KML-comment-line-intro for similar purposes.
-:::
+::*
 * --- undefined keys --------------------------------------------------
 * The default macros A-', A-;, A-[, and A-/ are undefined (NOP), here
 * unusual KEYB GR numbers and labels are documented by debug messages.
@@ -141,7 +141,7 @@
    'macro OEMKEY 52: .:'
 :A-/
    "macro OEMKEY 53: -_ NT 43: #'"
-:::
+::*
 * --- control keys ----------------------------------------------------
 * The default macros C-[, C-], C-\, and C-U are undefined (NOP), here
 * unusual KEYB GR numbers and labels are documented by debug messages.
@@ -160,7 +160,7 @@
    'macro ascii 28'  ;  'macro OEMKEY 12: á? \ NT 41: ^ø'
 :C-]
    'macro ascii 29'  ;  "macro OEMKEY 27: +* ~ NT 13: ï`"
-:::
+::*
 * --- AltGr keys ------------------------------------------------------
 * With KEYB GR left Alt differs from right AltGr in 12 cases.  Kedit
 * allows to get rid of these differences except from key 86 (AltGr |).
@@ -201,7 +201,7 @@
    'macro OEMKEY æ'  ;  'macro OEMKEY 50: mM æ'
 :A-T
    'mov block'       ;  if rc = 0 then 'reset block'
-:::
+::*
 * --- dead keys -------------------------------------------------------
 * KEYB GR has 3 "dead" keys used to compose accented characters, e.g.
 * pressing '+u results in £.  To get the accent character alone it is
@@ -226,7 +226,7 @@
    "macro '"         ;  "macro OEMKEY 43: #' NT 41: ^ø"
 :A-=
    'macro OEMIF 0 ~' ;  "macro OEMKEY 13: '` NT 27: +* ~"
-:::
+::*
 * --- other keys ------------------------------------------------------
 * The default SLASH definition 'text /' reflects its label on KEYB US,
 * but on KEYB GR codepage 850 'text' d2c(246) corresponds to its label.
@@ -241,7 +241,7 @@
    'text ,'          ;  'macro OEMKEY 83: ,'
 :,
    if lastkey.3() = 83 then 'macro S-Del' ;  else 'text' lastkey.2()
-:::
+::*
 * --- help keys -------------------------------------------------------
 * INITIAL.KML defines C-F3 .. C-F10 as a set of help keys describing
 * its key definitions, some of these macros should be redefined here.
@@ -276,7 +276,7 @@
    say 'C-Tab: HT  C-[: ESC  A-[: nop  A-8: "["  A-9: "]"  C-Slash = A-Slash'
    say 'A-.:  nop  A-;: nop  A--: "\"  A-Q: "@"  A-=: "`"  C-Center= Center '
    say 'A-,:  nop ' XX 'nop  A-/: nop  A-M:' E ' A-`: "^"  C-Star  = A-Star '
-:::
+::*
 * --- Macro OEMIF -----------------------------------------------------
 * The Alt-key pairs A-[ or A-- for AltGr-\ and A-] or A-= for AltGR-~
 * depend on the version:  Kedit 5 gets key 12 for A-- and key 27 for
@@ -291,7 +291,7 @@
       if CHR = '~'   then  'macro S-`'
    end
    else  'dmsg Alt-key number' lastkey.3() 'reserved for macro OEMIF'
-:::
+::*
 * --- Macro OEMKEY ----------------------------------------------------
 * This macro is called by some keys defined above to translate codepage
 * 850 or 437 definitions into corresponding OEMTOANSI definitions with
@@ -311,5 +311,5 @@
    if length( X ) = 1   then  'text' X
                         else  'dmsg KEYB GR' X
    exit rc
-:::
+::*
 'dmsg :: INITIAL.KML + OEMKEY.KML (c) 1993, 2008 by Frank Ellermann'

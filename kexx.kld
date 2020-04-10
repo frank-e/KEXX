@@ -9,25 +9,29 @@
 :number
  rexx
 :identifier
- [a-zA-Z!?_@#$]  [a-zA-Z0-9.!?_@#$]
+* skip KEXX legacy non-standard @#$
+*[a-zA-Z!?_@#$]   [a-zA-Z0-9.!?_@#$]
+ [a-zA-Z!?_]      [a-zA-Z0-9.!?_]
 :string
  single
  double
 :comment
- paired   /* */ nest
- line     *     firstnonblank
+ paired     /* */ nest
+ line       *     firstnonblank
 * The KML "header" is a colon followed by the macro name, e.g.,
 * :: defines macro : for key :.  A ::* would define a useless
 * macro :*, this is used for KML comments.  Unlike * and /* */
 * comments ::* comments are not stored in the Kedit macrospace.
- line     ::*   column 1
+ line       ::*   column 1
 :header
- line     :     column 1
+ line       :     column 1
 :label
- delimiter : any
+* KEXX labels use column 1:
+ delimiter :      column 1
+*delimiter :      any
 :match
- (     )
- do,select  end  when,otherwise
+ (          )
+ do,select  end   when,otherwise
 :keyword
 * No REXX address, push, queue
 *address     type 5
@@ -81,34 +85,20 @@
  when        type 1
  while       type 2
  with        type 2
+* KEXX conditions:
+ error       type 2
+ failure     type 2
+ halt        type 2
+*lostdigits  type 2
+*notready    type 2
+ novalue     type 2
+ syntax      type 2
 :postcompare
 *See 'ecolor': 9 blue (like keywords), 8 black, 6 dark cyan (strings), 1 red.
 *The sort order is significant, anything already handled above does not work,
 *e.g., most strings, identifiers, keywords, and comments are already colored.
-
- text \<<       alternate 9
- text >>=       alternate 9
- text \==       alternate 9
- text \>>       alternate 9
- text <<=       alternate 9
- text <<        alternate 9
- text ==        alternate 9
- text <=        alternate 9
- text \>        alternate 9
- text <>        alternate 9
- text ><        alternate 9
- text >=        alternate 9
- text \<        alternate 9
- text >>        alternate 9
- text //        alternate 9
- text **        alternate 9
- text ||        alternate 9
- text &&        alternate 9
-*red for invalid operators
- text ++        alternate 1
- text --        alternate 1
- text %%        alternate 1
-*red for invalid specials
- class [`~]     alternate 1
+*red for backtick + deprecated
+ class [`~^@#$]   alternate 1
 *red controls and non-ASCII
- class [~!-~]   alternate 1
+ class [~!-~]     alternate 1
+*KEXX rejects U+00AC logical NOT
