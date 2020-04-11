@@ -1,5 +1,5 @@
 * REXX.KLD - KEDIT Language Definition for classic (ANSI) REXX
-* and related ooRexx features, mostly identical to the KeditW32
+* and classic ooRexx features, mostly identical to the KeditW32
 * built-in REXX.KLD (Version 1.1 - May 2007).
 
 :case
@@ -9,7 +9,8 @@
 :number
  rexx
 :identifier
- [a-zA-Z!?_]      [a-zA-Z0-9!?_]
+* experimental . at begin for .RS etc.
+ [a-zA-Z.!?_]     [a-zA-Z0-9.!?_]
 :string
  single
  double
@@ -18,8 +19,12 @@
 * for ooRexx:
  line       --    any
 :header
+* (in)famous line 1 hacks:
+ line ﻿#!       column 1
+ line ﻿         column 1
+ line #!          column 1
 * for ooRexx directives:
- line      :      column 1
+ line      :      firstnonblank
 :label
  delimiter :      any
 :match
@@ -32,6 +37,7 @@
  arg         type 7
  by          type 2
  call        type 5
+ caseless    type 2
  digits      type 2
  do          type 5
  drop        type 1
@@ -49,6 +55,7 @@
  if          type 1
  interpret   type 1
  iterate     type 1
+ label       type 2
  leave       type 1
  linein      type 2
  name        type 2
@@ -90,26 +97,64 @@
  notready    type 2
  novalue     type 2
  syntax      type 2
+* disabled sub-keywords of 'address'
+*append      type 2
+*input       type 2
+*normal      type 2
+*output      type 2
+*path        type 2
+*replace     type 2
+*stem        type 2
+*stream      type 2
+*system      type 2
 * ooRexx keywords:
  additional  type 2
- all         type 2
+ any         type 2
  array       type 2
+ case        type 2
  guard       type 5
+ local       type 2
  loop        type 5
- noobject    type 2
+ nomethod    type 2
  nostring    type 2
  over        type 2
  propagate   type 2
  raise       type 5
  reply       type 1
+ strict      type 2
  use         type 5
  user        type 2
+* ANSI REXX special:
+ rc          type 1
+ result      type 1
+ sigl        type 1
+ .MN         type 1
+ .RC         type 1
+ .RESULT     type 1
+ .RS         type 1
+* Common special:
+ .ENDOFLINE  type 1
+ .LINE       type 1
+* Regina special:
+ .DIRSEP     type 1
+ .FILE       type 1
+* ooRexx special (incomplete):
+ self        type 1
+ super       type 1
+ .FALSE      type 1
+ .NIL        type 1
+ .TRUE       type 1
 :postcompare
 *See 'ecolor': 9 blue (like keywords), 8 black, 6 dark cyan (strings), 1 red.
 *The sort order is significant, anything already handled above does not work,
 *e.g., most strings, identifiers, keywords, and comments are already colored.
-*red for backtick + deprecated
+
+* logical NOT U+00AC is valid:
+ text �           alternate 8
+* red for comma, tricky at the end of a line
+ text ,           alternate 1
+* red for backtick + obsolete:
  class [`^@#$]    alternate 1
-*red controls and non-ASCII
+* red controls and non-ASCII (outside of strings and comments)
  class [~!-~]     alternate 1
-*includes U+00AC logical NOT
+

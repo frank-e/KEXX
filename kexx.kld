@@ -11,7 +11,7 @@
 :identifier
 * skip KEXX legacy non-standard @#$
 *[a-zA-Z!?_@#$]   [a-zA-Z0-9.!?_@#$]
- [a-zA-Z!?_]      [a-zA-Z0-9!?_]
+ [a-zA-Z!?_]      [a-zA-Z0-9.!?_]
 :string
  single
  double
