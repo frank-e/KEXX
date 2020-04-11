@@ -1,5 +1,5 @@
-* KEXX.KLD - KEDIT Language Definition for KEXX macros and KML
-* files (Kedit Macro Library), mostly identical to the KeditW32
+* REXX.KLD - KEDIT Language Definition for classic (ANSI) REXX
+* and related ooRexx features, mostly identical to the KeditW32
 * built-in REXX.KLD (Version 1.1 - May 2007).
 
 :case
@@ -9,32 +9,26 @@
 :number
  rexx
 :identifier
-* skip KEXX legacy non-standard @#$
-*[a-zA-Z!?_@#$]   [a-zA-Z0-9.!?_@#$]
  [a-zA-Z!?_]      [a-zA-Z0-9!?_]
 :string
  single
  double
 :comment
  paired     /* */ nest
- line       *     firstnonblank
-* The KML "header" is a colon followed by the macro name, e.g.,
-* :: defines macro : for key :.  A ::* would define a useless
-* macro :*, this is used for KML comments.  Unlike * and /* */
-* comments ::* comments are not stored in the Kedit macrospace.
- line       ::*   column 1
+* for ooRexx:
+ line       --    any
 :header
- line       :     column 1
+* for ooRexx directives:
+ line      :      column 1
 :label
-* KEXX labels use column 1:
- delimiter :      column 1
-*delimiter :      any
+ delimiter :      any
 :match
- (          )
- do,select  end   when,otherwise
+ (                )
+* loop and [] added for ooRexx:
+ [                ]
+ do,loop,select   end   when,otherwise
 :keyword
-* No REXX address, push, queue
-*address     type 5
+ address     type 5
  arg         type 7
  by          type 2
  call        type 5
@@ -45,7 +39,9 @@
  end         type 1
  engineering type 2
  exit        type 1
- expose      type 2
+* for ooRexx:
+*expose      type 2
+ expose      type 3
  for         type 2
  forever     type 2
  form        type 2
@@ -65,9 +61,8 @@
  parse       type 5
  procedure   type 5
  pull        type 7
-* No REXX address, push, queue
-*push        type 1
-*queue       type 1
+ push        type 1
+ queue       type 1
  return      type 1
  say         type 1
  scientific  type 2
@@ -82,23 +77,39 @@
  value       type 2
  var         type 2
  version     type 2
- when        type 1
+* for ooRexx guard:
+*when        type 1
+ when        type 5
  while       type 2
  with        type 2
-* KEXX conditions:
+* REXX conditions:
  error       type 2
  failure     type 2
  halt        type 2
-*lostdigits  type 2
-*notready    type 2
+ lostdigits  type 2
+ notready    type 2
  novalue     type 2
  syntax      type 2
+* ooRexx keywords:
+ additional  type 2
+ all         type 2
+ array       type 2
+ guard       type 5
+ loop        type 5
+ noobject    type 2
+ nostring    type 2
+ over        type 2
+ propagate   type 2
+ raise       type 5
+ reply       type 1
+ use         type 5
+ user        type 2
 :postcompare
 *See 'ecolor': 9 blue (like keywords), 8 black, 6 dark cyan (strings), 1 red.
 *The sort order is significant, anything already handled above does not work,
 *e.g., most strings, identifiers, keywords, and comments are already colored.
 *red for backtick + deprecated
- class [`~^@#$]   alternate 1
+ class [`^@#$]    alternate 1
 *red controls and non-ASCII
  class [~!-~]     alternate 1
-*KEXX rejects U+00AC logical NOT
+*includes U+00AC logical NOT
