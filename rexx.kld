@@ -19,19 +19,18 @@
 * for ooRexx:
  line       --    any
 :header
+* for ooRexx directives:
+ line      ::     firstnonblank
 * (in)famous line 1 hacks:
- line ﻿#!       column 1
  line ﻿         column 1
  line #!          column 1
-* for ooRexx directives:
- line      :      firstnonblank
 :label
  delimiter :      any
 :match
  (                )
 * loop and [] added for ooRexx:
  [                ]
- do,loop,select   end   when,otherwise
+ do,loop,select   end   case,when,otherwise
 :keyword
  address     type 5
  arg         type 7
@@ -110,11 +109,20 @@
 * ooRexx keywords:
  additional  type 2
  any         type 2
+ arguments   type 2
  array       type 2
  case        type 2
+ class       type 2
+ continue    type 2
+ counter     type 2
+ description type 2
+ forward     type 5
  guard       type 5
+ index       type 2
+ item        type 2
  local       type 2
  loop        type 5
+ message     type 2
  nomethod    type 2
  nostring    type 2
  over        type 2
@@ -138,7 +146,7 @@
 * Regina special:
  .DIRSEP     type 1
  .FILE       type 1
-* ooRexx special (incomplete):
+* ooRexx special:
  self        type 1
  super       type 1
  .FALSE      type 1

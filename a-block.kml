@@ -1,4 +1,4 @@
-:::
+::*
 *  Usage:   DEFine A-BLOCK.KML
 *  Purpose: Improve the default A-B, A-L, and A-Z macros for cases,
 *           when an existing (out of sight) block is extended, but
@@ -32,7 +32,7 @@
 *     without RESET would have the same effect as a MARK with RESET.
 *     IOW, just add RESET, it should make no difference as long as
 *     conditions (1), (2), and (3) hold.
-:::
+::*
 *A-B, A-L, A-Z: MARK Box, Line, or Stream block (default behaviour).
 *A-B, A-L, A-Z pressed again resets the block to one char. or line.
 :A-B
