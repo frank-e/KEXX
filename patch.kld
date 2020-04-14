@@ -1,0 +1,16 @@
+* experimental patch (diff -u) "syntax" highlighting for KeditW32
+
+:case
+ respect
+:number
+ integer
+:string
+ delimiter @
+:comment
+ line      -      column 1
+:header
+ line      +      column 1
+:postcompare
+* red controls and non-ASCII
+ class [~!-~]     alternate 1
+

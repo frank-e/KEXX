@@ -41,6 +41,7 @@
 /*                KLD.KLD             *.kld (cf. Samples\KLD.KLD) */
 /*                LUA.KLD             *.lua                       */
 /*                REXX.KLD            *.rex (modified for ooRexx) */
+/*                PATCH.KLD           *.patch (diff -u output)    */
 /*                WASM.KLD            *.asm, *.inc for WATCOM     */
 /* See also:      KHELP DEFPROF, KHELP REPROF, KHELP MONITOR, and */
 /*                all associated help topics like KHELP MACROPATH */
@@ -139,41 +140,37 @@
       'autocolor .CSS  C'        /* better than nothing           */
       'autocolor .JS   C'        /* better than nothing           */
       'autocolor .REG  INI'      /* better than nothing           */
-      rc = Q( 'parser BATCH BATCH.KLD' )
-      if rc = 0   then  do
+      if Q( 'parser BATCH BATCH.KLD' ) = 0   then  do
          'autocolor .BAT BATCH'  /* ignore few PC DOS 7 REXX .bat */
          'autocolor .CMD BATCH'  /* ignore few old OS/2 REXX .cmd */
       end
-      rc = Q( 'parser KEXX KEXX.KLD' )
-      if rc = 0   then  do
+      if Q( 'parser KEXX KEXX.KLD' ) = 0  then  do
          'autocolor .KEX  KEXX'  /* \/ modified REXX.KLD for KEXX */
          'autocolor .KML  KEXX'  /* /\ drops @#$ id.s and ~^ op.s */
          'autocolor .THE  KEXX'  /* THE macro, same idea as .KEX  */
       end
-      rc = Q( 'parser REXX REXX.KLD' )
-      if rc = 0   then  do
+      if Q( 'parser REXX REXX.KLD' ) = 0  then  do
          'autocolor .CLS  REXX'  /* extremely dubious, try anyway */
          'autocolor .NRX  REXX'  /* NetRexx (better than nothing) */
          'autocolor .REXG REXX'  /* ooRexx GUI                    */
          'autocolor .REXP REXX'  /* ooRexx RexxPaws               */
          'autocolor .REXX REXX'  /* Regina                        */
       end
-      rc = Q( 'parser WASM WASM.KLD' )
-      if rc = 0   then  do
+      if Q( 'parser WASM WASM.KLD' ) = 0  then  do
          'autocolor .ASM WASM'   /* presumably .S WASM is too bad */
          'autocolor .INC WASM'   /* extremely dubious, try anyway */
       end
-      rc = Q( 'parser KLD KLD.KLD' )
-      if rc = 0   then  do       /* replace built-in *KLD.KLD     */
-         'autocolor .KLD KLD'
+      if Q( 'parser KLD KLD.KLD' ) = 0    then  do
+         'autocolor .KLD KLD'    /* replace built-in *KLD.KLD     */
          'autocolor .TLD KLD'    /* THE Language Definition       */
       end
-      rc = Q( 'parser LUA LUA.KLD' )
-      if rc = 0   then  do       /* use homebrewn LUA.KLD parser: */
-         'autocolor .LUA LUA'
+      if Q( 'parser PATCH PATCH.KLD' ) = 0   then  do
+         'autocolor .PATCH PATCH'
       end
-      rc = Q( 'parser FREECIV FREECIV.KLD' )
-      if rc = 0   then  do       /* N.B.: .SPEC is rather obscure */
+      if Q( 'parser LUA LUA.KLD' ) = 0 then  do
+         'autocolor .LUA LUA'    /* use homebrewn LUA.KLD parser  */
+      end
+      if Q( 'parser FREECIV FREECIV.KLD' ) = 0  then  do
          'autocolor .MUSICSPEC   FREECIV'
          'autocolor .RULESET     FREECIV'
          'autocolor .SOUNDSPEC   FREECIV'

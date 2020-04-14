@@ -157,7 +157,7 @@
 *The sort order is significant, anything already handled above does not work,
 *e.g., most strings, identifiers, keywords, and comments are already colored.
 
-* logical NOT U+00AC is valid:
+* logical NOT U+00AC is valid (assuming Latin-1 or similar here, not UTF-8):
  text ¬           alternate 8
 * red for comma, tricky at the end of a line
  text ,           alternate 1
