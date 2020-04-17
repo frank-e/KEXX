@@ -1,5 +1,27 @@
 * Keditw32 1.6.x syntax coloring for Freeciv rulesets
 
+* The output is designed for ?color A (comments) red and
+* ?color G (header lines) dark green. This can be set in
+* a "per file" (reprof on) WINPROF.KEX or similar by:
+
+*  if FCIV()   then  do       /* freeciv: swap red green */
+*     C = 'FREECIV'        ;  'parser' C C || '.KLD'
+*     'ecolor A red'       ;  'ecolor G dark green'
+*     'pcolor A red'       ;  'pcolor G dark green'
+*     'coloring on' C
+*  end
+
+*  FCIV: procedure            /* lots of special cases   */
+*     FCIV = 'MUSICSPEC RULESET SOUNDSPEC SPEC TILESPEC'
+*     if TYPE( FCIV 'SAV' )   then  return 1
+*     FCIV = 'HELPDATA.TXT MODPACKS.DB MODPACKS.LIST'
+*     if FILE( FCIV )         then  return 1
+*     return NAME( '.FREECIV-CLIENT-RC-2' )
+*  TYPE: return WPOS( arg( 1 ), ft.1())
+*  NAME: return WPOS( arg( 1 ), fn.1())
+*  FILE: return WPOS( arg( 1 ), fn.1() || . || ft.1())
+*  WPOS: return sign( wordpos( arg( 2 ), arg( 1 )))
+
 :case
 *utility/section_file.c entry_from_token()
  ignore
@@ -17,7 +39,6 @@
 *ignore comma, it clobbers coloring in vectors/tables.
 *ignore '[' and ']', paired [] handled above, unclear.
 *require leading letter, and trailing letter or digit,
-*
  [A-Z]          [A-Z0-9\-\.\_\[]  [A-Z0-9\]]
 :keyword
  TRUE

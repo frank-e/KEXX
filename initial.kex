@@ -176,7 +176,7 @@
          'autocolor .SOUNDSPEC   FREECIV'
          'autocolor .SPEC        FREECIV'
          'autocolor .TILESPEC    FREECIV'
-      end
+      end                        /* CAVEAT: stupid Freeciv *.SPEC */
    end
 
    MSG = lastmsg.1()             /* preserve last message, if any */

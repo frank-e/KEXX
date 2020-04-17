@@ -55,9 +55,10 @@ if version.1() <> 'KEDIT'  then  do
          'ecolor' changestr( 'ON' K, ECOLOR.N, C )
       end N                   /* BG matching filearea BG */
    end
-   if FCIV()   then  do
+   if FCIV()   then  do       /* freeciv: swap red green */
       C = 'FREECIV'        ;  'parser' C C || '.KLD'
       'ecolor A red'       ;  'ecolor G dark green'
+      'pcolor A red'       ;  'pcolor G dark green'
       'coloring on' C
    end
 
